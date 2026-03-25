@@ -214,7 +214,7 @@ function initEdit() {
     editCtx.drawImage(img, 0, 0);
     editCanvas.style.display = 'block';
     document.getElementById('edit-dropzone').style.display = 'none';
-    updResize(); editUndoStack = []; editRedoStack = []; saveEdit();
+    updResize(); editUndoStack = []; editRedoStack = []; originalW = 0; originalH = 0; saveEdit();
   });
 
   // Reset All -- revert to original image
@@ -263,7 +263,7 @@ function initEdit() {
           editCtx.drawImage(img, 0, 0);
           editCanvas.style.display = 'block';
           document.getElementById('edit-dropzone').style.display = 'none';
-          updResize(); editUndoStack = []; editRedoStack = []; saveEdit();
+          updResize(); editUndoStack = []; editRedoStack = []; originalW = 0; originalH = 0; saveEdit();
         }); break;
       }
     }
@@ -620,7 +620,8 @@ function initEdit() {
   // Export
   document.getElementById('btn-export').addEventListener('click', editExport);
 
-  // Paste support in Edit mode (already handled above)
+  // --- Persistent Info Bar ---
+  initInfoBar();
 }
 
 function updResize() { document.getElementById('resize-w').value = editCanvas.width; document.getElementById('resize-h').value = editCanvas.height; }
@@ -630,6 +631,7 @@ function saveEdit() {
   editRedoStack = [];
   try { const h = computeHistogram(editCanvas); drawHistogram(document.getElementById('histogram-canvas'), h); } catch {}
   updateDimensionBadge();
+  updateInfoBar();
   pulseExportButton();
 }
 
@@ -648,7 +650,123 @@ function pulseExportButton() {
   clearTimeout(pulseTimeout);
   pulseTimeout = setTimeout(() => btn.classList.add('export-pulse'), 50);
 }
-function editUndo() { if (editUndoStack.length <= 1) return; editRedoStack.push(editUndoStack.pop()); const s = editUndoStack.at(-1); editCanvas.width = s.width; editCanvas.height = s.height; editCtx.putImageData(s, 0, 0); updResize(); }
+function editUndo() { if (editUndoStack.length <= 1) return; editRedoStack.push(editUndoStack.pop()); const s = editUndoStack.at(-1); editCanvas.width = s.width; editCanvas.height = s.height; editCtx.putImageData(s, 0, 0); updResize(); updateInfoBar(); }
+
+// ============================================================
+// Persistent Info Bar
+// ============================================================
+
+let barUnitPx = true;
+let barLocked = true;
+let originalW = 0, originalH = 0;
+
+function initInfoBar() {
+  const barW = document.getElementById('bar-w');
+  const barH = document.getElementById('bar-h');
+  const barUnit = document.getElementById('bar-unit');
+  const barLock = document.getElementById('bar-lock');
+  const barApply = document.getElementById('bar-apply');
+
+  // Toggle px / %
+  barUnit?.addEventListener('click', () => {
+    barUnitPx = !barUnitPx;
+    barUnit.textContent = barUnitPx ? 'px' : '%';
+    barUnit.classList.toggle('active', barUnitPx);
+    updateInfoBar();
+  });
+
+  // Toggle lock
+  barLock?.addEventListener('click', () => {
+    barLocked = !barLocked;
+    barLock.classList.toggle('locked', barLocked);
+  });
+
+  // W input changes H if locked
+  barW?.addEventListener('input', () => {
+    if (!barLocked || !originalW) return;
+    const ratio = originalH / originalW;
+    if (barUnitPx) {
+      barH.value = Math.round(+barW.value * ratio);
+    } else {
+      barH.value = barW.value; // same percentage
+    }
+  });
+
+  // H input changes W if locked
+  barH?.addEventListener('input', () => {
+    if (!barLocked || !originalH) return;
+    const ratio = originalW / originalH;
+    if (barUnitPx) {
+      barW.value = Math.round(+barH.value * ratio);
+    } else {
+      barW.value = barH.value;
+    }
+  });
+
+  // Apply resize on button click or Enter key
+  function applyBarResize() {
+    if (!editCanvas.width) return;
+    let newW, newH;
+    if (barUnitPx) {
+      newW = +barW.value; newH = +barH.value;
+    } else {
+      newW = Math.round(originalW * +barW.value / 100);
+      newH = Math.round(originalH * +barH.value / 100);
+    }
+    if (!newW || !newH || newW < 1 || newH < 1) return;
+    if (newW === editCanvas.width && newH === editCanvas.height) return;
+
+    const t = document.createElement('canvas'); t.width = newW; t.height = newH;
+    const tc = t.getContext('2d'); tc.imageSmoothingQuality = 'high'; tc.drawImage(editCanvas, 0, 0, newW, newH);
+    editCanvas.width = newW; editCanvas.height = newH; editCtx.drawImage(t, 0, 0);
+    updResize(); saveEdit();
+  }
+
+  barApply?.addEventListener('click', applyBarResize);
+  barW?.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyBarResize(); });
+  barH?.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyBarResize(); });
+
+  // Fit / 1:1 buttons
+  document.getElementById('bar-fit')?.addEventListener('click', () => {
+    if (editCanvas) editCanvas.style.maxWidth = '90%';
+  });
+  document.getElementById('bar-actual')?.addEventListener('click', () => {
+    if (editCanvas) editCanvas.style.maxWidth = 'none';
+  });
+}
+
+function updateInfoBar() {
+  const bar = document.getElementById('edit-info-bar');
+  if (!bar || !editCanvas.width) return;
+
+  bar.classList.add('visible');
+
+  // Track original dimensions (set once on first load)
+  if (!originalW) { originalW = editCanvas.width; originalH = editCanvas.height; }
+
+  const barW = document.getElementById('bar-w');
+  const barH = document.getElementById('bar-h');
+
+  if (barUnitPx) {
+    barW.value = editCanvas.width;
+    barH.value = editCanvas.height;
+  } else {
+    barW.value = originalW ? Math.round(editCanvas.width / originalW * 100) : 100;
+    barH.value = originalH ? Math.round(editCanvas.height / originalH * 100) : 100;
+  }
+
+  // Estimate file size
+  const pixels = editCanvas.width * editCanvas.height;
+  const estPng = Math.round(pixels * 1.5 / 1024); // rough PNG estimate
+  const sizeEl = document.getElementById('bar-size');
+  if (sizeEl) sizeEl.textContent = `~${estPng > 1024 ? (estPng/1024).toFixed(1) + 'MB' : estPng + 'KB'} PNG`;
+
+  // Zoom level
+  const rect = editCanvas.getBoundingClientRect();
+  const zoom = Math.round(rect.width / editCanvas.width * 100);
+  const zoomEl = document.getElementById('bar-zoom');
+  if (zoomEl) zoomEl.textContent = zoom + '%';
+}
 function editRedo() { if (!editRedoStack.length) return; const s = editRedoStack.pop(); editUndoStack.push(s); editCanvas.width = s.width; editCanvas.height = s.height; editCtx.putImageData(s, 0, 0); updResize(); }
 
 function editRotate(deg) {
