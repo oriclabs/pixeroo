@@ -67,6 +67,7 @@ function openMode(mode) {
   const showUndoRedo = mode === 'edit';
   document.getElementById('btn-undo').style.display = showUndoRedo ? '' : 'none';
   document.getElementById('btn-redo').style.display = showUndoRedo ? '' : 'none';
+  document.getElementById('btn-reset-all').style.display = showUndoRedo ? '' : 'none';
 }
 
 function goHome() {
@@ -215,6 +216,40 @@ function initEdit() {
     document.getElementById('edit-dropzone').style.display = 'none';
     updResize(); editUndoStack = []; editRedoStack = []; saveEdit();
   });
+
+  // Reset All -- revert to original image
+  document.getElementById('btn-reset-all')?.addEventListener('click', () => {
+    if (!editOriginal) return;
+    if (!confirm('Reset all edits and revert to original image?')) return;
+    editCanvas.width = editOriginal.naturalWidth;
+    editCanvas.height = editOriginal.naturalHeight;
+    editCtx.drawImage(editOriginal, 0, 0);
+    updResize();
+    editUndoStack = []; editRedoStack = [];
+    saveEdit();
+    // Reset sliders
+    resetAdjustmentSliders();
+  });
+
+  // Reset Adjustments -- sliders to 0, redraw original
+  document.getElementById('btn-reset-adjust')?.addEventListener('click', () => {
+    resetAdjustmentSliders();
+    if (editOriginal) {
+      editCanvas.width = editOriginal.naturalWidth;
+      editCanvas.height = editOriginal.naturalHeight;
+      editCtx.drawImage(editOriginal, 0, 0);
+      saveEdit();
+    }
+  });
+
+  function resetAdjustmentSliders() {
+    ['brightness', 'contrast', 'saturation'].forEach(a => {
+      document.getElementById(`adj-${a}`).value = 0;
+      document.getElementById(`val-${a}`).textContent = '0';
+    });
+    document.getElementById('adj-hue').value = 0;
+    document.getElementById('val-hue').textContent = '0';
+  }
 
   document.addEventListener('paste', (e) => {
     if (currentMode !== 'edit') return;
