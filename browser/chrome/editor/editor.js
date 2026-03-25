@@ -23,6 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initCompare();
   initOCR();
   initGlobalDrop();
+  initEditCategoryTabs();
+  initLayoutToggle();
 
   document.getElementById('btn-editor-settings').addEventListener('click', () => {
     chrome.tabs.create({ url: chrome.runtime.getURL('settings/settings.html') });
@@ -88,6 +90,65 @@ function initGlobalDrop() {
     if (file.type === 'image/svg+xml' || file.name.endsWith('.svg')) { openMode('svg'); triggerDrop('svg-drop', 'svg-file', file); }
     else { openMode('edit'); triggerDrop('edit-dropzone', 'edit-file', file); }
   });
+}
+
+// ============================================================
+// Edit Mode: Category Tabs
+// ============================================================
+
+function initEditCategoryTabs() {
+  const tabs = document.querySelectorAll('.edit-cat-tab');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      showEditCategory(tab.dataset.editCat);
+    });
+  });
+  // Show transform by default
+  showEditCategory('transform');
+}
+
+function showEditCategory(cat) {
+  const editControls = document.querySelector('.edit-controls');
+  if (!editControls) return;
+  editControls.querySelectorAll('.sidebar-section[data-cat]').forEach(s => {
+    s.style.display = s.dataset.cat === cat ? '' : 'none';
+  });
+}
+
+// ============================================================
+// Layout Toggle (Ribbon / Sidebar)
+// ============================================================
+
+let editLayout = 'sidebar';
+
+function initLayoutToggle() {
+  // Load preference
+  chrome.storage.sync.get({ editLayout: 'sidebar' }, (result) => {
+    editLayout = result.editLayout;
+    applyEditLayout();
+  });
+
+  document.getElementById('btn-layout-toggle')?.addEventListener('click', () => {
+    editLayout = editLayout === 'sidebar' ? 'ribbon' : 'sidebar';
+    applyEditLayout();
+    chrome.storage.sync.set({ editLayout });
+  });
+}
+
+function applyEditLayout() {
+  const panel = document.getElementById('mode-edit');
+  if (!panel) return;
+
+  panel.classList.remove('layout-sidebar', 'layout-ribbon');
+  panel.classList.add(`layout-${editLayout}`);
+
+  // Toggle icon
+  const iconRibbon = document.getElementById('icon-ribbon');
+  const iconSidebar = document.getElementById('icon-sidebar');
+  if (iconRibbon) iconRibbon.style.display = editLayout === 'sidebar' ? '' : 'none';
+  if (iconSidebar) iconSidebar.style.display = editLayout === 'ribbon' ? '' : 'none';
 }
 
 function triggerDrop(dropId, inputId, file) {
