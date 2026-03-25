@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initGlobalDrop();
   initGenerate();
   initCollage();
+  checkWasmStatus();
 
   document.getElementById('btn-editor-settings').addEventListener('click', () => {
     chrome.tabs.create({ url: chrome.runtime.getURL('settings/settings.html') });
@@ -64,10 +65,7 @@ function openMode(mode) {
   const labels = { edit:'Edit', convert:'Convert', store:'Store Assets', info:'Info', qr:'QR Code', colors:'Colors', svg:'SVG Tools', compare:'Compare', generate:'Generate', collage:'Collage' };
   document.getElementById('mode-label').textContent = labels[mode] || '';
 
-  const showUndoRedo = mode === 'edit';
-  document.getElementById('btn-undo').style.display = showUndoRedo ? '' : 'none';
-  document.getElementById('btn-redo').style.display = showUndoRedo ? '' : 'none';
-  document.getElementById('btn-reset-all').style.display = showUndoRedo ? '' : 'none';
+  // Undo/Redo/Reset now live in ribbon Size group, always visible in edit mode
 }
 
 function goHome() {
@@ -97,6 +95,45 @@ function initGlobalDrop() {
 // ============================================================
 // MODE: Generate (standalone, no input image)
 // ============================================================
+
+// ============================================================
+// WASM Engine Status
+// ============================================================
+
+function checkWasmStatus() {
+  const isLoaded = !!(window.pixerooWasm?.version);
+  updateWasmUI(isLoaded);
+
+  // Re-check periodically (WASM may load asynchronously)
+  if (!isLoaded) {
+    setTimeout(checkWasmStatus, 5000);
+  }
+}
+
+function updateWasmUI(loaded) {
+  const dot = document.getElementById('wasm-status-dot');
+  const text = document.getElementById('wasm-status-text');
+
+  if (dot) {
+    dot.className = 'wasm-dot ' + (loaded ? 'online' : 'offline');
+    dot.title = loaded ? 'WASM engine running' : 'WASM engine not loaded - some features unavailable';
+  }
+  if (text) {
+    text.textContent = loaded ? 'WASM online' : 'WASM offline';
+    text.style.color = loaded ? '#22c55e' : 'var(--slate-500)';
+  }
+
+  // Toggle WASM-dependent elements
+  document.querySelectorAll('.wasm-required').forEach(el => {
+    el.classList.toggle('wasm-disabled', !loaded);
+    el.classList.toggle('wasm-enabled', loaded);
+    if (!loaded) {
+      el.title = (el.dataset.wasmTitle || el.title || '') + ' (requires WASM engine)';
+    } else if (el.dataset.wasmTitle) {
+      el.title = el.dataset.wasmTitle;
+    }
+  });
+}
 
 function initGenerate() {
   const genCanvas = document.getElementById('gen-canvas');
@@ -254,15 +291,16 @@ function initEdit() {
     editOriginal = img;
     editCanvas.width = img.naturalWidth; editCanvas.height = img.naturalHeight;
     editCtx.drawImage(img, 0, 0);
-    editCanvas.style.display = 'block';
+    editCanvas.style.display = 'block'; document.querySelector('.edit-ribbon')?.classList.add('visible');
     document.getElementById('edit-dropzone').style.display = 'none';
     updResize(); editUndoStack = []; editRedoStack = []; originalW = 0; originalH = 0; saveEdit();
   });
 
   // Reset All -- revert to original image
-  document.getElementById('btn-reset-all')?.addEventListener('click', () => {
+  document.getElementById('btn-reset-all')?.addEventListener('click', async () => {
     if (!editOriginal) return;
-    if (!confirm('Reset all edits and revert to original image?')) return;
+    const ok = await pixDialog.confirm('Reset Image', 'Reset all edits and revert to original image?', { danger: true, okText: 'Reset' });
+    if (!ok) return;
     editCanvas.width = editOriginal.naturalWidth;
     editCanvas.height = editOriginal.naturalHeight;
     editCtx.drawImage(editOriginal, 0, 0);
@@ -303,7 +341,7 @@ function initEdit() {
           document.getElementById('file-label').textContent = 'Pasted image';
           editCanvas.width = img.naturalWidth; editCanvas.height = img.naturalHeight;
           editCtx.drawImage(img, 0, 0);
-          editCanvas.style.display = 'block';
+          editCanvas.style.display = 'block'; document.querySelector('.edit-ribbon')?.classList.add('visible');
           document.getElementById('edit-dropzone').style.display = 'none';
           updResize(); editUndoStack = []; editRedoStack = []; originalW = 0; originalH = 0; saveEdit();
         }); break;
@@ -408,11 +446,25 @@ function initEdit() {
   document.getElementById('watermark-opacity')?.addEventListener('input', (e) => {
     document.getElementById('watermark-opacity-val').textContent = e.target.value;
   });
+  // Watermark sliders
+  document.getElementById('watermark-opacity')?.addEventListener('input', (e) => {
+    const v = document.getElementById('watermark-opacity-val2'); if (v) v.textContent = e.target.value;
+  });
+  document.getElementById('watermark-fontsize')?.addEventListener('input', (e) => {
+    const v = document.getElementById('watermark-fontsize-val'); if (v) v.textContent = e.target.value;
+  });
+  document.getElementById('watermark-angle')?.addEventListener('input', (e) => {
+    const v = document.getElementById('watermark-angle-val'); if (v) v.textContent = e.target.value;
+  });
+
   document.getElementById('btn-watermark')?.addEventListener('click', () => {
     const text = document.getElementById('watermark-text').value;
     if (!text || !editCanvas.width) return;
     applyWatermark(editCanvas, editCtx, text, {
-      opacity: +document.getElementById('watermark-opacity').value / 100,
+      opacity: +(document.getElementById('watermark-opacity')?.value || 30) / 100,
+      fontSize: +(document.getElementById('watermark-fontsize')?.value || 48),
+      angle: +(document.getElementById('watermark-angle')?.value || -30),
+      color: document.getElementById('ann-color')?.value || '#ffffff',
     });
     saveEdit();
   });
@@ -611,7 +663,7 @@ function initEdit() {
   function showGenerated(canvas, name) {
     editCanvas.width = canvas.width; editCanvas.height = canvas.height;
     editCtx.drawImage(canvas, 0, 0);
-    editCanvas.style.display = 'block';
+    editCanvas.style.display = 'block'; document.querySelector('.edit-ribbon')?.classList.add('visible');
     document.getElementById('edit-dropzone').style.display = 'none';
     editFilename = name; updResize(); saveEdit();
   }
@@ -866,12 +918,32 @@ function applyAdj() {
 function editExport() {
   if (!editCanvas.width) return;
   const fmt = document.getElementById('export-format').value;
+  const wasmFormats = ['avif', 'ico', 'tiff', 'qoi'];
+
+  if (wasmFormats.includes(fmt)) {
+    // WASM-only formats
+    if (window.pixerooWasm?.convert_image) {
+      // TODO: use WASM convert_image when engine is built
+    }
+    pixDialog.alert('WASM Required', `${fmt.toUpperCase()} export requires the WASM engine. Use PNG, JPEG, WebP, or BMP for now.`);
+    return;
+  }
+
   const mime = {png:'image/png',jpeg:'image/jpeg',webp:'image/webp',bmp:'image/bmp'}[fmt] || 'image/png';
-  const q = ['jpeg','webp'].includes(fmt) ? 0.85 : undefined;
+  const q = ['jpeg','webp'].includes(fmt) ? +(document.getElementById('export-quality')?.value || 85) / 100 : undefined;
   editCanvas.toBlob(blob => {
     chrome.runtime.sendMessage({ action:'download', url: URL.createObjectURL(blob), filename:`pixeroo/${editFilename}.${fmt==='jpeg'?'jpg':fmt}`, saveAs:true });
   }, mime, q);
 }
+
+// Show/hide quality slider based on format
+document.getElementById('export-format')?.addEventListener('change', (e) => {
+  const row = document.getElementById('export-quality-row');
+  if (row) row.style.display = ['jpeg','webp','avif'].includes(e.target.value) ? 'flex' : 'none';
+});
+document.getElementById('export-quality')?.addEventListener('input', (e) => {
+  const v = document.getElementById('export-quality-val'); if (v) v.textContent = e.target.value;
+});
 
 // ============================================================
 // MODE: Convert

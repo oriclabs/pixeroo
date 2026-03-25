@@ -9,7 +9,7 @@
     *, *::before, *::after { box-sizing: border-box; }
     body { min-height: 100vh; display: flex; flex-direction: column; }
 
-    /* --- Topbar --- */
+    /* Topbar */
     .topbar { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1rem; border-bottom: 1px solid var(--slate-800); height: 48px; flex-shrink: 0; }
     .topbar-left { display: flex; align-items: center; gap: 0.5rem; }
     .topbar-right { display: flex; align-items: center; gap: 0.375rem; }
@@ -19,26 +19,25 @@
     .back-btn { display: none; gap: 4px; font-size: 0.75rem; }
     .back-btn.visible { display: flex; }
 
-    /* --- Home Screen --- */
+    /* Home */
     .home { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; }
     .home.hidden { display: none; }
     .home-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.25rem; }
-    .home-sub { font-size: 0.8125rem; color: var(--slate-500); margin-bottom: 2rem; font-family: 'JetBrains Mono', monospace; }
-    .home-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; max-width: 540px; width: 100%; }
+    .home-sub { font-size: 0.8125rem; color: var(--slate-500); margin-bottom: 2rem; font-family: monospace; }
+    .home-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.75rem; max-width: 640px; width: 100%; }
     .home-card { background: var(--slate-900); border: 1px solid var(--slate-800); border-radius: 12px; padding: 1.25rem 1rem; cursor: pointer; transition: all 0.15s; text-align: center; }
     .home-card:hover { border-color: var(--saffron-400); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(244,196,48,0.08); }
     .home-card-icon { width: 40px; height: 40px; border-radius: 10px; margin: 0 auto 0.75rem; display: flex; align-items: center; justify-content: center; }
     .home-card-title { font-size: 0.8125rem; font-weight: 600; color: var(--slate-200); margin-bottom: 0.25rem; }
     .home-card-desc { font-size: 0.625rem; color: var(--slate-500); line-height: 1.4; }
-    .home-recent { margin-top: 2rem; max-width: 540px; width: 100%; }
+    .home-recent { margin-top: 2rem; max-width: 640px; width: 100%; }
     .home-recent-title { font-size: 0.6875rem; font-weight: 600; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
-    .home-recent-empty { font-size: 0.75rem; color: var(--slate-600); }
 
-    /* --- Mode Container --- */
+    /* Mode panels */
     .mode-view { display: none; flex: 1; overflow: hidden; }
     .mode-view.active { display: flex; }
 
-    /* --- Common mode layout --- */
+    /* Common */
     .work-area { flex: 1; display: flex; align-items: center; justify-content: center; background: var(--slate-900); overflow: hidden; position: relative; }
     .work-area canvas { max-width: 90%; max-height: 90%; }
     .sidebar { width: 280px; border-left: 1px solid var(--slate-800); overflow-y: auto; flex-shrink: 0; }
@@ -48,8 +47,6 @@
     .dropzone:hover, .dropzone.dragover { border-color: var(--saffron-400); }
     .drop-title { color: var(--slate-400); font-size: 0.875rem; margin-bottom: 0.25rem; }
     .drop-sub { color: var(--slate-600); font-size: 0.6875rem; }
-
-    /* --- Form --- */
     .input-field { width: 100%; background: var(--slate-800); color: var(--slate-200); border: 1px solid var(--slate-700); border-radius: 5px; padding: 6px 8px; font-size: 0.75rem; }
     .input-field:focus { outline: none; border-color: var(--saffron-400); }
     .select-field { width: 100%; background: var(--slate-800); color: var(--slate-200); border: 1px solid var(--slate-700); border-radius: 5px; padding: 6px 8px; font-size: 0.75rem; }
@@ -66,95 +63,97 @@
     .info-label { color: var(--slate-500); flex-shrink: 0; }
     .info-value { color: var(--slate-200); font-weight: 500; text-align: right; word-break: break-all; cursor: pointer; max-width: 55%; }
     .info-value:hover { color: var(--saffron-400); }
-
-    /* --- Colors --- */
+    .svg-source { background: var(--slate-800); border-radius: 6px; padding: 0.75rem; font-family: monospace; font-size: 0.6875rem; color: var(--slate-300); line-height: 1.5; white-space: pre-wrap; word-break: break-all; max-height: 200px; overflow-y: auto; }
     .color-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0; border-bottom: 1px solid var(--slate-800); }
     .color-preview { width: 28px; height: 28px; border-radius: 4px; flex-shrink: 0; border: 1px solid var(--slate-700); }
     .color-hex { color: var(--slate-200); font-weight: 600; font-family: monospace; font-size: 0.6875rem; cursor: pointer; }
     .color-hex:hover { color: var(--saffron-400); }
     .color-secondary { color: var(--slate-500); font-size: 0.625rem; }
-
-    /* --- Compare --- */
     .compare-container { display: flex; gap: 1rem; flex: 1; padding: 1rem; overflow: hidden; }
     .compare-slot { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
     .compare-slot canvas { max-width: 100%; max-height: 70vh; border-radius: 6px; background: var(--slate-800); }
     .compare-label { font-size: 0.6875rem; color: var(--slate-500); }
     .compare-info { font-size: 0.625rem; color: var(--slate-500); }
 
-    /* --- SVG --- */
-    .svg-source { background: var(--slate-800); border-radius: 6px; padding: 0.75rem; font-family: 'JetBrains Mono', monospace; font-size: 0.6875rem; color: var(--slate-300); line-height: 1.5; white-space: pre-wrap; word-break: break-all; max-height: 200px; overflow-y: auto; }
+    /* Edit ribbon */
+    .edit-panel.active { display: flex; flex-direction: column; }
+    .edit-ribbon { border-bottom: 1px solid var(--slate-800); flex-shrink: 0; overflow-x: auto; overflow-y: hidden; background: var(--slate-900); display: none; }
+    .edit-ribbon.visible { display: block; }
+    .ribbon-bar { display: flex; align-items: stretch; padding: 0.25rem 0; }
+    .ribbon-group { display: flex; flex-direction: column; padding: 0.375rem 0.75rem; min-width: fit-content; flex-shrink: 0; }
+    .ribbon-tools { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+    .ribbon-row { display: flex; align-items: center; gap: 4px; }
+    .ribbon-label { font-size: 0.5625rem; font-weight: 600; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.05em; text-align: center; padding-top: 3px; border-top: 1px solid var(--slate-800); margin-top: auto; }
+    .ribbon-sep-v { width: 1px; background: var(--slate-700); flex-shrink: 0; margin: 0.375rem 0; }
+    .ribbon-mini-label { font-size: 0.5625rem; color: var(--slate-400); width: 12px; text-align: center; flex-shrink: 0; }
+    .ribbon-bar .tool-btn { padding: 4px 7px; font-size: 0.625rem; }
+    .ribbon-bar .tool-btn svg { width: 15px; height: 15px; }
+    .ribbon-bar .range-input { height: 16px; }
+    .ribbon-bar .range-value { font-size: 0.5625rem; color: var(--slate-300); min-width: 1.5rem; text-align: right; }
+    .ribbon-bar .input-field { padding: 3px 6px; font-size: 0.625rem; width: auto; }
+    .ribbon-bar .btn-primary { padding: 4px 12px; font-size: 0.625rem; }
+    .ribbon-bar .select-field { padding: 3px 6px; font-size: 0.625rem; width: auto; }
 
-    /* --- Store Assets --- */
+    /* Info bar (part of the ribbon, no border between them) */
+    .info-bar { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.375rem 0.75rem; background: var(--slate-900); font-size: 0.6875rem; flex-wrap: wrap; flex-shrink: 0; }
+    .info-bar .dim-input { width: 60px; background: var(--slate-800); color: var(--slate-200); border: 1px solid var(--slate-700); border-radius: 4px; padding: 4px 6px; font-size: 0.75rem; font-family: monospace; text-align: center; }
+    .info-bar .dim-input:focus { border-color: var(--saffron-400); outline: none; }
+    .info-bar .dim-sep { color: var(--slate-600); font-size: 0.625rem; }
+    .info-bar .dim-unit { background: var(--slate-800); border: 1px solid var(--slate-700); border-radius: 4px; padding: 3px 8px; font-size: 0.625rem; cursor: pointer; color: var(--slate-400); transition: all 0.12s; }
+    .info-bar .dim-unit.active { background: rgba(244,196,48,0.1); border-color: var(--saffron-400); color: var(--saffron-400); }
+    .info-bar .dim-lock { cursor: pointer; color: var(--slate-500); transition: color 0.12s; padding: 2px; }
+    .info-bar .dim-lock.locked { color: var(--saffron-400); }
+    .info-bar .info-sep { width: 1px; height: 16px; background: var(--slate-800); }
+    .info-bar .itext { color: var(--slate-400); font-size: 0.6875rem; }
+    .info-bar .ibtn { background: none; border: 1px solid var(--slate-700); color: var(--slate-400); border-radius: 4px; padding: 3px 8px; font-size: 0.625rem; cursor: pointer; }
+    .info-bar .ibtn:hover { border-color: var(--saffron-400); color: var(--saffron-400); }
+
+    /* WASM status */
+    .wasm-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+    .wasm-dot.online { background: #22c55e; box-shadow: 0 0 4px rgba(34,197,94,0.4); }
+    .wasm-dot.offline { background: #ef4444; }
+    .wasm-required { position: relative; }
+    .wasm-required::after { content: ''; position: absolute; top: -2px; right: -2px; width: 5px; height: 5px; background: #f97316; border-radius: 50%; }
+    .wasm-required.wasm-disabled { opacity: 0.4; pointer-events: none; }
+    .wasm-required.wasm-enabled { opacity: 1; pointer-events: auto; }
+    .wasm-required.wasm-enabled::after { background: #22c55e; }
+
+    /* Export pulse */
+    @keyframes exportPulse { 0%,100% { box-shadow: none; } 50% { box-shadow: 0 0 12px rgba(244,196,48,0.4); } }
+    .export-pulse { animation: exportPulse 1.5s ease-in-out 2; }
+
+    /* Store assets */
     .store-nav { width: 160px; border-right: 1px solid var(--slate-800); overflow-y: auto; flex-shrink: 0; }
     .store-nav-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1rem; font-size: 0.75rem; color: var(--slate-400); cursor: pointer; border-left: 3px solid transparent; transition: all 0.12s; }
     .store-nav-item:hover { background: var(--slate-900); color: var(--slate-200); }
     .store-nav-item.active { color: var(--saffron-400); border-left-color: var(--saffron-400); background: rgba(244,196,48,0.03); }
     .store-nav-item .badge { font-size: 0.5625rem; background: var(--slate-800); color: var(--slate-500); padding: 1px 5px; border-radius: 3px; margin-left: auto; }
     .asset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem; padding: 1rem; flex: 1; overflow-y: auto; align-content: start; }
-    .asset-card { background: var(--slate-800); border: 1px solid var(--slate-700); border-radius: 8px; overflow: hidden; transition: border-color 0.12s; }
+    .asset-card { background: var(--slate-800); border: 1px solid var(--slate-700); border-radius: 8px; overflow: hidden; cursor: pointer; transition: border-color 0.12s; }
     .asset-card:hover { border-color: var(--slate-600); }
     .asset-card-preview { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background: var(--slate-900); overflow: hidden; }
-    .asset-card-preview img, .asset-card-preview canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
+    .asset-card-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
     .asset-card-label { padding: 0.375rem 0.5rem; font-size: 0.625rem; }
     .asset-card-name { color: var(--slate-200); font-weight: 500; }
     .asset-card-dims { color: var(--slate-500); }
     .asset-status { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 4px; }
     .asset-status.ready { background: #22c55e; }
-    .asset-status.missing { background: #ef4444; }
     .asset-status.pending { background: var(--slate-600); }
-
-    /* Persistent info bar -- always on top, full width, centered */
-    .edit-info-bar { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.25rem 0.75rem; border-bottom: 1px solid var(--slate-800); background: var(--slate-900); flex-shrink: 0; font-size: 0.6875rem; flex-wrap: wrap; }
-    .edit-info-bar .dim-input { width: 55px; background: var(--slate-800); color: var(--slate-200); border: 1px solid var(--slate-700); border-radius: 3px; padding: 2px 5px; font-size: 0.6875rem; font-family: monospace; text-align: center; }
-    .edit-info-bar .dim-input:focus { border-color: var(--saffron-400); outline: none; }
-    .edit-info-bar .dim-sep { color: var(--slate-600); font-size: 0.625rem; }
-    .edit-info-bar .dim-unit { background: var(--slate-800); border: 1px solid var(--slate-700); border-radius: 3px; padding: 2px 6px; font-size: 0.5625rem; cursor: pointer; color: var(--slate-400); transition: all 0.12s; }
-    .edit-info-bar .dim-unit.active { background: rgba(244,196,48,0.1); border-color: var(--saffron-400); color: var(--saffron-400); }
-    .edit-info-bar .dim-lock { cursor: pointer; color: var(--slate-500); transition: color 0.12s; padding: 2px; }
-    .edit-info-bar .dim-lock.locked { color: var(--saffron-400); }
-    .edit-info-bar .info-sep { width: 1px; height: 16px; background: var(--slate-800); }
-    .edit-info-bar .info-text { color: var(--slate-500); font-size: 0.625rem; }
-    .edit-info-bar .info-btn { background: none; border: 1px solid var(--slate-700); color: var(--slate-400); border-radius: 3px; padding: 1px 6px; font-size: 0.5625rem; cursor: pointer; transition: all 0.12s; }
-    .edit-info-bar .info-btn:hover { border-color: var(--saffron-400); color: var(--saffron-400); }
-
-    /* Export button pulse after edit */
-    @keyframes exportPulse { 0%,100% { box-shadow: none; } 50% { box-shadow: 0 0 12px rgba(244,196,48,0.4); } }
-    .export-pulse { animation: exportPulse 1.5s ease-in-out 2; }
-
-    /* --- Edit Mode: Ribbon layout (MS Word style) --- */    .edit-panel { display: flex; flex-direction: column; flex: 1; overflow: hidden; }    .edit-ribbon { border-bottom: 1px solid var(--slate-800); flex-shrink: 0; overflow-x: auto; overflow-y: hidden; }    .ribbon-bar { display: flex; align-items: stretch; padding: 0; min-height: 68px; }    .ribbon-group { display: flex; flex-direction: column; padding: 0.25rem 0.5rem; min-width: fit-content; flex-shrink: 0; }    .ribbon-tools { display: flex; flex-direction: column; gap: 1px; flex: 1; }    .ribbon-row { display: flex; align-items: center; gap: 2px; }    .ribbon-label { font-size: 0.5rem; font-weight: 600; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.06em; text-align: center; padding-top: 2px; border-top: 1px solid var(--slate-800); margin-top: 2px; }    .ribbon-sep-v { width: 1px; background: var(--slate-800); flex-shrink: 0; margin: 0.25rem 0; }    .ribbon-mini-label { font-size: 0.5rem; color: var(--slate-500); width: 10px; text-align: center; flex-shrink: 0; }    .ribbon-bar .tool-btn { padding: 2px 4px; font-size: 0.5625rem; }    .ribbon-bar .tool-btn svg { width: 14px; height: 14px; }    .ribbon-bar .range-input { height: 12px; }    .ribbon-bar .range-value { font-size: 0.5rem; color: var(--slate-400); min-width: 1.25rem; text-align: right; }    .ribbon-bar .input-field { padding: 2px 4px; font-size: 0.5625rem; }    .ribbon-bar .btn-primary { padding: 2px 8px; font-size: 0.5625rem; }    .ribbon-bar .select-field { padding: 2px 4px; font-size: 0.5625rem; }    .edit-work { flex: 1; display: flex; align-items: center; justify-content: center; background: var(--slate-900); overflow: hidden; position: relative; }
   </style>
 </head>
 <body class="bg-slate-950 text-gray-100 font-sans">
 
-  <!-- ============================================================ -->
-  <!-- TOPBAR (always visible) -->
-  <!-- ============================================================ -->
+  <!-- Topbar -->
   <div class="topbar">
     <div class="topbar-left">
-      <button id="btn-back" class="tool-btn back-btn" title="Back to home">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-        <span>Home</span>
-      </button>
-      <div class="w-6 h-6 rounded-lg bg-gradient-saffron flex items-center justify-center">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2A1E05" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-      </div>
+      <button id="btn-back" class="tool-btn back-btn" title="Back to home"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg><span>Home</span></button>
+      <div class="w-6 h-6 rounded-lg bg-gradient-saffron flex items-center justify-center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2A1E05" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>
       <span class="font-bold text-sm">Pixeroo</span>
       <span id="mode-label" style="font-size:0.6875rem;color:var(--slate-500);margin-left:4px;"></span>
     </div>
     <div class="topbar-right">
-      <button id="btn-undo" class="tool-btn" title="Undo (Ctrl+Z)" style="display:none;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
-      </button>
-      <button id="btn-redo" class="tool-btn" title="Redo (Ctrl+Y)" style="display:none;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-      </button>
-      <button id="btn-reset-all" class="tool-btn" title="Reset to original" style="display:none;color:#ef4444;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
-      </button>
       <span id="file-label" style="font-size:0.6875rem;color:var(--slate-500);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
-      <button id="btn-editor-settings" class="tool-btn" title="Settings">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      </button>
+      <button id="btn-editor-settings" class="tool-btn" title="Settings"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
   </div>
 
@@ -162,264 +161,221 @@
   <!-- HOME SCREEN -->
   <!-- ============================================================ -->
   <div class="home" id="home">
-    <h1 class="home-title">
-      <span class="bg-gradient-to-r from-saffron-300 via-saffron-400 to-saffron-600 bg-clip-text" style="background:linear-gradient(135deg,#FCD34D,#F4C430,#B8860B);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Pixeroo</span>
-    </h1>
+    <h1 class="home-title"><span style="background:linear-gradient(135deg,#FCD34D,#F4C430,#B8860B);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Pixeroo</span></h1>
     <p class="home-sub">Read. Optimise. Output.</p>
-
     <div class="home-grid">
-      <!-- Row 1: Create -->
-      <div class="home-card" data-mode="edit">
-        <div class="home-card-icon" style="background:rgba(244,196,48,0.1);">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F4C430" stroke-width="2"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg>
-        </div>
-        <div class="home-card-title">Edit</div>
-        <div class="home-card-desc">Resize, crop, rotate, adjust, filters, annotate</div>
-      </div>
-      <div class="home-card" data-mode="convert">
-        <div class="home-card-icon" style="background:rgba(34,197,94,0.1);">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>
-        </div>
-        <div class="home-card-title">Convert</div>
-        <div class="home-card-desc">Batch format conversion with quality controls</div>
-      </div>
-      <div class="home-card" data-mode="store">
-        <div class="home-card-icon" style="background:rgba(168,85,247,0.1);">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-        </div>
-        <div class="home-card-title">Store Assets</div>
-        <div class="home-card-desc">Icons & screenshots for all app stores</div>
-      </div>
-
-      <!-- Row 2: Analyze -->
-      <div class="home-card" data-mode="info">
-        <div class="home-card-icon" style="background:rgba(59,130,246,0.1);">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-        </div>
-        <div class="home-card-title">Info</div>
-        <div class="home-card-desc">EXIF, metadata, JPEG structure, dimensions</div>
-      </div>
-      <div class="home-card" data-mode="colors">
-        <div class="home-card-icon" style="background:rgba(236,72,153,0.1);">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12" r="2.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
-        </div>
-        <div class="home-card-title">Colors</div>
-        <div class="home-card-desc">Eyedropper, palette extraction, HEX/RGB/HSL</div>
-      </div>
-      <div class="home-card" data-mode="svg">
-        <div class="home-card-icon" style="background:rgba(20,184,166,0.1);">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#14b8a6" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-        </div>
-        <div class="home-card-title">SVG Tools</div>
-        <div class="home-card-desc">Inspect, render to raster, view source</div>
-      </div>
-
-      <!-- Row 3: Tools -->
-      <div class="home-card" data-mode="qr">
-        <div class="home-card-icon" style="background:rgba(249,115,22,0.1);">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-        </div>
-        <div class="home-card-title">QR Code</div>
-        <div class="home-card-desc">Generate, customize, read QR codes</div>
-      </div>
-      <div class="home-card" data-mode="compare">
-        <div class="home-card-icon" style="background:rgba(234,179,8,0.1);">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2"><rect x="3" y="3" width="8" height="18" rx="1"/><rect x="13" y="3" width="8" height="18" rx="1"/></svg>
-        </div>
-        <div class="home-card-title">Compare</div>
-        <div class="home-card-desc">Side-by-side diff, pixel-level comparison</div>
-      </div>
-      <div class="home-card" data-mode="generate">
-        <div class="home-card-icon" style="background:rgba(99,102,241,0.1);">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-        </div>
-        <div class="home-card-title">Generate</div>
-        <div class="home-card-desc">Gradients, patterns, placeholders from scratch</div>
-      </div>
-      <div class="home-card" data-mode="collage">
-        <div class="home-card-icon" style="background:rgba(14,165,233,0.1);">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>
-        </div>
-        <div class="home-card-title">Collage</div>
-        <div class="home-card-desc">Combine multiple images into grid layouts</div>
-      </div>
+      <div class="home-card" data-mode="edit"><div class="home-card-icon" style="background:rgba(244,196,48,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F4C430" stroke-width="2"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg></div><div class="home-card-title">Edit</div><div class="home-card-desc">Resize, crop, rotate, adjust, filters, annotate</div></div>
+      <div class="home-card" data-mode="convert"><div class="home-card-icon" style="background:rgba(34,197,94,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg></div><div class="home-card-title">Convert</div><div class="home-card-desc">Batch format conversion with quality controls</div></div>
+      <div class="home-card" data-mode="store"><div class="home-card-icon" style="background:rgba(168,85,247,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div><div class="home-card-title">Store Assets</div><div class="home-card-desc">Icons & screenshots for all app stores</div></div>
+      <div class="home-card" data-mode="info"><div class="home-card-icon" style="background:rgba(59,130,246,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></div><div class="home-card-title">Info</div><div class="home-card-desc">EXIF, metadata, JPEG structure, dimensions</div></div>
+      <div class="home-card" data-mode="colors"><div class="home-card-icon" style="background:rgba(236,72,153,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12" r="2.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg></div><div class="home-card-title">Colors</div><div class="home-card-desc">Eyedropper, palette extraction, HEX/RGB/HSL</div></div>
+      <div class="home-card" data-mode="svg"><div class="home-card-icon" style="background:rgba(20,184,166,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#14b8a6" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div><div class="home-card-title">SVG Tools</div><div class="home-card-desc">Inspect, render to raster, view source</div></div>
+      <div class="home-card" data-mode="qr"><div class="home-card-icon" style="background:rgba(249,115,22,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div><div class="home-card-title">QR Code</div><div class="home-card-desc">Generate, customize, read QR codes</div></div>
+      <div class="home-card" data-mode="compare"><div class="home-card-icon" style="background:rgba(234,179,8,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2"><rect x="3" y="3" width="8" height="18" rx="1"/><rect x="13" y="3" width="8" height="18" rx="1"/></svg></div><div class="home-card-title">Compare</div><div class="home-card-desc">Side-by-side diff, pixel-level comparison</div></div>
+      <div class="home-card" data-mode="generate"><div class="home-card-icon" style="background:rgba(99,102,241,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div><div class="home-card-title">Generate</div><div class="home-card-desc">Gradients, patterns, placeholders from scratch</div></div>
+      <div class="home-card" data-mode="collage"><div class="home-card-icon" style="background:rgba(14,165,233,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg></div><div class="home-card-title">Collage</div><div class="home-card-desc">Combine multiple images into grid layouts</div></div>
     </div>
-
     <div class="home-recent">
       <div class="home-recent-title">Drop a file anywhere to get started</div>
-      <div class="home-recent-empty">PNG, JPEG, WebP, AVIF, GIF, BMP, TIFF, SVG, ICO</div>
     </div>
   </div>
 
   <!-- ============================================================ -->
-  <!-- MODE: Edit -->
+  <!-- MODE: Edit (ribbon at top, canvas below) -->
   <!-- ============================================================ -->
   <div class="mode-view edit-panel" id="mode-edit">
-    <!-- Persistent info bar (always visible when image loaded) -->
-    <div id="edit-info-bar" class="edit-info-bar">
-      <span class="info-text">W</span>
-      <input type="number" id="bar-w" class="dim-input" title="Width">
-      <span class="dim-sep">x</span>
-      <span class="info-text">H</span>
-      <input type="number" id="bar-h" class="dim-input" title="Height">
-      <button id="bar-unit" class="dim-unit active" title="Toggle px / %">px</button>
-      <button id="bar-lock" class="dim-lock locked" title="Lock aspect ratio">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      </button>
-      <button id="bar-apply" class="info-btn" title="Apply resize (Enter)">Apply</button>
-      <div class="info-sep"></div>
-      <span id="bar-size" class="info-text" title="Estimated file size"></span>
-      <div class="info-sep"></div>
-      <span id="bar-zoom" class="info-text">100%</span>
-      <button id="bar-fit" class="info-btn" title="Fit to view">Fit</button>
-      <button id="bar-actual" class="info-btn" title="Actual size (1:1)">1:1</button>
+    <!-- Info bar + Ribbon merged -->
+    <div class="edit-ribbon">
+      <!-- Info bar row -->
+      <!-- Single ribbon bar: Size group first, then tool groups -->
+      <div class="ribbon-bar" id="edit-info-bar">
+        <!-- Size / Info (merged info bar) -->
+        <div class="ribbon-group"><div class="ribbon-tools">
+          <div class="ribbon-row"><span class="ribbon-mini-label">W</span><input type="number" id="bar-w" class="input-field" value="800" style="width:58px;"><span style="color:var(--slate-600);font-size:0.625rem;">x</span><span class="ribbon-mini-label">H</span><input type="number" id="bar-h" class="input-field" value="600" style="width:58px;"></div>
+          <div class="ribbon-row"><button id="bar-unit" class="tool-btn" title="Toggle pixels / percent" style="border:1px solid var(--slate-700);border-radius:3px;">px</button><button id="bar-lock" class="tool-btn" title="Lock aspect ratio" style="color:var(--saffron-400);"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button><button id="bar-apply" class="btn-primary" title="Apply resize (Enter)">Apply</button><button id="btn-undo" class="tool-btn" title="Undo (Ctrl+Z)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button><button id="btn-redo" class="tool-btn" title="Redo (Ctrl+Y)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button><button id="btn-reset-all" class="tool-btn" title="Reset to original image" style="color:#ef4444;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg></button></div>
+          <div class="ribbon-row"><span id="bar-size" style="font-size:0.5625rem;color:var(--slate-500);"></span><span id="bar-zoom" style="font-size:0.5625rem;color:var(--slate-500);">100%</span><button id="bar-fit" class="tool-btn" style="font-size:0.5rem;">Fit</button><button id="bar-actual" class="tool-btn" style="font-size:0.5rem;">1:1</button></div>
+        </div><div class="ribbon-label">Size</div></div>
+        <div class="ribbon-sep-v"></div>
+        <!-- Transform -->
+        <div class="ribbon-group"><div class="ribbon-tools">
+          <div class="ribbon-row"><button class="tool-btn" id="btn-crop-free" title="Crop (free)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg></button><button class="tool-btn" id="btn-crop-1-1" title="Crop 1:1">1:1</button><button class="tool-btn" id="btn-crop-4-3" title="Crop 4:3">4:3</button><button class="tool-btn" id="btn-crop-16-9" title="Crop 16:9">16:9</button></div>
+          <div class="ribbon-row"><button class="tool-btn" id="btn-rotate-left" title="Rotate left 90"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button><button class="tool-btn" id="btn-rotate-right" title="Rotate right 90"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button><button class="tool-btn" id="btn-flip-h" title="Flip horizontal"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3"/><line x1="12" y1="20" x2="12" y2="4"/></svg></button><button class="tool-btn" id="btn-flip-v" title="Flip vertical"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8V5c0-1.1.9-2 2-2h14a2 2 0 0 1 2 2v3"/><path d="M3 16v3c0 1.1.9 2 2 2h14a2 2 0 0 1 2 2v-3"/><line x1="4" y1="12" x2="20" y2="12"/></svg></button></div>
+          <div class="ribbon-row"><button id="btn-crop-apply" class="btn-primary" style="font-size:0.5rem;padding:2px 6px;display:none;" title="Apply crop">Apply</button><button id="btn-crop-cancel" class="tool-btn" style="font-size:0.5rem;display:none;" title="Cancel crop">Cancel</button></div>
+        </div><div class="ribbon-label">Transform</div></div>
+        <div class="ribbon-sep-v"></div>
+        <!-- Adjust -->
+        <div class="ribbon-group"><div class="ribbon-tools">
+          <div class="ribbon-row" style="gap:2px;"><span class="ribbon-mini-label">B</span><input type="range" class="range-input" id="adj-brightness" min="-100" max="100" value="0" style="width:75px;"><span class="range-value" id="val-brightness" style="width:18px;">0</span></div>
+          <div class="ribbon-row" style="gap:2px;"><span class="ribbon-mini-label">C</span><input type="range" class="range-input" id="adj-contrast" min="-100" max="100" value="0" style="width:75px;"><span class="range-value" id="val-contrast" style="width:18px;">0</span></div>
+          <div class="ribbon-row" style="gap:2px;"><span class="ribbon-mini-label">S</span><input type="range" class="range-input" id="adj-saturation" min="-100" max="100" value="0" style="width:75px;"><span class="range-value" id="val-saturation" style="width:18px;">0</span></div>
+          <div class="ribbon-row" style="gap:2px;"><span class="ribbon-mini-label">H</span><input type="range" class="range-input" id="adj-hue" min="0" max="360" value="0" style="width:75px;"><span class="range-value" id="val-hue" style="width:18px;">0</span><button id="btn-reset-adjust" class="tool-btn" title="Reset all adjustments to zero" style="font-size:0.4375rem;padding:1px 3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button></div>
+        </div><div class="ribbon-label">Adjust</div></div>
+        <div class="ribbon-sep-v"></div>
+        <!-- Filters -->
+        <div class="ribbon-group"><div class="ribbon-tools">
+          <div class="ribbon-row"><button class="tool-btn" data-filter="grayscale" title="Grayscale"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2v20"/></svg> B&W</button><button class="tool-btn" data-filter="sepia" title="Sepia tone">Sepia</button><button class="tool-btn" data-filter="invert" title="Invert colors"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg> Inv</button></div>
+          <div class="ribbon-row"><button class="tool-btn" data-filter="blur" title="Gaussian blur">Blur</button><button class="tool-btn" data-filter="sharpen" title="Sharpen (unsharpen mask)">Sharp</button><button class="tool-btn" id="btn-denoise" title="Noise reduction">Denoise</button></div>
+          <div class="ribbon-row"><button class="tool-btn" id="btn-vignette" title="Add vignette effect">Vignette</button><button class="tool-btn" id="btn-pixelate" title="Pixelate (pixel art)">Pixel</button><button class="tool-btn" id="btn-round-corners" title="Round corners">Round</button></div>
+        </div><div class="ribbon-label">Filters</div></div>
+        <div class="ribbon-sep-v"></div>
+        <!-- Draw -->
+        <div class="ribbon-group"><div class="ribbon-tools">
+          <div class="ribbon-row"><button class="tool-btn" id="btn-ann-rect" title="Draw rectangle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></button><button class="tool-btn" id="btn-ann-arrow" title="Draw arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button><button class="tool-btn" id="btn-ann-text" title="Add text overlay"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9.5" y1="20" x2="14.5" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg></button><button class="tool-btn" id="btn-ann-redact" title="Redact / pixelate region"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></button></div>
+          <div class="ribbon-row"><input type="color" id="ann-color" value="#ef4444" title="Annotation color" style="width:22px;height:18px;border:none;cursor:pointer;"><input type="range" id="ann-width" min="1" max="10" value="3" title="Line width" style="width:60px;accent-color:var(--saffron-400);"></div>
+          <div class="ribbon-row"><input type="text" id="watermark-text" class="input-field" placeholder="Watermark" title="Watermark text" style="width:80px;"><button class="tool-btn" id="btn-watermark" title="Apply watermark"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg></button></div>
+        </div><div class="ribbon-label">Draw</div></div>
+        <div class="ribbon-sep-v"></div>
+        <!-- Watermark options -->
+        <div class="ribbon-group"><div class="ribbon-tools">
+          <div class="ribbon-row"><span class="ribbon-mini-label" title="Opacity">Op</span><input type="range" id="watermark-opacity" min="5" max="80" value="30" title="Watermark opacity (5-80%)" style="width:50px;accent-color:var(--saffron-400);"><span class="range-value" id="watermark-opacity-val2" style="width:18px;">30</span></div>
+          <div class="ribbon-row"><span class="ribbon-mini-label" title="Font size">Sz</span><input type="range" id="watermark-fontsize" min="12" max="120" value="48" title="Font size (12-120px)" style="width:50px;accent-color:var(--saffron-400);"><span class="range-value" id="watermark-fontsize-val" style="width:18px;">48</span></div>
+          <div class="ribbon-row"><span class="ribbon-mini-label" title="Angle">An</span><input type="range" id="watermark-angle" min="-90" max="90" value="-30" title="Rotation angle" style="width:50px;accent-color:var(--saffron-400);"><span class="range-value" id="watermark-angle-val" style="width:22px;">-30</span></div>
+        </div><div class="ribbon-label">Watermark</div></div>
+        <div class="ribbon-sep-v"></div>
+        <!-- Social -->
+        <div class="ribbon-group"><div class="ribbon-tools">
+          <div class="ribbon-row"><button class="tool-btn" data-social="ig-post" title="Instagram Post (1080x1080)">IG</button><button class="tool-btn" data-social="ig-story" title="Instagram Story (1080x1920)">Story</button><button class="tool-btn" data-social="tw-post" title="Twitter Post (1200x675)">TW</button><button class="tool-btn" data-social="yt-thumb" title="YouTube Thumbnail (1280x720)">YT</button></div>
+          <div class="ribbon-row"><button class="tool-btn" data-social="fb-post" title="Facebook Post (1200x630)">FB</button><button class="tool-btn" data-social="li-post" title="LinkedIn Post (1200x627)">LI</button><button class="tool-btn" data-social="og-image" title="OG Image (1200x630)">OG</button><button class="tool-btn" data-social="pin-standard" title="Pinterest Pin (1000x1500)">Pin</button></div>
+        </div><div class="ribbon-label">Social</div></div>
+        <div class="ribbon-sep-v"></div>
+        <!-- Export -->
+        <div class="ribbon-group"><div class="ribbon-tools">
+          <div class="ribbon-row"><select id="export-format" class="select-field" title="Output format" style="width:75px;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option><option value="bmp">BMP</option><optgroup label="WASM required"><option value="avif" class="wasm-required" data-wasm-title="Export as AVIF">AVIF</option><option value="ico" class="wasm-required" data-wasm-title="Export as ICO">ICO</option><option value="tiff" class="wasm-required" data-wasm-title="Export as TIFF">TIFF</option><option value="qoi" class="wasm-required" data-wasm-title="Export as QOI">QOI</option></optgroup></select></div>
+          <div class="ribbon-row" id="export-quality-row" style="display:none;"><span class="ribbon-mini-label" title="Quality">Q</span><input type="range" id="export-quality" min="1" max="100" value="85" title="Export quality (1-100)" style="width:55px;accent-color:var(--saffron-400);"><span class="range-value" id="export-quality-val" style="width:20px;">85</span></div>
+          <div class="ribbon-row"><button id="btn-export" class="btn-primary" title="Export image (Ctrl+S)" style="padding:3px 10px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</button><button class="tool-btn" id="btn-strip-meta" title="Strip all metadata and re-export"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button><button class="tool-btn" id="btn-to-pdf" title="Export as PDF"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></button></div>
+        </div><div class="ribbon-label">Export</div></div>
+        <div class="ribbon-sep-v"></div>
+        <!-- More -->
+        <div class="ribbon-group"><div class="ribbon-tools">
+          <div class="ribbon-row"><button class="tool-btn" id="btn-padding" title="Add padding around image">Pad</button><button class="tool-btn" id="btn-bg-remove" title="Remove background (flood fill from edges)">BG Rm</button><button class="tool-btn" id="btn-color-replace" title="Replace one color with another">Recolor</button></div>
+          <div class="ribbon-row"><button class="tool-btn" data-channel="r" title="View red channel only" style="color:#ef4444;">R</button><button class="tool-btn" data-channel="g" title="View green channel only" style="color:#22c55e;">G</button><button class="tool-btn" data-channel="b" title="View blue channel only" style="color:#3b82f6;">B</button><button class="tool-btn" id="btn-cmyk-sim" title="Simulate CMYK print colors">CMYK</button></div>
+          <div class="ribbon-row"><button class="tool-btn" id="btn-steg-detect" title="Detect steganography (hidden data)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="tool-btn" id="btn-ascii" title="Convert to ASCII art">ASCII</button><button class="tool-btn" id="btn-gen-favicons" title="Preview as favicon at multiple sizes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></button><button class="tool-btn" id="btn-slice-sprite" title="Slice sprite sheet into tiles"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></button></div>
+        </div><div class="ribbon-label">More</div></div>
+        <div class="ribbon-sep-v"></div>
+        <!-- WASM Engine Status -->
+        <div class="ribbon-group" id="wasm-status-group"><div class="ribbon-tools" style="align-items:center;justify-content:center;">
+          <div class="ribbon-row"><span id="wasm-status-dot" class="wasm-dot offline" title="WASM engine not loaded"></span><span id="wasm-status-text" style="font-size:0.5rem;color:var(--slate-500);">WASM offline</span></div>
+        </div><div class="ribbon-label">Engine</div></div>
+      </div>
     </div>
-
-    
+    <!-- Canvas -->
     <div class="work-area" id="edit-work">
       <div id="edit-dropzone" class="dropzone">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--slate-600)" stroke-width="1.5" style="margin:0 auto 0.75rem;display:block;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
         <p class="drop-title">Drop an image, click to browse, or Ctrl+V</p>
         <p class="drop-sub">PNG, JPEG, WebP, AVIF, GIF, BMP, TIFF, SVG, ICO</p>
         <div style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid var(--slate-800);">
-          <p style="color:var(--slate-500);font-size:0.6875rem;margin-bottom:0.375rem;">Use the category tabs to switch tools:</p>
-          <p style="color:var(--slate-600);font-size:0.625rem;">Transform &middot; Adjust &middot; Filters &middot; Draw &middot; Canvas &middot; Analyze &middot; Social &middot; Generate &middot; Export</p>
-          <p style="color:var(--slate-600);font-size:0.625rem;margin-top:0.375rem;">Ctrl+S to export &middot; Ctrl+Z to undo</p>
+          <p style="color:var(--slate-600);font-size:0.625rem;">Ctrl+S to export &middot; Ctrl+Z to undo</p>
         </div>
         <input type="file" id="edit-file" accept="image/*" style="display:none;">
       </div>
-      <!-- Dimension badge (shown when image is loaded) -->
       <div id="dimension-badge" style="display:none;position:absolute;bottom:8px;right:8px;background:rgba(15,23,42,0.8);border:1px solid var(--slate-700);border-radius:4px;padding:2px 8px;font-size:0.625rem;color:var(--slate-400);font-family:monospace;pointer-events:none;z-index:1;"></div>
       <canvas id="editor-canvas" style="display:none;"></canvas>
     </div>
-    <div class="edit-ribbon">
-      <!-- MS Word-style ribbon: all groups visible, horizontal layout -->
-      <div class="ribbon-bar">
-        <!-- GROUP: Transform -->
-        <div class="ribbon-group">
-          <div class="ribbon-tools">
-            <div class="ribbon-row"><button class="tool-btn" id="btn-crop-free" title="Crop Free">Crop</button><button class="tool-btn" id="btn-crop-1-1">1:1</button><button class="tool-btn" id="btn-crop-4-3">4:3</button><button class="tool-btn" id="btn-crop-16-9">16:9</button></div>
-            <div class="ribbon-row"><button class="tool-btn" id="btn-rotate-left" title="Rotate left"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button><button class="tool-btn" id="btn-rotate-right" title="Rotate right"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button><button class="tool-btn" id="btn-flip-h" title="Flip H"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3"/><line x1="12" y1="20" x2="12" y2="4"/></svg></button><button class="tool-btn" id="btn-flip-v" title="Flip V"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8V5c0-1.1.9-2 2-2h14a2 2 0 0 1 2 2v3"/><path d="M3 16v3c0 1.1.9 2 2 2h14a2 2 0 0 1 2 2v-3"/><line x1="4" y1="12" x2="20" y2="12"/></svg></button></div>
-            <div class="ribbon-row"><button id="btn-crop-apply" class="btn-primary" style="font-size:0.5625rem;padding:2px 6px;display:none;">Apply</button><button id="btn-crop-cancel" class="tool-btn" style="font-size:0.5625rem;display:none;">Cancel</button></div>
-          </div>
-          <div class="ribbon-label">Transform</div>
-        </div>
-        <div class="ribbon-sep-v"></div>
-
-        <!-- GROUP: Adjust -->
-        <div class="ribbon-group">
-          <div class="ribbon-tools">
-            <div class="ribbon-row" style="gap:2px;"><span class="ribbon-mini-label">B</span><input type="range" class="range-input" id="adj-brightness" min="-100" max="100" value="0" style="width:60px;"><span class="range-value" id="val-brightness" style="width:20px;">0</span></div>
-            <div class="ribbon-row" style="gap:2px;"><span class="ribbon-mini-label">C</span><input type="range" class="range-input" id="adj-contrast" min="-100" max="100" value="0" style="width:60px;"><span class="range-value" id="val-contrast" style="width:20px;">0</span></div>
-            <div class="ribbon-row" style="gap:2px;"><span class="ribbon-mini-label">S</span><input type="range" class="range-input" id="adj-saturation" min="-100" max="100" value="0" style="width:60px;"><span class="range-value" id="val-saturation" style="width:20px;">0</span></div>
-            <div class="ribbon-row" style="gap:2px;"><span class="ribbon-mini-label">H</span><input type="range" class="range-input" id="adj-hue" min="0" max="360" value="0" style="width:60px;"><span class="range-value" id="val-hue" style="width:20px;">0</span><button id="btn-reset-adjust" class="tool-btn" title="Reset" style="font-size:0.5rem;padding:1px 3px;">R</button></div>
-          </div>
-          <div class="ribbon-label">Adjust</div>
-        </div>
-        <div class="ribbon-sep-v"></div>
-
-        <!-- GROUP: Filters -->
-        <div class="ribbon-group">
-          <div class="ribbon-tools">
-            <div class="ribbon-row"><button class="tool-btn" data-filter="grayscale">B&W</button><button class="tool-btn" data-filter="sepia">Sepia</button><button class="tool-btn" data-filter="invert">Inv</button></div>
-            <div class="ribbon-row"><button class="tool-btn" data-filter="blur">Blur</button><button class="tool-btn" data-filter="sharpen">Sharp</button><button class="tool-btn" id="btn-denoise">Denoise</button></div>
-            <div class="ribbon-row"><button class="tool-btn" id="btn-vignette">Vignette</button><button class="tool-btn" id="btn-pixelate">Pixel</button><button class="tool-btn" id="btn-round-corners">Round</button></div>
-          </div>
-          <div class="ribbon-label">Filters</div>
-        </div>
-        <div class="ribbon-sep-v"></div>
-
-        <!-- GROUP: Draw -->
-        <div class="ribbon-group">
-          <div class="ribbon-tools">
-            <div class="ribbon-row"><button class="tool-btn" id="btn-ann-rect">Rect</button><button class="tool-btn" id="btn-ann-arrow">Arrow</button><button class="tool-btn" id="btn-ann-text">Text</button><button class="tool-btn" id="btn-ann-redact">Redact</button></div>
-            <div class="ribbon-row"><input type="color" id="ann-color" value="#ef4444" style="width:20px;height:18px;border:none;cursor:pointer;"><input type="range" id="ann-width" min="1" max="10" value="3" style="width:50px;accent-color:var(--saffron-400);"></div>
-            <div class="ribbon-row"><input type="text" id="watermark-text" class="input-field" placeholder="Watermark" style="width:70px;font-size:0.5625rem;"><input type="range" id="watermark-opacity" min="5" max="80" value="30" style="width:40px;accent-color:var(--saffron-400);"><button class="tool-btn" id="btn-watermark" style="font-size:0.5rem;">WM</button></div>
-          </div>
-          <div class="ribbon-label">Draw</div>
-        </div>
-        <div class="ribbon-sep-v"></div>
-
-        <!-- GROUP: Social -->
-        <div class="ribbon-group">
-          <div class="ribbon-tools">
-            <div class="ribbon-row"><button class="tool-btn" data-social="ig-post" style="font-size:0.5rem;">IG</button><button class="tool-btn" data-social="ig-story" style="font-size:0.5rem;">Story</button><button class="tool-btn" data-social="tw-post" style="font-size:0.5rem;">TW</button><button class="tool-btn" data-social="yt-thumb" style="font-size:0.5rem;">YT</button></div>
-            <div class="ribbon-row"><button class="tool-btn" data-social="fb-post" style="font-size:0.5rem;">FB</button><button class="tool-btn" data-social="li-post" style="font-size:0.5rem;">LI</button><button class="tool-btn" data-social="og-image" style="font-size:0.5rem;">OG</button><button class="tool-btn" data-social="pin-standard" style="font-size:0.5rem;">Pin</button></div>
-          </div>
-          <div class="ribbon-label">Social</div>
-        </div>
-        <div class="ribbon-sep-v"></div>
-
-        <!-- GROUP: Export -->
-        <div class="ribbon-group">
-          <div class="ribbon-tools">
-            <div class="ribbon-row"><select id="export-format" class="select-field" style="width:65px;font-size:0.5625rem;padding:2px 4px;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option><option value="bmp">BMP</option></select></div>
-            <div class="ribbon-row"><button id="btn-export" class="btn-primary" style="font-size:0.5625rem;padding:3px 10px;">Export</button></div>
-            <div class="ribbon-row"><button class="tool-btn" id="btn-strip-meta" style="font-size:0.5rem;">Strip</button><button class="tool-btn" id="btn-to-pdf" style="font-size:0.5rem;">PDF</button></div>
-          </div>
-          <div class="ribbon-label">Export</div>
-        </div>
-        <div class="ribbon-sep-v"></div>
-
-        <!-- GROUP: More (collapsible) -->
-        <div class="ribbon-group">
-          <div class="ribbon-tools">
-            <div class="ribbon-row"><button class="tool-btn" id="btn-padding" style="font-size:0.5rem;">Pad</button><button class="tool-btn" id="btn-bg-remove" style="font-size:0.5rem;">BG Rm</button><button class="tool-btn" id="btn-color-replace" style="font-size:0.5rem;">Recolor</button></div>
-            <div class="ribbon-row"><button class="tool-btn" data-channel="r" style="font-size:0.5rem;">R</button><button class="tool-btn" data-channel="g" style="font-size:0.5rem;">G</button><button class="tool-btn" data-channel="b" style="font-size:0.5rem;">B</button><button class="tool-btn" id="btn-cmyk-sim" style="font-size:0.5rem;">CMYK</button></div>
-            <div class="ribbon-row"><button class="tool-btn" id="btn-steg-detect" style="font-size:0.5rem;">Steg</button><button class="tool-btn" id="btn-ascii" style="font-size:0.5rem;">ASCII</button><button class="tool-btn" id="btn-gen-favicons" style="font-size:0.5rem;">Fav</button><button class="tool-btn" id="btn-slice-sprite" style="font-size:0.5rem;">Slice</button></div>
-          </div>
-          <div class="ribbon-label">More</div>
-        </div>
-      </div>
-
-      <!-- Hidden elements still needed by JS -->
-      <div style="display:none;">
-        <input type="number" id="resize-w"><input type="number" id="resize-h"><input type="checkbox" id="lock-ratio" checked>
-        <button id="btn-apply-resize"></button><button id="btn-crop-3-2"></button>
-        <input type="number" id="border-width" value="10"><input type="color" id="border-color" value="#ffffff">
-        <button id="btn-border"></button><button id="btn-tile"></button><button id="btn-tile3"></button>
-        <button id="btn-split-h2"></button><button id="btn-split-v2"></button><button id="btn-split-h3"></button><button id="btn-split-v3"></button>
-        <input type="color" id="color-from" value="#ffffff"><input type="color" id="color-to" value="#000000">
-        <button data-channel="a"></button><button id="btn-steg-visualize"></button>
-        <button data-rsearch="google"></button><button data-rsearch="tineye"></button><button data-rsearch="bing"></button><button data-rsearch="yandex"></button>
-        <input type="number" id="pixelate-size" value="8"><input type="number" id="pad-size" value="20"><input type="color" id="pad-color" value="#ffffff">
-        <input type="range" id="level-black" min="0" max="128" value="0"><input type="range" id="level-white" min="128" max="255" value="255"><input type="range" id="level-gamma" min="20" max="300" value="100">
-        <span id="level-black-val">0</span><span id="level-white-val">255</span><span id="level-gamma-val">1.0</span><button id="btn-apply-levels"></button>
-        <span id="watermark-opacity-val">30</span>
-        <input type="number" id="sprite-cols" value="4"><input type="number" id="sprite-rows" value="4">
-        <input type="number" id="ascii-cols" value="80"><pre id="ascii-output"></pre>
-        <div id="steg-result"></div><div id="favicon-previews"></div>
-        <canvas id="histogram-canvas"></canvas>
-        <button data-cb="protanopia"></button><button data-cb="deuteranopia"></button><button data-cb="tritanopia"></button><button data-cb="achromatopsia"></button>
-      </div>
-
-      <!-- Old sidebar-section blocks removed. All controls now in ribbon groups above.
-           Hidden div contains elements that JS still references but don't need visible UI in ribbon. -->
-
+    <!-- Hidden elements for JS -->
+    <div style="display:none;">
+      <input type="number" id="resize-w"><input type="number" id="resize-h"><input type="checkbox" id="lock-ratio" checked>
+      <button id="btn-apply-resize"></button><button id="btn-crop-3-2"></button>
+      <input type="number" id="border-width" value="10"><input type="color" id="border-color" value="#ffffff">
+      <button id="btn-border"></button><button id="btn-tile"></button><button id="btn-tile3"></button>
+      <button id="btn-split-h2"></button><button id="btn-split-v2"></button><button id="btn-split-h3"></button><button id="btn-split-v3"></button>
+      <input type="color" id="color-from" value="#ffffff"><input type="color" id="color-to" value="#000000">
+      <button data-channel="a"></button><button id="btn-steg-visualize"></button>
+      <button data-rsearch="google"></button><button data-rsearch="tineye"></button><button data-rsearch="bing"></button><button data-rsearch="yandex"></button>
+      <input type="number" id="pixelate-size" value="8"><input type="number" id="pad-size" value="20"><input type="color" id="pad-color" value="#ffffff">
+      <input type="range" id="level-black" min="0" max="128" value="0"><input type="range" id="level-white" min="128" max="255" value="255"><input type="range" id="level-gamma" min="20" max="300" value="100">
+      <span id="level-black-val">0</span><span id="level-white-val">255</span><span id="level-gamma-val">1.0</span><button id="btn-apply-levels"></button>
+      <span id="watermark-opacity-val">30</span>
+      <input type="number" id="sprite-cols" value="4"><input type="number" id="sprite-rows" value="4">
+      <input type="number" id="ascii-cols" value="80"><pre id="ascii-output"></pre>
+      <div id="steg-result"></div><div id="favicon-previews"></div>
+      <canvas id="histogram-canvas"></canvas>
+      <button data-cb="protanopia"></button><button data-cb="deuteranopia"></button><button data-cb="tritanopia"></button><button data-cb="achromatopsia"></button>
     </div>
-    
   </div>
 
   <!-- ============================================================ -->
-  <!-- MODE: Convert -->
+  <!-- MODE: Convert (top ribbon) -->
   <!-- ============================================================ -->
-  <div class="mode-view" id="mode-convert">
+  <div class="mode-view" id="mode-convert" style="flex-direction:column;">
+    <div class="edit-ribbon"><div class="ribbon-bar">
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row"><button class="format-btn active" data-fmt="png">PNG</button><button class="format-btn" data-fmt="jpeg">JPEG</button><button class="format-btn" data-fmt="webp">WebP</button><button class="format-btn" data-fmt="avif">AVIF</button><button class="format-btn" data-fmt="bmp">BMP</button><button class="format-btn" data-fmt="ico">ICO</button><button class="format-btn" data-fmt="tiff">TIFF</button></div>
+      </div><div class="ribbon-label">Format</div></div>
+      <div class="ribbon-sep-v"></div>
+      <div class="ribbon-group" id="convert-quality-section" style="display:none;"><div class="ribbon-tools">
+        <div class="ribbon-row" style="gap:4px;"><span class="ribbon-mini-label">Q</span><input type="range" class="range-input" id="convert-quality" min="1" max="100" value="85" style="width:80px;"><span class="range-value" id="convert-quality-val" style="width:20px;">85</span></div>
+      </div><div class="ribbon-label">Quality</div></div>
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row" style="gap:4px;"><span class="ribbon-mini-label">W</span><input type="number" id="batch-resize-w" class="input-field" placeholder="px" style="width:50px;"><span class="ribbon-mini-label">H</span><input type="number" id="batch-resize-h" class="input-field" placeholder="px" style="width:50px;"><label style="font-size:0.5rem;color:var(--slate-400);display:flex;align-items:center;gap:2px;"><input type="checkbox" id="batch-resize-lock" checked style="accent-color:var(--saffron-400);">Lock</label></div>
+      </div><div class="ribbon-label">Resize</div></div>
+      <div class="ribbon-sep-v"></div>
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row"><label style="font-size:0.5rem;color:var(--slate-400);display:flex;align-items:center;gap:2px;"><input type="checkbox" id="convert-strip-meta" style="accent-color:var(--saffron-400);">Strip meta</label></div>
+        <div class="ribbon-row"><button id="btn-convert-go" class="btn-primary" style="padding:3px 12px;" disabled>Convert & Save</button></div>
+      </div><div class="ribbon-label">Export</div></div>
+      <div class="ribbon-sep-v"></div>
+      <div class="ribbon-group"><div class="ribbon-tools"><div id="compression-preview" style="font-size:0.5rem;color:var(--slate-500);">Load image to see sizes</div></div><div class="ribbon-label">Size Preview</div></div>
+    </div></div>
     <div class="work-area">
       <div id="convert-drop" class="dropzone"><p class="drop-title">Drop image(s) to convert</p><p class="drop-sub">Batch conversion supported</p><input type="file" id="convert-file" accept="image/*" multiple style="display:none;"></div>
       <div id="convert-preview" style="display:none;text-align:center;"><img id="convert-img" src="" alt="" style="max-width:80%;max-height:60vh;border-radius:8px;"><div id="convert-batch-info" style="margin-top:0.5rem;font-size:0.75rem;color:var(--slate-400);"></div></div>
     </div>
-    <div class="sidebar">
-      <div class="sidebar-section"><div class="sidebar-title">Output Format</div><div class="btn-row" id="convert-formats"><button class="format-btn active" data-fmt="png">PNG</button><button class="format-btn" data-fmt="jpeg">JPEG</button><button class="format-btn" data-fmt="webp">WebP</button><button class="format-btn" data-fmt="avif">AVIF</button><button class="format-btn" data-fmt="bmp">BMP</button><button class="format-btn" data-fmt="ico">ICO</button><button class="format-btn" data-fmt="tiff">TIFF</button><button class="format-btn" data-fmt="qoi">QOI</button></div></div>
-      <div class="sidebar-section" id="convert-quality-section" style="display:none;"><div class="sidebar-title">Quality</div><div class="range-row"><span class="range-label">Quality</span><span class="range-value" id="convert-quality-val">85</span></div><input type="range" class="range-input" id="convert-quality" min="1" max="100" value="85"></div>
-      <div class="sidebar-section"><label style="font-size:0.6875rem;color:var(--slate-400);display:flex;align-items:center;gap:4px;"><input type="checkbox" id="convert-strip-meta" style="accent-color:var(--saffron-400);">Strip metadata</label></div>
-      <div class="sidebar-section"><div class="sidebar-title">Batch Resize</div><div style="display:flex;gap:0.375rem;margin-bottom:0.375rem;"><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">W</label><input type="number" id="batch-resize-w" class="input-field" placeholder="px"></div><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">H</label><input type="number" id="batch-resize-h" class="input-field" placeholder="px"></div></div><label style="font-size:0.6875rem;color:var(--slate-400);display:flex;align-items:center;gap:4px;"><input type="checkbox" id="batch-resize-lock" checked style="accent-color:var(--saffron-400);">Maintain ratio</label></div>
-      <div class="sidebar-section"><div class="sidebar-title">Compression Preview</div><div id="compression-preview"><span style="color:var(--slate-500);font-size:0.6875rem;">Load an image to see sizes</span></div></div>
-      <div class="sidebar-section"><button id="btn-convert-go" class="btn-primary" style="width:100%;" disabled>Convert & Save</button></div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODE: Generate (top ribbon, no input image) -->
+  <!-- ============================================================ -->
+  <div class="mode-view" id="mode-generate" style="flex-direction:column;">
+    <div class="edit-ribbon"><div class="ribbon-bar">
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row" style="gap:4px;"><span class="ribbon-mini-label">W</span><input type="number" id="gen-w" class="input-field" value="800" style="width:50px;"><span class="ribbon-mini-label">H</span><input type="number" id="gen-h" class="input-field" value="600" style="width:50px;"></div>
+      </div><div class="ribbon-label">Size</div></div>
+      <div class="ribbon-sep-v"></div>
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row" style="gap:3px;"><select id="gen-grad-type" class="select-field" style="width:75px;"><option value="linear">Linear</option><option value="radial">Radial</option></select><input type="color" id="gen-grad-c1" value="#F4C430" style="width:20px;height:16px;border:none;cursor:pointer;"><input type="color" id="gen-grad-c2" value="#B8860B" style="width:20px;height:16px;border:none;cursor:pointer;"><button class="btn-primary" id="btn-gen-gradient" style="padding:2px 6px;">Go</button></div>
+      </div><div class="ribbon-label">Gradient</div></div>
+      <div class="ribbon-sep-v"></div>
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row" style="gap:3px;"><select id="gen-pat-type" class="select-field" style="width:80px;"><option value="checkerboard">Checker</option><option value="stripes-h">Stripes H</option><option value="stripes-v">Stripes V</option><option value="dots">Dots</option><option value="noise">Noise</option></select><input type="color" id="gen-pat-c1" value="#e2e8f0" style="width:20px;height:16px;border:none;cursor:pointer;"><input type="color" id="gen-pat-c2" value="#ffffff" style="width:20px;height:16px;border:none;cursor:pointer;"></div>
+        <div class="ribbon-row" style="gap:3px;"><span class="ribbon-mini-label">Cell</span><input type="number" id="gen-pat-cell" class="input-field" value="40" min="4" style="width:40px;"><button class="btn-primary" id="btn-gen-pattern" style="padding:2px 6px;">Go</button></div>
+      </div><div class="ribbon-label">Pattern</div></div>
+      <div class="ribbon-sep-v"></div>
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row" style="gap:3px;"><input type="text" id="gen-ph-text" class="input-field" placeholder="Text" style="width:80px;"><input type="color" id="gen-ph-bg" value="#94a3b8" style="width:20px;height:16px;border:none;cursor:pointer;"><input type="color" id="gen-ph-text-color" value="#ffffff" style="width:20px;height:16px;border:none;cursor:pointer;"><button class="btn-primary" id="btn-gen-placeholder" style="padding:2px 6px;">Go</button></div>
+      </div><div class="ribbon-label">Placeholder</div></div>
+      <div class="ribbon-sep-v"></div>
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row"><select id="gen-export-fmt" class="select-field" style="width:55px;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option></select><button id="btn-gen-export" class="btn-primary" style="padding:2px 8px;">Export</button></div>
+      </div><div class="ribbon-label">Export</div></div>
+    </div></div>
+    <div class="work-area"><canvas id="gen-canvas" style="max-width:80%;max-height:80%;border-radius:8px;background:var(--slate-800);"></canvas><div id="gen-dims" style="position:absolute;bottom:8px;right:8px;font-size:0.625rem;color:var(--slate-500);"></div></div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODE: Collage (top ribbon, multiple images) -->
+  <!-- ============================================================ -->
+  <div class="mode-view" id="mode-collage" style="flex-direction:column;">
+    <div class="edit-ribbon"><div class="ribbon-bar">
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row" style="gap:4px;"><span class="ribbon-mini-label">Cols</span><input type="number" id="collage-cols" class="input-field" value="2" min="1" max="10" style="width:35px;"><span class="ribbon-mini-label">Gap</span><input type="number" id="collage-spacing" class="input-field" value="10" min="0" style="width:35px;"><input type="color" id="collage-bg" value="#ffffff" style="width:20px;height:16px;border:none;cursor:pointer;"></div>
+      </div><div class="ribbon-label">Layout</div></div>
+      <div class="ribbon-sep-v"></div>
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row"><button id="btn-collage-build" class="btn-primary" style="padding:3px 10px;" disabled>Build</button><button id="btn-collage-export" class="tool-btn" disabled style="font-size:0.5rem;">Export PNG</button></div>
+        <div class="ribbon-row"><span id="collage-count" style="font-size:0.5rem;color:var(--slate-500);">0 images</span></div>
+      </div><div class="ribbon-label">Actions</div></div>
+      <div class="ribbon-sep-v"></div>
+      <div class="ribbon-group"><div class="ribbon-tools"><div id="collage-thumbs" style="display:flex;gap:3px;flex-wrap:wrap;max-width:200px;"></div></div><div class="ribbon-label">Images</div></div>
+    </div></div>
+    <div class="work-area">
+      <div id="collage-drop" class="dropzone"><p class="drop-title">Drop multiple images to create a collage</p><p class="drop-sub">Select 2 or more images</p><input type="file" id="collage-files" accept="image/*" multiple style="display:none;"></div>
+      <canvas id="collage-canvas" style="display:none;max-width:90%;max-height:80%;border-radius:8px;"></canvas>
     </div>
   </div>
 
   <!-- ============================================================ -->
-  <!-- MODE: Store Assets -->
+  <!-- MODE: Store Assets (special layout) -->
   <!-- ============================================================ -->
   <div class="mode-view" id="mode-store">
     <div class="store-nav">
@@ -431,153 +387,33 @@
       <div class="store-nav-item" data-store="firefox">Firefox <span class="badge" id="store-count-firefox">0</span></div>
       <div class="store-nav-item" data-store="ms">Microsoft <span class="badge" id="store-count-ms">0</span></div>
     </div>
-    <div id="store-assets" class="asset-grid">
-      <div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--slate-500);font-size:0.8125rem;">Upload a source icon to generate all store assets</div>
-    </div>
+    <div id="store-assets" class="asset-grid"><div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--slate-500);font-size:0.8125rem;">Upload source icon to generate</div></div>
     <div class="sidebar">
-      <div class="sidebar-section">
-        <div class="sidebar-title">Source Icon</div>
-        <div id="store-icon-drop" style="border:1px dashed var(--slate-700);border-radius:8px;padding:1rem;text-align:center;cursor:pointer;">
-          <p style="font-size:0.6875rem;color:var(--slate-500);">Drop 1024x1024 icon</p>
-          <input type="file" id="store-icon-file" accept="image/*" style="display:none;">
-        </div>
-        <div id="store-icon-preview" style="display:none;margin-top:0.5rem;text-align:center;">
-          <canvas id="store-icon-canvas" style="max-width:100%;border-radius:8px;background:var(--slate-800);"></canvas>
-        </div>
-      </div>
-      <div class="sidebar-section">
-        <div class="sidebar-title">Source Screenshot</div>
-        <div id="store-screenshot-drop" style="border:1px dashed var(--slate-700);border-radius:8px;padding:1rem;text-align:center;cursor:pointer;">
-          <p style="font-size:0.6875rem;color:var(--slate-500);">Drop screenshot</p>
-          <input type="file" id="store-screenshot-file" accept="image/*" style="display:none;">
-        </div>
-      </div>
-      <div class="sidebar-section">
-        <div class="sidebar-title">Background</div>
-        <div style="display:flex;gap:0.5rem;">
-          <div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">Color</label><input type="color" id="store-bg-color" value="#1e293b" style="width:100%;height:28px;border:none;background:none;cursor:pointer;"></div>
-          <div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">Corner</label><input type="number" id="store-corner-radius" value="0" min="0" max="100" class="input-field"></div>
-        </div>
-      </div>
-      <div class="sidebar-section">
-        <button id="btn-store-generate" class="btn-primary" style="width:100%;margin-bottom:0.5rem;" disabled>Generate All Assets</button>
-        <button id="btn-store-export" class="btn-primary" style="width:100%;background:var(--slate-800);color:var(--saffron-400);border:1px solid var(--saffron-400);" disabled>Export All as ZIP</button>
-      </div>
-      <div class="sidebar-section">
-        <div class="sidebar-title">Validation</div>
-        <div id="store-validation" style="font-size:0.6875rem;color:var(--slate-500);">Upload source icon to validate</div>
-      </div>
+      <div class="sidebar-section"><div class="sidebar-title">Source Icon</div><div id="store-icon-drop" style="border:1px dashed var(--slate-700);border-radius:8px;padding:1rem;text-align:center;cursor:pointer;"><p style="font-size:0.6875rem;color:var(--slate-500);">Drop 1024x1024 icon</p><input type="file" id="store-icon-file" accept="image/*" style="display:none;"></div><div id="store-icon-preview" style="display:none;margin-top:0.5rem;text-align:center;"><canvas id="store-icon-canvas" style="max-width:100%;border-radius:8px;"></canvas></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">Source Screenshot</div><div id="store-screenshot-drop" style="border:1px dashed var(--slate-700);border-radius:8px;padding:1rem;text-align:center;cursor:pointer;"><p style="font-size:0.6875rem;color:var(--slate-500);">Drop screenshot</p><input type="file" id="store-screenshot-file" accept="image/*" style="display:none;"></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">Background</div><div style="display:flex;gap:0.5rem;"><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">Color</label><input type="color" id="store-bg-color" value="#1e293b" style="width:100%;height:28px;border:none;cursor:pointer;"></div><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">Corner</label><input type="number" id="store-corner-radius" value="0" min="0" max="100" class="input-field"></div></div></div>
+      <div class="sidebar-section"><button id="btn-store-generate" class="btn-primary" style="width:100%;margin-bottom:0.375rem;" disabled>Generate All</button><button id="btn-store-export" class="btn-primary" style="width:100%;background:var(--slate-800);color:var(--saffron-400);border:1px solid var(--saffron-400);" disabled>Export All</button></div>
+      <div class="sidebar-section"><div class="sidebar-title">Validation</div><div id="store-validation" style="font-size:0.6875rem;color:var(--slate-500);">Upload source icon to validate</div></div>
     </div>
   </div>
 
   <!-- ============================================================ -->
-  <!-- MODE: Generate (no input image needed) -->
-  <!-- ============================================================ -->
-  <div class="mode-view" id="mode-generate">
-    <div class="work-area">
-      <div id="gen-preview" style="text-align:center;">
-        <canvas id="gen-canvas" style="max-width:80%;max-height:70vh;border-radius:8px;background:var(--slate-800);"></canvas>
-        <div style="margin-top:0.5rem;font-size:0.6875rem;color:var(--slate-500);" id="gen-dims"></div>
-      </div>
-    </div>
-    <div class="sidebar">
-      <div class="sidebar-section">
-        <div class="sidebar-title">Canvas Size</div>
-        <div style="display:flex;gap:0.375rem;margin-bottom:0.375rem;">
-          <div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">W</label><input type="number" id="gen-w" class="input-field" value="800"></div>
-          <div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">H</label><input type="number" id="gen-h" class="input-field" value="600"></div>
-        </div>
-      </div>
-      <div class="sidebar-section">
-        <div class="sidebar-title">Gradient</div>
-        <div style="display:flex;gap:0.25rem;align-items:center;margin-bottom:0.375rem;">
-          <select id="gen-grad-type" class="select-field" style="width:70px;"><option value="linear">Linear</option><option value="radial">Radial</option></select>
-          <input type="color" id="gen-grad-c1" value="#F4C430" style="width:24px;height:22px;border:none;cursor:pointer;">
-          <input type="color" id="gen-grad-c2" value="#B8860B" style="width:24px;height:22px;border:none;cursor:pointer;">
-          <button class="btn-primary" id="btn-gen-gradient" style="font-size:0.625rem;padding:3px 8px;">Create</button>
-        </div>
-      </div>
-      <div class="sidebar-section">
-        <div class="sidebar-title">Pattern</div>
-        <div style="display:flex;gap:0.25rem;align-items:center;margin-bottom:0.25rem;">
-          <select id="gen-pat-type" class="select-field" style="width:80px;"><option value="checkerboard">Checker</option><option value="stripes-h">Stripes H</option><option value="stripes-v">Stripes V</option><option value="dots">Dots</option><option value="noise">Noise</option></select>
-          <input type="color" id="gen-pat-c1" value="#e2e8f0" style="width:24px;height:22px;border:none;cursor:pointer;">
-          <input type="color" id="gen-pat-c2" value="#ffffff" style="width:24px;height:22px;border:none;cursor:pointer;">
-        </div>
-        <div style="display:flex;gap:0.25rem;align-items:center;">
-          <label class="range-label">Cell</label>
-          <input type="number" id="gen-pat-cell" class="input-field" value="40" min="4" max="200" style="width:50px;">
-          <button class="btn-primary" id="btn-gen-pattern" style="font-size:0.625rem;padding:3px 8px;">Create</button>
-        </div>
-      </div>
-      <div class="sidebar-section">
-        <div class="sidebar-title">Placeholder</div>
-        <input type="text" id="gen-ph-text" class="input-field" placeholder="Custom text (optional)" style="margin-bottom:0.375rem;">
-        <div style="display:flex;gap:0.25rem;align-items:center;">
-          <input type="color" id="gen-ph-bg" value="#94a3b8" style="width:24px;height:22px;border:none;cursor:pointer;">
-          <input type="color" id="gen-ph-text-color" value="#ffffff" style="width:24px;height:22px;border:none;cursor:pointer;">
-          <button class="btn-primary" id="btn-gen-placeholder" style="font-size:0.625rem;padding:3px 8px;">Create</button>
-        </div>
-      </div>
-      <div class="sidebar-section">
-        <div class="sidebar-title">Export</div>
-        <select id="gen-export-fmt" class="select-field" style="margin-bottom:0.375rem;">
-          <option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option>
-        </select>
-        <button id="btn-gen-export" class="btn-primary" style="width:100%;">Export Image</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============================================================ -->
-  <!-- MODE: Collage (multiple images) -->
-  <!-- ============================================================ -->
-  <div class="mode-view" id="mode-collage">
-    <div class="work-area">
-      <div id="collage-preview" style="text-align:center;">
-        <canvas id="collage-canvas" style="max-width:90%;max-height:70vh;border-radius:8px;background:var(--slate-800);display:none;"></canvas>
-        <div id="collage-drop" class="dropzone" style="margin:1.5rem;">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--slate-600)" stroke-width="1.5" style="margin:0 auto 0.75rem;display:block;"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>
-          <p class="drop-title">Drop multiple images to create a collage</p>
-          <p class="drop-sub">Select 2 or more images</p>
-          <input type="file" id="collage-files" accept="image/*" multiple style="display:none;">
-        </div>
-      </div>
-    </div>
-    <div class="sidebar">
-      <div class="sidebar-section">
-        <div class="sidebar-title">Images</div>
-        <div id="collage-thumbs" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
-        <div id="collage-count" style="font-size:0.6875rem;color:var(--slate-500);margin-top:0.375rem;">0 images loaded</div>
-      </div>
-      <div class="sidebar-section">
-        <div class="sidebar-title">Layout</div>
-        <div style="display:flex;gap:0.375rem;margin-bottom:0.375rem;">
-          <div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">Columns</label><input type="number" id="collage-cols" class="input-field" value="2" min="1" max="10"></div>
-          <div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">Spacing</label><input type="number" id="collage-spacing" class="input-field" value="10" min="0" max="100"></div>
-        </div>
-        <div style="display:flex;gap:0.25rem;align-items:center;">
-          <label class="range-label">Background</label>
-          <input type="color" id="collage-bg" value="#ffffff" style="width:28px;height:22px;border:none;cursor:pointer;">
-        </div>
-      </div>
-      <div class="sidebar-section">
-        <button id="btn-collage-build" class="btn-primary" style="width:100%;margin-bottom:0.375rem;" disabled>Build Collage</button>
-        <button id="btn-collage-export" class="btn-primary" style="width:100%;background:var(--slate-800);color:var(--saffron-400);border:1px solid var(--saffron-400);" disabled>Export PNG</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============================================================ -->
-  <!-- MODE: Info -->
+  <!-- MODE: Info (sidebar for scrollable lists) -->
   <!-- ============================================================ -->
   <div class="mode-view" id="mode-info">
     <div class="work-area"><div id="info-drop" class="dropzone"><p class="drop-title">Drop an image to inspect metadata</p><p class="drop-sub">EXIF, JPEG structure, ICC profiles</p><input type="file" id="info-file" accept="image/*" style="display:none;"></div><div id="info-preview" style="display:none;text-align:center;"><img id="info-img" src="" alt="" style="max-width:80%;max-height:60vh;border-radius:8px;"></div></div>
-    <div class="sidebar"><div class="sidebar-section"><div class="sidebar-title">File Info</div><div id="info-file-details"><span style="color:var(--slate-500);font-size:0.75rem;">No image loaded</span></div></div><div class="sidebar-section"><div class="sidebar-title">DPI / Resolution</div><div id="info-dpi"><span style="color:var(--slate-500);font-size:0.75rem;">No image loaded</span></div></div><div class="sidebar-section"><div class="sidebar-title">EXIF</div><div id="info-exif"><span style="color:var(--slate-500);font-size:0.75rem;">No image loaded</span></div></div><div class="sidebar-section"><div class="sidebar-title">JPEG Structure</div><div id="info-structure"><span style="color:var(--slate-500);font-size:0.75rem;">No image loaded</span></div></div><div class="sidebar-section"><div class="sidebar-title">Image Hash</div><div id="info-hash"><span style="color:var(--slate-500);font-size:0.75rem;">No image loaded</span></div></div><div class="sidebar-section"><div class="sidebar-title">Base64</div><button id="btn-copy-base64" class="tool-btn" style="width:100%;justify-content:center;font-size:0.6875rem;" disabled>Copy as Data URI</button></div></div>
+    <div class="sidebar">
+      <div class="sidebar-section"><div class="sidebar-title">File Info</div><div id="info-file-details"><span style="color:var(--slate-500);font-size:0.75rem;">No image loaded</span></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">DPI / Resolution</div><div id="info-dpi"><span style="color:var(--slate-500);font-size:0.75rem;">No image loaded</span></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">EXIF</div><div id="info-exif"><span style="color:var(--slate-500);font-size:0.75rem;">No image loaded</span></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">JPEG Structure</div><div id="info-structure"><span style="color:var(--slate-500);font-size:0.75rem;">No image loaded</span></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">Image Hash</div><div id="info-hash"><span style="color:var(--slate-500);font-size:0.75rem;">No image loaded</span></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">Base64</div><button id="btn-copy-base64" class="tool-btn" style="width:100%;justify-content:center;font-size:0.6875rem;" disabled>Copy as Data URI</button></div>
+    </div>
   </div>
 
   <!-- ============================================================ -->
-  <!-- MODE: QR Code -->
+  <!-- MODE: QR Code (sidebar for text input) -->
   <!-- ============================================================ -->
   <div class="mode-view" id="mode-qr">
     <div class="work-area" style="flex-direction:column;gap:0.75rem;">
@@ -591,32 +427,40 @@
     <div class="sidebar">
       <div class="sidebar-section"><div class="sidebar-title">Content</div><textarea id="qr-text" class="input-field" placeholder="URL, text, WiFi, vCard..." rows="4"></textarea></div>
       <div class="sidebar-section"><div class="sidebar-title">Presets</div><div class="btn-row"><button class="tool-btn" data-qr-preset="url">URL</button><button class="tool-btn" data-qr-preset="wifi">WiFi</button><button class="tool-btn" data-qr-preset="email">Email</button><button class="tool-btn" data-qr-preset="phone">Phone</button><button class="tool-btn" data-qr-preset="vcard">vCard</button></div></div>
-      <div class="sidebar-section"><div class="sidebar-title">Error Correction</div><select id="qr-ecc" class="select-field"><option value="L">Low (7%)</option><option value="M" selected>Medium (15%)</option><option value="Q">Quartile (25%)</option><option value="H">High (30%)</option></select></div>
+      <div class="sidebar-section"><div class="sidebar-title">Error Correction</div><select id="qr-ecc" class="select-field"><option value="L">Low</option><option value="M" selected>Medium</option><option value="Q">Quartile</option><option value="H">High</option></select></div>
       <div class="sidebar-section"><div class="sidebar-title">Size</div><div class="range-row"><span class="range-label">Pixel</span><span class="range-value" id="qr-px-val">8</span></div><input type="range" class="range-input" id="qr-px" min="2" max="20" value="8"><div class="range-row" style="margin-top:0.375rem;"><span class="range-label">Margin</span><span class="range-value" id="qr-margin-val">4</span></div><input type="range" class="range-input" id="qr-margin" min="0" max="10" value="4"></div>
-      <div class="sidebar-section"><div class="sidebar-title">Colors</div><div style="display:flex;gap:0.5rem;"><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">FG</label><input type="color" id="qr-fg" value="#000000" style="width:100%;height:28px;border:none;background:none;cursor:pointer;"></div><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">BG</label><input type="color" id="qr-bg" value="#ffffff" style="width:100%;height:28px;border:none;background:none;cursor:pointer;"></div></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">Colors</div><div style="display:flex;gap:0.5rem;"><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">FG</label><input type="color" id="qr-fg" value="#000000" style="width:100%;height:28px;border:none;cursor:pointer;"></div><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">BG</label><input type="color" id="qr-bg" value="#ffffff" style="width:100%;height:28px;border:none;cursor:pointer;"></div></div></div>
       <div class="sidebar-section"><button id="btn-qr-generate" class="btn-primary" style="width:100%;">Generate QR Code</button></div>
-      <div class="sidebar-section"><div class="sidebar-title">Read QR from Image</div><div id="qr-read-drop" style="border:1px dashed var(--slate-700);border-radius:8px;padding:0.75rem;text-align:center;cursor:pointer;"><p style="font-size:0.6875rem;color:var(--slate-500);">Drop image with QR code</p><input type="file" id="qr-read-file" accept="image/*" style="display:none;"></div><div id="qr-read-result" style="margin-top:0.5rem;font-size:0.75rem;color:var(--slate-300);display:none;"></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">Read QR</div><div id="qr-read-drop" style="border:1px dashed var(--slate-700);border-radius:8px;padding:0.75rem;text-align:center;cursor:pointer;"><p style="font-size:0.6875rem;color:var(--slate-500);">Drop image with QR code</p><input type="file" id="qr-read-file" accept="image/*" style="display:none;"></div><div id="qr-read-result" style="margin-top:0.5rem;font-size:0.75rem;color:var(--slate-300);display:none;"></div></div>
     </div>
   </div>
 
   <!-- ============================================================ -->
-  <!-- MODE: Colors -->
+  <!-- MODE: Colors (sidebar for palette list) -->
   <!-- ============================================================ -->
   <div class="mode-view" id="mode-colors">
     <div class="work-area"><div id="colors-drop" class="dropzone"><p class="drop-title">Drop an image to extract colors</p><p class="drop-sub">Click any pixel to pick a color</p><input type="file" id="colors-file" accept="image/*" style="display:none;"></div><div id="colors-preview" style="display:none;text-align:center;"><canvas id="colors-canvas" style="max-width:80%;max-height:60vh;border-radius:8px;cursor:crosshair;"></canvas></div></div>
-    <div class="sidebar"><div class="sidebar-section"><div class="sidebar-title">Eyedropper</div><div id="picked-color" style="text-align:center;color:var(--slate-500);font-size:0.75rem;">Click any pixel</div></div><div class="sidebar-section"><div class="sidebar-title">Dominant Palette</div><div id="palette-colors"><span style="color:var(--slate-500);font-size:0.75rem;">No image loaded</span></div></div><div class="sidebar-section"><div class="sidebar-title">Count</div><div class="range-row"><span class="range-label">Colors</span><span class="range-value" id="palette-count-val">6</span></div><input type="range" class="range-input" id="palette-count" min="2" max="12" value="6"><button id="btn-reextract" class="btn-primary" style="width:100%;margin-top:0.5rem;font-size:0.75rem;">Re-extract</button></div></div>
+    <div class="sidebar">
+      <div class="sidebar-section"><div class="sidebar-title">Eyedropper</div><div id="picked-color" style="text-align:center;color:var(--slate-500);font-size:0.75rem;">Click any pixel</div></div>
+      <div class="sidebar-section"><div class="sidebar-title">Dominant Palette</div><div id="palette-colors"><span style="color:var(--slate-500);font-size:0.75rem;">No image loaded</span></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">Count</div><div class="range-row"><span class="range-label">Colors</span><span class="range-value" id="palette-count-val">6</span></div><input type="range" class="range-input" id="palette-count" min="2" max="12" value="6"><button id="btn-reextract" class="btn-primary" style="width:100%;margin-top:0.5rem;font-size:0.75rem;">Re-extract</button></div>
+    </div>
   </div>
 
   <!-- ============================================================ -->
-  <!-- MODE: SVG -->
+  <!-- MODE: SVG (sidebar for source code) -->
   <!-- ============================================================ -->
   <div class="mode-view" id="mode-svg">
-    <div class="work-area"><div id="svg-drop" class="dropzone"><p class="drop-title">Drop an SVG file to inspect and convert</p><p class="drop-sub">.svg files only</p><input type="file" id="svg-file" accept=".svg,image/svg+xml" style="display:none;"></div><div id="svg-preview" style="display:none;text-align:center;"><img id="svg-img" src="" alt="" style="max-width:80%;max-height:60vh;border-radius:8px;background:var(--slate-800);"></div></div>
-    <div class="sidebar"><div class="sidebar-section" data-cat="export"><div class="sidebar-title">SVG Info</div><div id="svg-info"><span style="color:var(--slate-500);font-size:0.75rem;">No SVG loaded</span></div></div><div class="sidebar-section"><div class="sidebar-title">Export Raster</div><div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;"><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">W</label><input type="number" id="svg-export-w" class="input-field"></div><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">H</label><input type="number" id="svg-export-h" class="input-field"></div></div><select id="svg-export-fmt" class="select-field" style="margin-bottom:0.5rem;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option></select><button id="btn-svg-export" class="btn-primary" style="width:100%;" disabled>Export Raster</button></div><div class="sidebar-section"><div class="sidebar-title">Source</div><div id="svg-source" class="svg-source">No SVG loaded</div><button id="btn-svg-copy-source" class="tool-btn" style="width:100%;margin-top:0.5rem;justify-content:center;font-size:0.6875rem;">Copy Source</button></div></div>
+    <div class="work-area"><div id="svg-drop" class="dropzone"><p class="drop-title">Drop an SVG file</p><p class="drop-sub">.svg files only</p><input type="file" id="svg-file" accept=".svg,image/svg+xml" style="display:none;"></div><div id="svg-preview" style="display:none;text-align:center;"><img id="svg-img" src="" alt="" style="max-width:80%;max-height:60vh;border-radius:8px;background:var(--slate-800);"></div></div>
+    <div class="sidebar">
+      <div class="sidebar-section"><div class="sidebar-title">SVG Info</div><div id="svg-info"><span style="color:var(--slate-500);font-size:0.75rem;">No SVG loaded</span></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">Export Raster</div><div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;"><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">W</label><input type="number" id="svg-export-w" class="input-field"></div><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">H</label><input type="number" id="svg-export-h" class="input-field"></div></div><select id="svg-export-fmt" class="select-field" style="margin-bottom:0.5rem;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option></select><button id="btn-svg-export" class="btn-primary" style="width:100%;" disabled>Export Raster</button></div>
+      <div class="sidebar-section"><div class="sidebar-title">Source</div><div id="svg-source" class="svg-source">No SVG loaded</div><button id="btn-svg-copy-source" class="tool-btn" style="width:100%;margin-top:0.5rem;justify-content:center;font-size:0.6875rem;">Copy Source</button></div>
+    </div>
   </div>
 
   <!-- ============================================================ -->
-  <!-- MODE: Compare -->
+  <!-- MODE: Compare (split layout, no sidebar) -->
   <!-- ============================================================ -->
   <div class="mode-view" id="mode-compare">
     <div class="compare-container">
@@ -626,9 +470,8 @@
     </div>
   </div>
 
-  <!-- OCR removed from v1 (Tesseract.js is 6MB+, triggers Chrome review) -->
-
   <script src="../shared/theme.js"></script>
+  <script src="../shared/dialog.js"></script>
   <script src="../popup/qr.js"></script>
   <script src="tools.js"></script>
   <script src="tools2.js"></script>

@@ -276,13 +276,14 @@ const Annotate = {
 
     if (this.tool === 'text') {
       this.drawing = false;
-      const text = prompt('Enter text:');
-      if (text) {
-        this.ctx.fillStyle = this.color;
-        this.ctx.font = `bold ${this.fontSize}px Inter, sans-serif`;
-        this.ctx.fillText(text, cx, cy);
-        this.saveState();
-      }
+      pixDialog.prompt('Text Overlay', 'Enter text to add:').then(text => {
+        if (text) {
+          this.ctx.fillStyle = this.color;
+          this.ctx.font = `bold ${this.fontSize}px Inter, sans-serif`;
+          this.ctx.fillText(text, cx, cy);
+          this.saveState();
+        }
+      });
     }
   },
 
