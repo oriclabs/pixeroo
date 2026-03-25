@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initGlobalDrop();
   initGenerate();
   initCollage();
-  checkWasmStatus();
 
   document.getElementById('btn-editor-settings').addEventListener('click', () => {
     chrome.tabs.create({ url: chrome.runtime.getURL('settings/settings.html') });
@@ -96,44 +95,6 @@ function initGlobalDrop() {
 // MODE: Generate (standalone, no input image)
 // ============================================================
 
-// ============================================================
-// WASM Engine Status
-// ============================================================
-
-function checkWasmStatus() {
-  const isLoaded = !!(window.pixerooWasm?.version);
-  updateWasmUI(isLoaded);
-
-  // Re-check periodically (WASM may load asynchronously)
-  if (!isLoaded) {
-    setTimeout(checkWasmStatus, 5000);
-  }
-}
-
-function updateWasmUI(loaded) {
-  const dot = document.getElementById('wasm-status-dot');
-  const text = document.getElementById('wasm-status-text');
-
-  if (dot) {
-    dot.className = 'wasm-dot ' + (loaded ? 'online' : 'offline');
-    dot.title = loaded ? 'WASM engine running' : 'WASM engine not loaded - some features unavailable';
-  }
-  if (text) {
-    text.textContent = loaded ? 'WASM online' : 'WASM offline';
-    text.style.color = loaded ? '#22c55e' : 'var(--slate-500)';
-  }
-
-  // Toggle WASM-dependent elements
-  document.querySelectorAll('.wasm-required').forEach(el => {
-    el.classList.toggle('wasm-disabled', !loaded);
-    el.classList.toggle('wasm-enabled', loaded);
-    if (!loaded) {
-      el.title = (el.dataset.wasmTitle || el.title || '') + ' (requires WASM engine)';
-    } else if (el.dataset.wasmTitle) {
-      el.title = el.dataset.wasmTitle;
-    }
-  });
-}
 
 function initGenerate() {
   const genCanvas = document.getElementById('gen-canvas');
@@ -925,28 +886,6 @@ function editExport() {
   // Flatten any drawn objects into the canvas before export
   if (window._pixerooObjLayer?.hasObjects()) window._pixerooObjLayer.flatten();
   const fmt = document.getElementById('export-format').value;
-  const wasmFormats = ['avif', 'ico', 'tiff', 'qoi'];
-
-  if (wasmFormats.includes(fmt)) {
-    if (window.pixerooWasm?.convert_image) {
-      // Use WASM engine for formats Canvas can't handle
-      editCanvas.toBlob(async (pngBlob) => {
-        try {
-          const buffer = await pngBlob.arrayBuffer();
-          const quality = +(document.getElementById('export-quality')?.value || 85);
-          const result = window.pixerooWasm.convert_image(new Uint8Array(buffer), fmt, quality);
-          const outBlob = new Blob([result], { type: `image/${fmt}` });
-          chrome.runtime.sendMessage({ action:'download', url: URL.createObjectURL(outBlob), filename:`pixeroo/${editFilename}.${fmt}`, saveAs:true });
-        } catch (e) {
-          pixDialog.alert('Export Failed', `WASM conversion to ${fmt.toUpperCase()} failed: ${e.message}`);
-        }
-      }, 'image/png');
-      return;
-    }
-    pixDialog.alert('WASM Required', `${fmt.toUpperCase()} export requires the WASM engine. The engine may still be loading -- try again in a moment.`);
-    return;
-  }
-
   const mime = {png:'image/png',jpeg:'image/jpeg',webp:'image/webp',bmp:'image/bmp'}[fmt] || 'image/png';
   const q = ['jpeg','webp'].includes(fmt) ? +(document.getElementById('export-quality')?.value || 85) / 100 : undefined;
   editCanvas.toBlob(blob => {
@@ -957,7 +896,7 @@ function editExport() {
 // Show/hide quality slider based on format
 document.getElementById('export-format')?.addEventListener('change', (e) => {
   const row = document.getElementById('export-quality-row');
-  if (row) row.style.display = ['jpeg','webp','avif'].includes(e.target.value) ? 'flex' : 'none';
+  if (row) row.style.display = ['jpeg','webp'].includes(e.target.value) ? 'flex' : 'none';
 });
 document.getElementById('export-quality')?.addEventListener('input', (e) => {
   const v = document.getElementById('export-quality-val'); if (v) v.textContent = e.target.value;

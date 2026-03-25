@@ -44,7 +44,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["wasm/*.wasm", "wasm/*.js", "lib/jsQR.min.js"],
+      "resources": ["lib/jsQR.min.js"],
       "matches": ["<all_urls>"]
     }
   ],
@@ -67,6 +67,6 @@
   "minimum_chrome_version": "116",
   "offline_enabled": true,
   "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+    "extension_pages": "script-src 'self'; object-src 'self'"
   }
 }

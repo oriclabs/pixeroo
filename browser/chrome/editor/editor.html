@@ -108,16 +108,6 @@
     .info-bar .ibtn { background: none; border: 1px solid var(--slate-700); color: var(--slate-400); border-radius: 4px; padding: 3px 8px; font-size: 0.625rem; cursor: pointer; }
     .info-bar .ibtn:hover { border-color: var(--saffron-400); color: var(--saffron-400); }
 
-    /* WASM status */
-    .wasm-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
-    .wasm-dot.online { background: #22c55e; box-shadow: 0 0 4px rgba(34,197,94,0.4); }
-    .wasm-dot.offline { background: #ef4444; }
-    .wasm-required { position: relative; }
-    .wasm-required::after { content: ''; position: absolute; top: -2px; right: -2px; width: 5px; height: 5px; background: #f97316; border-radius: 50%; }
-    .wasm-required.wasm-disabled { opacity: 0.4; pointer-events: none; }
-    .wasm-required.wasm-enabled { opacity: 1; pointer-events: auto; }
-    .wasm-required.wasm-enabled::after { background: #22c55e; }
-
     /* Export pulse */
     @keyframes exportPulse { 0%,100% { box-shadow: none; } 50% { box-shadow: 0 0 12px rgba(244,196,48,0.4); } }
     .export-pulse { animation: exportPulse 1.5s ease-in-out 2; }
@@ -240,7 +230,7 @@
         <div class="ribbon-sep-v"></div>
         <!-- Export -->
         <div class="ribbon-group"><div class="ribbon-tools">
-          <div class="ribbon-row"><select id="export-format" class="select-field" title="Output format" style="width:75px;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option><option value="bmp">BMP</option><optgroup label="WASM required"><option value="avif" class="wasm-required" data-wasm-title="Export as AVIF">AVIF</option><option value="ico" class="wasm-required" data-wasm-title="Export as ICO">ICO</option><option value="tiff" class="wasm-required" data-wasm-title="Export as TIFF">TIFF</option><option value="qoi" class="wasm-required" data-wasm-title="Export as QOI">QOI</option></optgroup></select></div>
+          <div class="ribbon-row"><select id="export-format" class="select-field" title="Output format" style="width:65px;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option><option value="bmp">BMP</option></select></div>
           <div class="ribbon-row" id="export-quality-row" style="display:none;"><span class="ribbon-mini-label" title="Quality">Q</span><input type="range" id="export-quality" min="1" max="100" value="85" title="Export quality (1-100)" style="width:55px;accent-color:var(--saffron-400);"><span class="range-value" id="export-quality-val" style="width:20px;">85</span></div>
           <div class="ribbon-row"><button id="btn-export" class="btn-primary" title="Export image (Ctrl+S)" style="padding:3px 10px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</button><button class="tool-btn" id="btn-strip-meta" title="Strip all metadata and re-export"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button><button class="tool-btn" id="btn-to-pdf" title="Export as PDF"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></button></div>
         </div><div class="ribbon-label">Export</div></div>
@@ -251,11 +241,6 @@
           <div class="ribbon-row"><button class="tool-btn" data-channel="r" title="View red channel only" style="color:#ef4444;">R</button><button class="tool-btn" data-channel="g" title="View green channel only" style="color:#22c55e;">G</button><button class="tool-btn" data-channel="b" title="View blue channel only" style="color:#3b82f6;">B</button><button class="tool-btn" id="btn-cmyk-sim" title="Simulate CMYK print colors">CMYK</button></div>
           <div class="ribbon-row"><button class="tool-btn" id="btn-steg-detect" title="Detect steganography (hidden data)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="tool-btn" id="btn-ascii" title="Convert to ASCII art">ASCII</button><button class="tool-btn" id="btn-gen-favicons" title="Preview as favicon at multiple sizes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></button><button class="tool-btn" id="btn-slice-sprite" title="Slice sprite sheet into tiles"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></button></div>
         </div><div class="ribbon-label">More</div></div>
-        <div class="ribbon-sep-v"></div>
-        <!-- WASM Engine Status -->
-        <div class="ribbon-group" id="wasm-status-group"><div class="ribbon-tools" style="align-items:center;justify-content:center;">
-          <div class="ribbon-row"><span id="wasm-status-dot" class="wasm-dot offline" title="WASM engine not loaded"></span><span id="wasm-status-text" style="font-size:0.5rem;color:var(--slate-500);">WASM offline</span></div>
-        </div><div class="ribbon-label">Engine</div></div>
       </div>
     </div>
     <!-- Canvas -->
@@ -472,7 +457,6 @@
 
   <script src="../shared/theme.js"></script>
   <script src="../shared/dialog.js"></script>
-  <script src="../shared/wasm-loader.js"></script>
   <script src="../popup/qr.js"></script>
   <script src="objects.js"></script>
   <script src="tools.js"></script>
