@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initColors();
   initSVG();
   initCompare();
-  initOCR();
+  // OCR removed from v1 (Tesseract.js too large for extension)
   initGlobalDrop();
   initEditCategoryTabs();
   initLayoutToggle();
@@ -1158,20 +1158,7 @@ function initCompare() {
 // MODE: OCR
 // ============================================================
 
-function initOCR() {
-  let ocrFile=null;
-  setupDropzone(document.getElementById('ocr-drop'),document.getElementById('ocr-file'),(f)=>{ocrFile=f;document.getElementById('ocr-drop').style.display='none';document.getElementById('ocr-preview').style.display='block';document.getElementById('ocr-img').src=URL.createObjectURL(f);document.getElementById('btn-ocr-run').disabled=false;});
-
-  document.getElementById('btn-ocr-run').addEventListener('click',async()=>{
-    if(!ocrFile)return;
-    const prog=document.getElementById('ocr-progress'),bar=document.getElementById('ocr-progress-bar'),txt=document.getElementById('ocr-progress-text'),res=document.getElementById('ocr-result');
-    prog.style.display='block';bar.style.width='100%';
-    txt.textContent='WASM engine required for OCR';
-    res.textContent='OCR text extraction requires the WASM engine (Rust-based, offline processing). Build with:\n\ncd crates && wasm-pack build --target web\n\nOnce built, OCR will work entirely offline with no external dependencies.';
-    document.getElementById('btn-ocr-copy').disabled=true;
-  });
-  document.getElementById('btn-ocr-copy').addEventListener('click',()=>{const t=document.getElementById('ocr-result').textContent;if(t)navigator.clipboard.writeText(t);});
-}
+// OCR removed from v1 -- Tesseract.js is 6MB+, triggers Chrome review scrutiny
 
 // ============================================================
 // EXIF Parser (shared)
