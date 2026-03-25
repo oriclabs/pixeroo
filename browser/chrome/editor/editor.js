@@ -379,6 +379,33 @@ function initEdit() {
     });
   });
 
+  // Smart crop (auto-detect best region)
+  document.getElementById('btn-crop-auto')?.addEventListener('click', async () => {
+    if (!editCanvas.width || typeof smartcrop === 'undefined') return;
+    try {
+      // Create an image from current canvas for smartcrop
+      const blob = await new Promise(r => editCanvas.toBlob(r, 'image/png'));
+      const img = new Image();
+      img.src = URL.createObjectURL(blob);
+      await new Promise(r => { img.onload = r; });
+
+      // Find best square crop (most common use case)
+      const size = Math.min(editCanvas.width, editCanvas.height);
+      const result = await smartcrop.crop(img, { width: size, height: size });
+      const c = result.topCrop;
+      URL.revokeObjectURL(img.src);
+
+      // Apply the smart crop
+      const imgData = editCtx.getImageData(c.x, c.y, c.width, c.height);
+      editCanvas.width = c.width;
+      editCanvas.height = c.height;
+      editCtx.putImageData(imgData, 0, 0);
+      updResize(); saveEdit();
+    } catch (e) {
+      console.warn('Smart crop failed:', e);
+    }
+  });
+
   document.getElementById('btn-crop-apply')?.addEventListener('click', () => {
     Crop.apply();
     document.getElementById('btn-crop-apply').style.display = 'none';
@@ -587,9 +614,9 @@ function initEdit() {
 
   // Social media presets
   document.querySelectorAll('[data-social]').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       if (!editCanvas.width) return;
-      const result = resizeForSocial(editCanvas, btn.dataset.social);
+      const result = await resizeForSocial(editCanvas, btn.dataset.social);
       if (result) {
         editCanvas.width = result.w; editCanvas.height = result.h;
         editCtx.drawImage(result.canvas, 0, 0);

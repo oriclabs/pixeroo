@@ -347,7 +347,7 @@ const SOCIAL_PRESETS = {
   'og-image':    { name: 'OG Image', w: 1200, h: 630 },
 };
 
-function resizeForSocial(canvas, presetKey) {
+async function resizeForSocial(canvas, presetKey) {
   const preset = SOCIAL_PRESETS[presetKey];
   if (!preset) return null;
 
@@ -355,7 +355,24 @@ function resizeForSocial(canvas, presetKey) {
   result.width = preset.w; result.height = preset.h;
   const ctx = result.getContext('2d');
 
-  // Cover fit (fill entire area, crop excess)
+  // Try smart crop (content-aware) if available
+  if (typeof smartcrop !== 'undefined') {
+    try {
+      const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+      const img = new Image();
+      img.src = URL.createObjectURL(blob);
+      await new Promise(r => { img.onload = r; });
+
+      const sc = await smartcrop.crop(img, { width: preset.w, height: preset.h });
+      const c = sc.topCrop;
+      URL.revokeObjectURL(img.src);
+
+      ctx.drawImage(canvas, c.x, c.y, c.width, c.height, 0, 0, preset.w, preset.h);
+      return { canvas: result, name: preset.name, w: preset.w, h: preset.h };
+    } catch {}
+  }
+
+  // Fallback: center crop
   const scale = Math.max(preset.w / canvas.width, preset.h / canvas.height);
   const sw = preset.w / scale, sh = preset.h / scale;
   const sx = (canvas.width - sw) / 2, sy = (canvas.height - sh) / 2;

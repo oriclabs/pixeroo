@@ -188,7 +188,7 @@
         <div class="ribbon-sep-v"></div>
         <!-- Transform -->
         <div class="ribbon-group"><div class="ribbon-tools">
-          <div class="ribbon-row"><button class="tool-btn" id="btn-crop-free" title="Crop (free)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg></button><button class="tool-btn" id="btn-crop-1-1" title="Crop 1:1">1:1</button><button class="tool-btn" id="btn-crop-4-3" title="Crop 4:3">4:3</button><button class="tool-btn" id="btn-crop-16-9" title="Crop 16:9">16:9</button></div>
+          <div class="ribbon-row"><button class="tool-btn" id="btn-crop-auto" title="Smart crop (auto-detect subject)" style="color:var(--saffron-400);">Auto</button><button class="tool-btn" id="btn-crop-free" title="Crop (free)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg></button><button class="tool-btn" id="btn-crop-1-1" title="Crop 1:1">1:1</button><button class="tool-btn" id="btn-crop-4-3" title="Crop 4:3">4:3</button><button class="tool-btn" id="btn-crop-16-9" title="Crop 16:9">16:9</button></div>
           <div class="ribbon-row"><button class="tool-btn" id="btn-rotate-left" title="Rotate left 90"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button><button class="tool-btn" id="btn-rotate-right" title="Rotate right 90"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button><button class="tool-btn" id="btn-flip-h" title="Flip horizontal"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3"/><line x1="12" y1="20" x2="12" y2="4"/></svg></button><button class="tool-btn" id="btn-flip-v" title="Flip vertical"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8V5c0-1.1.9-2 2-2h14a2 2 0 0 1 2 2v3"/><path d="M3 16v3c0 1.1.9 2 2 2h14a2 2 0 0 1 2 2v-3"/><line x1="4" y1="12" x2="20" y2="12"/></svg></button></div>
           <div class="ribbon-row"><button id="btn-crop-apply" class="btn-primary" style="font-size:0.5rem;padding:2px 6px;display:none;" title="Apply crop">Apply</button><button id="btn-crop-cancel" class="tool-btn" style="font-size:0.5rem;display:none;" title="Cancel crop">Cancel</button></div>
         </div><div class="ribbon-label">Transform</div></div>
@@ -458,6 +458,7 @@
   <script src="../shared/theme.js"></script>
   <script src="../shared/dialog.js"></script>
   <script src="../popup/qr.js"></script>
+  <script src="../lib/smartcrop.min.js"></script>
   <script src="objects.js"></script>
   <script src="tools.js"></script>
   <script src="tools2.js"></script>
