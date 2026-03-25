@@ -1,0 +1,11 @@
+research/
+node_modules/
+dist/
+target/
+*.wasm
+*.zip
+pkg/
+.DS_Store
+Thumbs.db
+*.log
+browser/dist/*.zip

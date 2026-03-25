@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pixeroo - Settings</title>
+  <link rel="stylesheet" href="../styles/shared.css">
+  <style>
+    body { max-width: 560px; margin: 0 auto; padding: 2rem 1.5rem; }
+    body.theme-light { --slate-950: #ffffff; --slate-900: #f8fafc; --slate-800: #e2e8f0; --slate-700: #cbd5e1; --slate-600: #94a3b8; --slate-500: #64748b; --slate-400: #475569; --slate-300: #334155; --slate-200: #1e293b; --slate-100: #0f172a; --slate-50: #020617; color: #1e293b; }
+    h1 { font-size: 1.25rem; margin-bottom: 1.5rem; }
+    .setting-group { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--slate-800); }
+    .setting-group:last-child { border-bottom: none; }
+    .setting-label { font-size: 0.8125rem; font-weight: 600; color: var(--slate-200); margin-bottom: 0.25rem; }
+    .setting-desc { font-size: 0.6875rem; color: var(--slate-500); margin-bottom: 0.5rem; }
+    .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0; }
+    .toggle { position: relative; width: 40px; height: 22px; cursor: pointer; }
+    .toggle input { display: none; }
+    .toggle-track { position: absolute; inset: 0; background: var(--slate-700); border-radius: 11px; transition: background 0.2s; }
+    .toggle input:checked + .toggle-track { background: var(--saffron-400); }
+    .toggle-thumb { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: white; border-radius: 50%; transition: transform 0.2s; }
+    .toggle input:checked ~ .toggle-thumb { transform: translateX(18px); }
+    select { background: var(--slate-800); color: var(--slate-200); border: 1px solid var(--slate-700); border-radius: 5px; padding: 6px 10px; font-size: 0.75rem; }
+    .theme-preview { display: flex; gap: 0.5rem; }
+    .theme-card { flex: 1; padding: 0.75rem; border-radius: 8px; border: 2px solid var(--slate-700); cursor: pointer; text-align: center; font-size: 0.6875rem; font-weight: 500; transition: border-color 0.15s; }
+    .theme-card:hover { border-color: var(--slate-500); }
+    .theme-card.active { border-color: var(--saffron-400); }
+    .theme-card-dark { background: #0f172a; color: #e2e8f0; }
+    .theme-card-light { background: #f8fafc; color: #1e293b; }
+  </style>
+</head>
+<body class="bg-slate-950 text-gray-100 font-sans">
+
+  <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;">
+    <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#F4C430,#B8860B);display:flex;align-items:center;justify-content:center;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2A1E05" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+    </div>
+    <div>
+      <h1 style="margin:0;line-height:1.2;">Settings</h1>
+      <p style="margin:0;font-size:0.6875rem;color:var(--slate-500);">Pixeroo v0.1.0</p>
+    </div>
+  </div>
+
+  <!-- Theme -->
+  <div class="setting-group">
+    <div class="setting-label">Theme</div>
+    <div class="setting-desc">Choose your preferred appearance</div>
+    <div class="theme-preview">
+      <div class="theme-card theme-card-dark active" data-theme="dark">Dark</div>
+      <div class="theme-card theme-card-light" data-theme="light">Light</div>
+    </div>
+  </div>
+
+  <!-- Default export -->
+  <div class="setting-group">
+    <div class="setting-label">Default Export Format</div>
+    <div class="setting-desc">Format used when exporting from the editor</div>
+    <select id="default-format">
+      <option value="png" selected>PNG</option>
+      <option value="jpeg">JPEG</option>
+      <option value="webp">WebP</option>
+    </select>
+  </div>
+
+  <!-- Download folder -->
+  <div class="setting-group">
+    <div class="setting-label">Download Subfolder</div>
+    <div class="setting-desc">All Pixeroo downloads go into this subfolder of your Downloads</div>
+    <input type="text" id="download-prefix" value="pixeroo" style="background:var(--slate-800);color:var(--slate-200);border:1px solid var(--slate-700);border-radius:5px;padding:6px 10px;font-size:0.75rem;width:200px;">
+  </div>
+
+  <!-- QR defaults -->
+  <div class="setting-group">
+    <div class="setting-label">QR Code Defaults</div>
+    <div class="setting-desc">Default settings for QR code generation</div>
+    <div class="setting-row">
+      <span style="font-size:0.75rem;color:var(--slate-400);">Error Correction</span>
+      <select id="qr-default-ecc">
+        <option value="L">Low</option>
+        <option value="M" selected>Medium</option>
+        <option value="Q">Quartile</option>
+        <option value="H">High</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Side panel -->
+  <div class="setting-group">
+    <div class="setting-label">Side Panel</div>
+    <div class="setting-row">
+      <span style="font-size:0.75rem;color:var(--slate-400);">Default view</span>
+      <select id="default-view">
+        <option value="tiles" selected>Tiles</option>
+        <option value="medium">Medium</option>
+        <option value="large">Large</option>
+        <option value="details">Details</option>
+        <option value="names">Names</option>
+      </select>
+    </div>
+    <div class="setting-row">
+      <span style="font-size:0.75rem;color:var(--slate-400);">Default sort</span>
+      <select id="default-sort">
+        <option value="position" selected>Page order</option>
+        <option value="size-desc">Size (large)</option>
+        <option value="type">Type (A-Z)</option>
+        <option value="name">Name (A-Z)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Reset -->
+  <div class="setting-group">
+    <div class="setting-label">Data</div>
+    <div class="setting-row">
+      <span style="font-size:0.75rem;color:var(--slate-400);">Reset disclaimer banner</span>
+      <button id="btn-reset-disclaimer" style="background:var(--slate-800);color:var(--slate-300);border:1px solid var(--slate-700);border-radius:5px;padding:4px 12px;font-size:0.6875rem;cursor:pointer;">Reset</button>
+    </div>
+    <div class="setting-row">
+      <span style="font-size:0.75rem;color:var(--slate-400);">Reset all settings</span>
+      <button id="btn-reset-all" style="background:var(--slate-800);color:#ef4444;border:1px solid var(--slate-700);border-radius:5px;padding:4px 12px;font-size:0.6875rem;cursor:pointer;">Reset All</button>
+    </div>
+  </div>
+
+  <script src="../shared/theme.js"></script>
+  <script src="settings.js"></script>
+</body>
+</html>

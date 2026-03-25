@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Features - Pixeroo</title>
+  <meta name="description" content="63+ pixel operations in one toolkit. Convert, edit, inspect, generate QR codes, extract colors -- all offline.">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{saffron:{400:'#F4C430',500:'#D4A017',600:'#B8860B',950:'#2A1E05'}},fontFamily:{sans:['Inter','system-ui','sans-serif']}}}}</script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>.feat{background:rgba(15,23,42,0.5);border:1px solid rgba(30,41,59,0.8);border-radius:8px;padding:0.5rem 0.75rem;font-size:0.8125rem;color:#94a3b8;}.feat:hover{border-color:#F4C430;color:#e2e8f0;}</style>
+</head>
+<body class="bg-slate-950 text-gray-100 font-sans min-h-screen">
+  <nav class="border-b border-slate-800/50 px-6 py-4">
+    <div class="max-w-4xl mx-auto flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-2 text-white font-bold">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-saffron-400 to-saffron-600 flex items-center justify-center">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2A1E05" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        </div>
+        Pixeroo
+      </a>
+      <div class="flex gap-4 text-sm text-gray-400">
+        <a href="features.html" class="text-saffron-400">Features</a>
+        <a href="privacy.html" class="hover:text-saffron-400">Privacy</a>
+        <a href="contact.html" class="hover:text-saffron-400">Contact</a>
+        <a href="changelog.html" class="hover:text-saffron-400">Changelog</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-4xl mx-auto px-6 py-16">
+    <h1 class="text-3xl font-bold mb-2">All Features</h1>
+    <p class="text-gray-500 mb-10">63+ pixel operations. Zero network calls. One extension.</p>
+
+    <section class="mb-10">
+      <h2 class="text-xl font-bold text-saffron-400 mb-4">Side Panel (Webpage Companion)</h2>
+      <div class="flex flex-wrap gap-2">
+        <span class="feat">Page image gallery</span>
+        <span class="feat">5 view modes (tiles, medium, large, details, names)</span>
+        <span class="feat">Sort by position, size, dimensions, type, name</span>
+        <span class="feat">Filter by format (JPEG, PNG, WebP, SVG, GIF, AVIF)</span>
+        <span class="feat">Type badges on thumbnails</span>
+        <span class="feat">Image overlay inspector</span>
+        <span class="feat">EXIF metadata viewer</span>
+        <span class="feat">Click-to-copy metadata</span>
+        <span class="feat">Bulk select & download</span>
+        <span class="feat">Download as ZIP</span>
+        <span class="feat">Format conversion on download</span>
+        <span class="feat">Favicon detection</span>
+        <span class="feat">Background image detection</span>
+        <span class="feat">Screenshot capture</span>
+        <span class="feat">Eyedropper with magnifier</span>
+        <span class="feat">Color favorites (synced)</span>
+        <span class="feat">Color export (CSS, JSON, text)</span>
+        <span class="feat">Session persistence</span>
+        <span class="feat">Auto-rescan on tab change</span>
+        <span class="feat">Copyright notice</span>
+      </div>
+    </section>
+
+    <section class="mb-10">
+      <h2 class="text-xl font-bold text-saffron-400 mb-4">Edit Mode</h2>
+      <div class="flex flex-wrap gap-2">
+        <span class="feat">Resize (lock ratio)</span>
+        <span class="feat">Interactive crop (5 ratios: free, 1:1, 4:3, 16:9, 3:2)</span>
+        <span class="feat">Rotate 90/180/270</span>
+        <span class="feat">Flip horizontal/vertical</span>
+        <span class="feat">Brightness</span>
+        <span class="feat">Contrast</span>
+        <span class="feat">Saturation</span>
+        <span class="feat">Hue rotation</span>
+        <span class="feat">Levels (black point, white point, gamma)</span>
+        <span class="feat">Grayscale</span>
+        <span class="feat">Sepia</span>
+        <span class="feat">Invert</span>
+        <span class="feat">Blur</span>
+        <span class="feat">Sharpen</span>
+        <span class="feat">Denoise</span>
+        <span class="feat">Vignette</span>
+        <span class="feat">Border (width + color)</span>
+        <span class="feat">Rounded corners</span>
+        <span class="feat">Image tiling (2x2, 3x3)</span>
+        <span class="feat">Pixelate / pixel art</span>
+        <span class="feat">Annotate: rectangle</span>
+        <span class="feat">Annotate: arrow</span>
+        <span class="feat">Annotate: text overlay</span>
+        <span class="feat">Annotate: redact/pixelate region</span>
+        <span class="feat">Watermark (tiled, opacity control)</span>
+        <span class="feat">Background remove (flood fill)</span>
+        <span class="feat">Color replace (tolerance)</span>
+        <span class="feat">Channel separation (R, G, B, Alpha)</span>
+        <span class="feat">Canvas padding</span>
+        <span class="feat">Image split (H2, V2, H3, V3)</span>
+        <span class="feat">Color blindness simulation (4 types)</span>
+        <span class="feat">CMYK preview</span>
+        <span class="feat">Live histogram (RGB + luminance)</span>
+        <span class="feat">Social media presets (Instagram, Twitter, YouTube, Facebook, LinkedIn, Pinterest, OG)</span>
+        <span class="feat">Favicon preview (16-180px)</span>
+        <span class="feat">Sprite sheet slicer</span>
+        <span class="feat">Steganography detector</span>
+        <span class="feat">LSB visualization</span>
+        <span class="feat">Reverse image search (Google, TinEye, Bing, Yandex)</span>
+        <span class="feat">ASCII art generator</span>
+        <span class="feat">Metadata stripper</span>
+        <span class="feat">Image to PDF</span>
+        <span class="feat">Gradient generator</span>
+        <span class="feat">Pattern generator (checkerboard)</span>
+        <span class="feat">Placeholder image generator</span>
+        <span class="feat">Undo / Redo</span>
+        <span class="feat">Export (PNG, JPEG, WebP, AVIF, BMP, ICO)</span>
+      </div>
+    </section>
+
+    <section class="mb-10">
+      <h2 class="text-xl font-bold text-saffron-400 mb-4">Convert Mode</h2>
+      <div class="flex flex-wrap gap-2">
+        <span class="feat">Batch format conversion</span>
+        <span class="feat">PNG, JPEG, WebP, AVIF, BMP, ICO, TIFF, QOI</span>
+        <span class="feat">Quality slider</span>
+        <span class="feat">Batch resize</span>
+        <span class="feat">Compression size preview</span>
+        <span class="feat">Strip metadata option</span>
+        <span class="feat">Paste from clipboard</span>
+      </div>
+    </section>
+
+    <section class="mb-10">
+      <h2 class="text-xl font-bold text-saffron-400 mb-4">Store Assets Mode</h2>
+      <div class="flex flex-wrap gap-2">
+        <span class="feat">Google Play (icon, feature graphic, TV banner)</span>
+        <span class="feat">Apple App Store (icon no-alpha, 5 screenshot sizes)</span>
+        <span class="feat">Chrome Web Store (icon, 3 promos, screenshot)</span>
+        <span class="feat">Edge Add-ons (icon, screenshot)</span>
+        <span class="feat">Firefox Add-ons (icon, screenshot)</span>
+        <span class="feat">Microsoft Store (logo, hero, screenshot)</span>
+        <span class="feat">Source icon validation</span>
+        <span class="feat">Background color + corner radius</span>
+        <span class="feat">Export all as individual files</span>
+      </div>
+    </section>
+
+    <section class="mb-10">
+      <h2 class="text-xl font-bold text-saffron-400 mb-4">Info Mode</h2>
+      <div class="flex flex-wrap gap-2">
+        <span class="feat">File info (name, type, size, dimensions, ratio, date)</span>
+        <span class="feat">DPI / PPI</span>
+        <span class="feat">EXIF (camera, lens, exposure, ISO, GPS, software)</span>
+        <span class="feat">JPEG structure (segments, markers)</span>
+        <span class="feat">Image hash (SHA-256 + perceptual)</span>
+        <span class="feat">Base64 data URI export</span>
+      </div>
+    </section>
+
+    <section class="mb-10">
+      <h2 class="text-xl font-bold text-saffron-400 mb-4">QR Code Mode</h2>
+      <div class="flex flex-wrap gap-2">
+        <span class="feat">Generate from text/URL</span>
+        <span class="feat">WiFi, email, phone, vCard presets</span>
+        <span class="feat">Error correction (L/M/Q/H)</span>
+        <span class="feat">Custom pixel size + margin</span>
+        <span class="feat">Custom foreground/background colors</span>
+        <span class="feat">Export as PNG</span>
+        <span class="feat">Export as SVG</span>
+        <span class="feat">Copy to clipboard</span>
+        <span class="feat">QR reader from image (WASM)</span>
+        <span class="feat">Instant QR for current page (popup)</span>
+      </div>
+    </section>
+
+    <section class="mb-10">
+      <h2 class="text-xl font-bold text-saffron-400 mb-4">More</h2>
+      <div class="flex flex-wrap gap-2">
+        <span class="feat">Colors: palette extraction (k-means, 2-12 colors)</span>
+        <span class="feat">SVG: inspect + render to raster</span>
+        <span class="feat">Compare: side-by-side pixel diff</span>
+        <span class="feat">OCR: text extraction (WASM)</span>
+        <span class="feat">Theme: dark + light mode</span>
+        <span class="feat">Settings: format, folder, QR, view defaults</span>
+        <span class="feat">Keyboard shortcuts (Alt+Q, Alt+P)</span>
+        <span class="feat">Cross-browser (Chrome, Edge, Firefox)</span>
+        <span class="feat">PWA (standalone web app)</span>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-800/50 px-6 py-6 text-center text-sm text-gray-600">
+    <a href="https://github.com/oriclabs/pixeroo" class="hover:text-saffron-400">GitHub</a> &middot;
+    <a href="privacy.html" class="hover:text-saffron-400">Privacy</a> &middot;
+    <a href="contact.html" class="hover:text-saffron-400">Contact</a> &middot;
+    MIT License &middot; oriclabs
+  </footer>
+</body>
+</html>

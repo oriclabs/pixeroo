@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pixeroo - Help</title>
+  <link rel="stylesheet" href="../styles/shared.css">
+  <style>
+    body { max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem; }
+    h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    h2 { font-size: 1.125rem; margin-top: 2rem; margin-bottom: 0.75rem; color: var(--saffron-400); }
+    h3 { font-size: 0.9375rem; margin-top: 1.25rem; margin-bottom: 0.5rem; }
+    p, li { font-size: 0.875rem; color: var(--slate-300); line-height: 1.7; }
+    ul { padding-left: 1.25rem; margin-bottom: 1rem; }
+    li { margin-bottom: 0.375rem; }
+    .kbd { background: var(--slate-800); border: 1px solid var(--slate-700); border-radius: 4px; padding: 1px 6px; font-family: monospace; font-size: 0.75rem; color: var(--slate-200); }
+    .section { margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--slate-800); }
+    a { color: var(--saffron-400); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .tag { display: inline-block; background: var(--slate-800); border: 1px solid var(--slate-700); border-radius: 4px; padding: 1px 6px; font-size: 0.6875rem; color: var(--slate-400); margin: 1px; }
+  </style>
+</head>
+<body class="bg-slate-950 text-gray-100 font-sans">
+
+  <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:2rem;">
+    <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#F4C430,#B8860B);display:flex;align-items:center;justify-content:center;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2A1E05" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+    </div>
+    <div>
+      <h1 style="margin:0;line-height:1.2;">Pixeroo Help</h1>
+      <p style="margin:0;font-size:0.75rem;color:var(--slate-500);">Every pixel. One toolkit. v0.1.0</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Getting Started</h2>
+    <p>Pixeroo has three surfaces:</p>
+    <ul>
+      <li><strong>Popup</strong> -- Click the Pixeroo icon. Instant QR for current page + launchers for Page Images and Toolkit.</li>
+      <li><strong>Side Panel</strong> -- Browse, inspect, and download images from the current webpage. Pick colors with the eyedropper. Capture screenshots.</li>
+      <li><strong>Toolkit</strong> -- Full-page tab with 9 tool modes for editing, converting, and creating images from local files.</li>
+    </ul>
+    <p>Everything runs 100% offline. Your images never leave your device.</p>
+  </div>
+
+  <div class="section">
+    <h2>Side Panel: Images Tab</h2>
+    <p>Open the side panel from the popup ("Page Images" button) or press <span class="kbd">Alt+P</span>.</p>
+    <h3>Gallery Views</h3>
+    <p>5 view modes in the toolbar: Tiles, Medium, Large, Details, Names. Switch between them to find the view that works best.</p>
+    <h3>Sort & Filter</h3>
+    <p>Sort by page order, file size, dimensions, type, or name. Filter by format (JPEG, PNG, WebP, SVG, GIF, AVIF).</p>
+    <h3>Image Overlay</h3>
+    <p>Click any image to open the overlay inspector showing:</p>
+    <ul>
+      <li>Preview, filename, type, dimensions, displayed size, file size, alt text, URL</li>
+      <li>EXIF data (camera, GPS, date) -- loaded asynchronously</li>
+      <li>Actions: Save As (6 formats), Copy as PNG, Download, Extract Colors, Read QR Code</li>
+    </ul>
+    <p>Use arrow keys to navigate between images. Press Escape to close.</p>
+    <h3>Downloading</h3>
+    <p>Select images with checkboxes, then click "Selected" or "All" in the bottom bar. Use the select toggle button to select/deselect all.</p>
+    <h3>Favicons</h3>
+    <p>Pixeroo detects favicon links (&lt;link rel="icon"&gt;) and includes them in the gallery alongside regular images.</p>
+  </div>
+
+  <div class="section">
+    <h2>Side Panel: Colors Tab</h2>
+    <h3>Eyedropper</h3>
+    <p>Click "Pick Color" to activate the eyedropper. A crosshair appears on the webpage with a magnifier showing the zoomed pixel. Click any pixel to pick its color. Press Escape to cancel.</p>
+    <h3>Picked Colors</h3>
+    <p>Every picked color appears in the list with its HEX and RGB values. Click the hex to copy. Click the heart to add to favorites.</p>
+    <h3>Favorites</h3>
+    <p>Favorite colors are stored permanently and synced across your devices. Right-click a favorite to remove it.</p>
+    <h3>Export</h3>
+    <p>Export all colors as CSS Variables, JSON, or plain text via the Export dropdown.</p>
+  </div>
+
+  <div class="section">
+    <h2>Side Panel: Screenshot</h2>
+    <p>Click the camera icon to capture the visible tab. The screenshot appears in the panel where you can copy it to clipboard or save as PNG.</p>
+  </div>
+
+  <div class="section">
+    <h2>Toolkit: Edit Mode</h2>
+    <p>Open from the popup ("Toolkit" button) or the home screen's "Edit" card. Drop, browse, or paste (Ctrl+V) a local image file.</p>
+    <h3>Resize</h3>
+    <p>Set width/height, lock aspect ratio, click Apply.</p>
+    <h3>Crop</h3>
+    <p>Choose a ratio (Free, 1:1, 4:3, 16:9, 3:2). Drag the crop area on the canvas. Drag corners to resize, drag inside to move. Click Apply Crop or Cancel.</p>
+    <h3>Transform</h3>
+    <p>Rotate left/right (90 degrees), flip horizontal/vertical.</p>
+    <h3>Adjustments</h3>
+    <p>Sliders for brightness, contrast, saturation, hue rotation.</p>
+    <h3>Levels</h3>
+    <p>Black point, white point, and gamma sliders for fine-grained tonal control.</p>
+    <h3>Filters</h3>
+    <div><span class="tag">Grayscale</span><span class="tag">Sepia</span><span class="tag">Invert</span><span class="tag">Blur</span><span class="tag">Sharpen</span></div>
+    <h3>Annotate</h3>
+    <p>Draw rectangles, arrows, text, or redact (pixelate) regions. Choose color and line width.</p>
+    <h3>Watermark</h3>
+    <p>Enter text, set opacity, click Apply. Creates a diagonal tiled watermark across the entire image.</p>
+    <h3>Effects</h3>
+    <div><span class="tag">Vignette</span><span class="tag">Denoise</span><span class="tag">Rounded corners</span><span class="tag">Border</span><span class="tag">Tile 2x2 / 3x3</span></div>
+    <h3>Color Operations</h3>
+    <div><span class="tag">Background remove</span><span class="tag">Color replace</span><span class="tag">Channel separation (R/G/B/A)</span><span class="tag">Canvas padding</span><span class="tag">Image split</span></div>
+    <h3>Color Blindness Simulation</h3>
+    <div><span class="tag">Protanopia</span><span class="tag">Deuteranopia</span><span class="tag">Tritanopia</span><span class="tag">Achromatopsia</span></div>
+    <h3>Analysis</h3>
+    <div><span class="tag">CMYK preview</span><span class="tag">Live histogram</span><span class="tag">Steganography detector</span><span class="tag">LSB visualization</span><span class="tag">Pixel art (pixelate)</span></div>
+    <h3>Social Media</h3>
+    <p>One-click resize for: Instagram Post/Story, Twitter, YouTube Thumbnail, Facebook, LinkedIn, Pinterest, OG Image.</p>
+    <h3>More Tools</h3>
+    <div><span class="tag">Favicon preview</span><span class="tag">Sprite sheet slicer</span><span class="tag">ASCII art</span><span class="tag">Reverse image search</span><span class="tag">Gradient generator</span><span class="tag">Pattern generator</span><span class="tag">Placeholder generator</span><span class="tag">Metadata strip</span><span class="tag">Image to PDF</span></div>
+    <h3>Export</h3>
+    <p>Save in PNG, JPEG (85%), WebP, AVIF, BMP, or ICO format.</p>
+  </div>
+
+  <div class="section">
+    <h2>Toolkit: Convert Mode</h2>
+    <p>Drop one or multiple files. Choose output format (8 options), set quality for lossy formats, optionally batch resize, and convert. Compression preview shows file sizes at different quality levels.</p>
+  </div>
+
+  <div class="section">
+    <h2>Toolkit: Store Assets Mode</h2>
+    <p>Upload a source icon (ideally 1024x1024). Select target stores from the left nav. Click Generate to create all required icon and promo sizes. Click any asset card to download individually.</p>
+    <p>Supported: Google Play, Apple App Store, Chrome Web Store, Edge Add-ons, Firefox Add-ons, Microsoft Store.</p>
+  </div>
+
+  <div class="section">
+    <h2>Toolkit: Info Mode</h2>
+    <p>Drop an image to inspect: file info, DPI/PPI, EXIF metadata, JPEG structure analysis, image hash (SHA-256 + perceptual), and copy as Base64 data URI.</p>
+  </div>
+
+  <div class="section">
+    <h2>Toolkit: QR Code Mode</h2>
+    <p>Enter text or use a preset (URL, WiFi, email, phone, vCard). Customize error correction, pixel size, margin, and colors. Export as PNG, SVG, or copy to clipboard. Drop an image with a QR code to read it (requires WASM engine).</p>
+  </div>
+
+  <div class="section">
+    <h2>Toolkit: Colors Mode</h2>
+    <p>Drop an image and click any pixel to pick a color. Extract dominant palette (2-12 colors) using k-means clustering. All values in HEX, RGB, HSL.</p>
+  </div>
+
+  <div class="section">
+    <h2>Toolkit: SVG Mode</h2>
+    <p>Drop an SVG file to view it, inspect structure (width, height, viewBox, element count), render to raster (PNG/JPEG/WebP) at custom resolution, and copy SVG source.</p>
+  </div>
+
+  <div class="section">
+    <h2>Toolkit: Compare Mode</h2>
+    <p>Drop Image A and Image B side by side. Click Diff to see pixel differences highlighted in red with a percentage. Click Swap to switch positions.</p>
+  </div>
+
+  <div class="section">
+    <h2>Toolkit: OCR Mode</h2>
+    <p>Text extraction from images. Requires WASM engine to be built. Supports 11+ languages.</p>
+  </div>
+
+  <div class="section">
+    <h2>Keyboard Shortcuts</h2>
+    <ul>
+      <li><span class="kbd">Alt+Q</span> -- Generate QR for current page</li>
+      <li><span class="kbd">Alt+P</span> -- Open side panel</li>
+      <li><span class="kbd">Ctrl+Z</span> -- Undo (in editor)</li>
+      <li><span class="kbd">Ctrl+Y</span> -- Redo (in editor)</li>
+      <li><span class="kbd">Ctrl+V</span> -- Paste image into editor</li>
+      <li><span class="kbd">Escape</span> -- Close overlay / cancel eyedropper</li>
+      <li><span class="kbd">Arrow Left/Right</span> -- Navigate images in overlay</li>
+    </ul>
+    <p>Customize shortcuts at <code>chrome://extensions/shortcuts</code>.</p>
+  </div>
+
+  <div class="section">
+    <h2>Settings</h2>
+    <p>Click the gear icon (in popup, side panel, or toolkit). Available settings:</p>
+    <ul>
+      <li>Theme (dark / light)</li>
+      <li>Default export format</li>
+      <li>Download subfolder name</li>
+      <li>QR default error correction</li>
+      <li>Side panel default view and sort</li>
+      <li>Reset disclaimer / reset all</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>Privacy</h2>
+    <ul>
+      <li>100% offline processing via WebAssembly</li>
+      <li>Zero network calls, zero CDN dependencies</li>
+      <li>No data collection, analytics, or telemetry</li>
+      <li>No ads or affiliate link injection</li>
+      <li>7 minimal permissions (activeTab, scripting, contextMenus, downloads, storage, sidePanel, clipboardWrite)</li>
+      <li>Open source at <a href="https://github.com/oriclabs/pixeroo">github.com/oriclabs/pixeroo</a></li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>Copyright & Disclaimer</h2>
+    <p>Images on websites are the property of their respective owners and may be protected by copyright, trademark, or other intellectual property laws.</p>
+    <ul>
+      <li>Always verify the license before downloading, copying, or reusing any image.</li>
+      <li>Do not assume an image is free to use because it appears on a public website.</li>
+      <li>Pixeroo is a tool that processes images locally. It does not host, store, or distribute content.</li>
+      <li>You are solely responsible for how you use downloaded or processed images.</li>
+      <li>The developers are not liable for any misuse of copyrighted content.</li>
+    </ul>
+  </div>
+
+  <div class="section" style="border-bottom:none;">
+    <h2>Support</h2>
+    <ul>
+      <li>GitHub Issues: <a href="https://github.com/oriclabs/pixeroo/issues">github.com/oriclabs/pixeroo/issues</a></li>
+      <li>Website: <a href="https://oriclabs.github.io/pixeroo/">oriclabs.github.io/pixeroo</a></li>
+    </ul>
+  </div>
+
+  <script src="../shared/theme.js"></script>
+</body>
+</html>

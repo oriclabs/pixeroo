@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pixeroo - Image Toolkit</title>
+  <meta name="description" content="Pixeroo: Private Image Experience Engine. Convert, edit, inspect images and generate QR codes — 100% offline.">
+  <meta name="theme-color" content="#F4C430">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="../docs/favicon.svg">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            saffron: {
+              50: '#FFFBEB', 100: '#FEF3C7', 200: '#FDE68A', 300: '#FCD34D',
+              400: '#F4C430', 500: '#D4A017', 600: '#B8860B', 700: '#92690A',
+              800: '#6B4D09', 900: '#453208', 950: '#2A1E05',
+            },
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+        },
+      },
+    };
+  </script>
+  <style>
+    .dropzone { transition: border-color 0.2s; }
+    .dropzone.dragover { border-color: #F4C430; background: rgba(244,196,48,0.05); }
+  </style>
+</head>
+<body class="bg-slate-950 text-gray-100 font-sans min-h-screen">
+
+  <!-- Header -->
+  <header class="border-b border-slate-800 px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-saffron-400 to-saffron-600 flex items-center justify-center">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2A1E05" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>
+        </svg>
+      </div>
+      <span class="text-lg font-bold">Pixeroo</span>
+      <span class="text-xs text-slate-500 ml-1">PWA</span>
+    </div>
+    <div class="flex items-center gap-2 text-sm">
+      <button id="btn-install" class="hidden bg-saffron-400 hover:bg-saffron-500 text-saffron-950 font-semibold px-3 py-1.5 rounded-lg text-xs transition-colors">Install App</button>
+      <span class="text-slate-600 text-xs">100% Offline</span>
+    </div>
+  </header>
+
+  <!-- Tool Tabs -->
+  <nav class="flex border-b border-slate-800 overflow-x-auto">
+    <button class="tool-tab active" data-tool="convert">Convert</button>
+    <button class="tool-tab" data-tool="editor">Editor</button>
+    <button class="tool-tab" data-tool="qr">QR Code</button>
+    <button class="tool-tab" data-tool="info">Info</button>
+    <button class="tool-tab" data-tool="colors">Colors</button>
+  </nav>
+
+  <!-- Convert Panel -->
+  <main id="panel-convert" class="tool-panel active p-6 max-w-3xl mx-auto">
+    <h2 class="text-xl font-bold mb-4">Format Converter</h2>
+    <div id="convert-dropzone" class="dropzone border-2 border-dashed border-slate-700 rounded-2xl p-12 text-center cursor-pointer mb-6">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mx-auto mb-3 text-slate-600"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <p class="text-slate-400 mb-1">Drop an image here or click to browse</p>
+      <p class="text-slate-600 text-sm">PNG, JPEG, WebP, AVIF, GIF, BMP, TIFF, SVG, ICO</p>
+      <input type="file" id="file-input" accept="image/*" class="hidden">
+    </div>
+
+    <div id="convert-preview" class="hidden mb-6">
+      <div class="bg-slate-900 rounded-xl p-4 flex items-center justify-center" style="max-height:300px;">
+        <img id="preview-img" src="" alt="Preview" class="max-w-full max-h-64 object-contain rounded-lg">
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+      <button class="format-btn active" data-format="png">PNG</button>
+      <button class="format-btn" data-format="jpeg">JPEG</button>
+      <button class="format-btn" data-format="webp">WebP</button>
+      <button class="format-btn" data-format="avif">AVIF</button>
+      <button class="format-btn" data-format="bmp">BMP</button>
+      <button class="format-btn" data-format="ico">ICO</button>
+    </div>
+
+    <div id="quality-row" class="hidden mb-6">
+      <label class="text-sm text-slate-400 block mb-1">Quality: <span id="quality-label">85</span>%</label>
+      <input type="range" id="quality" min="1" max="100" value="85" class="w-full" style="accent-color:#F4C430;">
+    </div>
+
+    <button id="btn-convert" class="w-full bg-saffron-400 hover:bg-saffron-500 text-saffron-950 font-bold py-3 rounded-xl text-sm transition-colors disabled:opacity-40" disabled>
+      Convert & Download
+    </button>
+  </main>
+
+  <!-- Editor Panel -->
+  <main id="panel-editor" class="tool-panel p-6 max-w-4xl mx-auto">
+    <h2 class="text-xl font-bold mb-4">Image Editor</h2>
+    <p class="text-slate-500 text-sm">Full editor with resize, crop, rotate, filters and adjustments. Drop or paste an image to begin.</p>
+    <div class="mt-4 border-2 border-dashed border-slate-700 rounded-2xl p-12 text-center cursor-pointer" id="editor-drop">
+      <p class="text-slate-400">Drop image here or Ctrl+V to paste</p>
+      <input type="file" id="editor-file" accept="image/*" class="hidden">
+    </div>
+    <canvas id="pwa-canvas" class="hidden mt-4 max-w-full rounded-lg"></canvas>
+  </main>
+
+  <!-- QR Panel -->
+  <main id="panel-qr" class="tool-panel p-6 max-w-xl mx-auto">
+    <h2 class="text-xl font-bold mb-4">QR Code Generator</h2>
+    <div class="mb-4">
+      <label class="text-sm text-slate-400 block mb-1">Content</label>
+      <textarea id="qr-input" rows="3" placeholder="Enter URL, text, WiFi credentials..." class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm text-slate-200 resize-none focus:border-saffron-400 focus:outline-none transition-colors"></textarea>
+    </div>
+    <div class="grid grid-cols-2 gap-3 mb-4">
+      <div>
+        <label class="text-xs text-slate-500 block mb-1">Error Correction</label>
+        <select id="qr-ec" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-slate-200">
+          <option value="L">Low (7%)</option>
+          <option value="M" selected>Medium (15%)</option>
+          <option value="Q">Quartile (25%)</option>
+          <option value="H">High (30%)</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-xs text-slate-500 block mb-1">Size</label>
+        <select id="qr-size" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-slate-200">
+          <option value="200">200px</option>
+          <option value="400" selected>400px</option>
+          <option value="600">600px</option>
+          <option value="800">800px</option>
+        </select>
+      </div>
+    </div>
+    <button id="btn-gen-qr" class="w-full bg-saffron-400 hover:bg-saffron-500 text-saffron-950 font-bold py-3 rounded-xl text-sm transition-colors">Generate QR Code</button>
+    <div id="qr-result" class="hidden mt-6 text-center">
+      <div class="bg-white rounded-xl p-6 inline-block">
+        <canvas id="qr-canvas"></canvas>
+      </div>
+      <div class="flex justify-center gap-3 mt-4">
+        <button id="btn-qr-png" class="text-sm text-saffron-400 hover:text-saffron-300">Download PNG</button>
+        <button id="btn-qr-svg" class="text-sm text-saffron-400 hover:text-saffron-300">Download SVG</button>
+        <button id="btn-qr-copy" class="text-sm text-saffron-400 hover:text-saffron-300">Copy to Clipboard</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Info Panel -->
+  <main id="panel-info" class="tool-panel p-6 max-w-xl mx-auto">
+    <h2 class="text-xl font-bold mb-4">Image Inspector</h2>
+    <p class="text-slate-500 text-sm mb-4">Drop an image to view full metadata: dimensions, EXIF, GPS, ICC profile, and more.</p>
+    <div class="border-2 border-dashed border-slate-700 rounded-2xl p-12 text-center cursor-pointer" id="info-drop">
+      <p class="text-slate-400">Drop image here</p>
+      <input type="file" id="info-file" accept="image/*" class="hidden">
+    </div>
+    <div id="info-results" class="hidden mt-4"></div>
+  </main>
+
+  <!-- Colors Panel -->
+  <main id="panel-colors" class="tool-panel p-6 max-w-xl mx-auto">
+    <h2 class="text-xl font-bold mb-4">Color Extraction</h2>
+    <p class="text-slate-500 text-sm mb-4">Drop an image to extract its dominant color palette.</p>
+    <div class="border-2 border-dashed border-slate-700 rounded-2xl p-12 text-center cursor-pointer" id="color-drop">
+      <p class="text-slate-400">Drop image here</p>
+      <input type="file" id="color-file" accept="image/*" class="hidden">
+    </div>
+    <div id="color-results" class="hidden mt-4"></div>
+  </main>
+
+  <style>
+    .tool-tab { padding: 0.625rem 1rem; font-size: 0.8125rem; color: #64748b; border-bottom: 2px solid transparent; background: none; border-top: none; border-left: none; border-right: none; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+    .tool-tab:hover { color: #cbd5e1; }
+    .tool-tab.active { color: #F4C430; border-bottom-color: #F4C430; }
+    .tool-panel { display: none; }
+    .tool-panel.active { display: block; }
+    .format-btn { background: #0f172a; border: 1px solid #1e293b; color: #94a3b8; border-radius: 0.75rem; padding: 0.625rem; font-size: 0.8125rem; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+    .format-btn:hover { border-color: #F4C430; color: #F4C430; }
+    .format-btn.active { background: rgba(244,196,48,0.1); border-color: #F4C430; color: #F4C430; }
+  </style>
+
+  <script src="app.js"></script>
+  <script>
+    // PWA install prompt
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('btn-install').classList.remove('hidden');
+    });
+    document.getElementById('btn-install')?.addEventListener('click', () => {
+      if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; }
+    });
+
+    // Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
+</body>
+</html>

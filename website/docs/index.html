@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pixeroo - Private Image Experience Engine</title>
+  <meta name="description" content="Pixeroo: the one-stop Chrome extension for all image tasks. Convert, inspect, edit, generate QR codes, extract colors — 100% offline, powered by Rust/WASM.">
+  <meta name="theme-color" content="#F4C430">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            saffron: {
+              50: '#FFFBEB',
+              100: '#FEF3C7',
+              200: '#FDE68A',
+              300: '#FCD34D',
+              400: '#F4C430',
+              500: '#D4A017',
+              600: '#B8860B',
+              700: '#92690A',
+              800: '#6B4D09',
+              900: '#453208',
+              950: '#2A1E05',
+            },
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    .gradient-saffron {
+      background: linear-gradient(135deg, #F4C430 0%, #D4A017 50%, #B8860B 100%);
+    }
+    .gradient-dark {
+      background: linear-gradient(180deg, #0F172A 0%, #1E293B 100%);
+    }
+    .glow-saffron {
+      box-shadow: 0 0 40px rgba(244, 196, 48, 0.15);
+    }
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      font-size: 24px;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-gray-100 font-sans antialiased">
+
+  <!-- Nav -->
+  <nav class="fixed top-0 w-full z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/50">
+    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-lg gradient-saffron flex items-center justify-center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2A1E05" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <path d="M21 15l-5-5L5 21"/>
+          </svg>
+        </div>
+        <span class="text-lg font-bold text-white">Pixeroo</span>
+      </a>
+      <div class="hidden md:flex items-center gap-8 text-sm text-gray-400">
+        <a href="#features" class="hover:text-saffron-400 transition-colors">Features</a>
+        <a href="#how-it-works" class="hover:text-saffron-400 transition-colors">How It Works</a>
+        <a href="#privacy" class="hover:text-saffron-400 transition-colors">Privacy</a>
+        <a href="#download" class="bg-saffron-400 hover:bg-saffron-500 text-saffron-950 font-semibold px-4 py-2 rounded-lg transition-colors">Install Free</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="relative pt-32 pb-20 px-6 overflow-hidden">
+    <div class="absolute inset-0 opacity-20">
+      <div class="absolute top-20 left-1/4 w-72 h-72 bg-saffron-400 rounded-full blur-[120px]"></div>
+      <div class="absolute bottom-10 right-1/4 w-96 h-96 bg-saffron-600 rounded-full blur-[150px]"></div>
+    </div>
+    <div class="max-w-4xl mx-auto text-center relative z-10">
+      <div class="inline-flex items-center gap-2 bg-saffron-400/10 border border-saffron-400/20 rounded-full px-4 py-1.5 mb-6">
+        <span class="w-2 h-2 bg-saffron-400 rounded-full animate-pulse"></span>
+        <span class="text-saffron-400 text-sm font-medium">100% Offline &middot; Zero Data Collection</span>
+      </div>
+      <h1 class="text-5xl md:text-7xl font-extrabold leading-tight mb-6">
+        <span class="text-white">Any Image.</span><br>
+        <span class="bg-gradient-to-r from-saffron-300 via-saffron-400 to-saffron-600 bg-clip-text text-transparent">Any Purpose.</span>
+      </h1>
+      <p class="text-xl text-gray-400 max-w-2xl mx-auto mb-4">
+        Private Image Experience Engine
+      </p>
+      <p class="text-lg text-gray-500 max-w-2xl mx-auto mb-10 font-mono">
+        Read. Optimise. Output.
+      </p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="#download" class="gradient-saffron text-saffron-950 font-bold px-8 py-3.5 rounded-xl text-lg hover:opacity-90 transition-opacity shadow-lg shadow-saffron-400/20">
+          Add to Chrome &mdash; Free
+        </a>
+        <a href="https://github.com/oriclabs/pixeroo" class="border border-gray-700 text-gray-300 hover:border-saffron-400 hover:text-saffron-400 font-semibold px-8 py-3.5 rounded-xl text-lg transition-colors">
+          View on GitHub
+        </a>
+      </div>
+      <p class="text-xs text-gray-600 mt-4">Also available for Edge, Firefox, and as a PWA</p>
+    </div>
+  </section>
+
+  <!-- What it replaces -->
+  <section class="py-16 px-6 border-t border-slate-800/50">
+    <div class="max-w-4xl mx-auto text-center">
+      <p class="text-sm text-gray-500 uppercase tracking-wider mb-4">Stop juggling extensions</p>
+      <h2 class="text-3xl font-bold text-white mb-6">One extension replaces them all</h2>
+      <div class="flex flex-wrap justify-center gap-3">
+        <span class="bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-full text-sm line-through opacity-60">Image Info Viewer</span>
+        <span class="bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-full text-sm line-through opacity-60">WebP Converter</span>
+        <span class="bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-full text-sm line-through opacity-60">Image Downloader</span>
+        <span class="bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-full text-sm line-through opacity-60">QR Generator</span>
+        <span class="bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-full text-sm line-through opacity-60">Image Resizer</span>
+        <span class="bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-full text-sm line-through opacity-60">Color Picker</span>
+        <span class="bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-full text-sm line-through opacity-60">SVG Converter</span>
+        <span class="bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-full text-sm line-through opacity-60">Save as PNG</span>
+      </div>
+      <div class="mt-6 text-gray-500 text-lg">replaced by</div>
+      <div class="mt-4 inline-flex items-center gap-2 bg-saffron-400/10 border border-saffron-400/30 rounded-xl px-6 py-3">
+        <div class="w-6 h-6 rounded gradient-saffron"></div>
+        <span class="text-saffron-400 font-bold text-lg">Pixeroo</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="py-20 px-6">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-16">
+        <p class="text-saffron-400 text-sm font-semibold uppercase tracking-wider mb-2">Features</p>
+        <h2 class="text-4xl font-bold text-white">Everything images, in one place</h2>
+      </div>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- Feature cards -->
+        <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:border-saffron-400/30 transition-colors">
+          <div class="feature-icon bg-blue-500/10 text-blue-400 mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold text-white mb-2">Image Inspector</h3>
+          <p class="text-gray-400 text-sm">Dimensions, file size, MIME type, EXIF/GPS data, ICC profiles, alt text, DPI — all from a right-click.</p>
+        </div>
+
+        <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:border-saffron-400/30 transition-colors">
+          <div class="feature-icon bg-green-500/10 text-green-400 mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold text-white mb-2">Format Converter</h3>
+          <p class="text-gray-400 text-sm">Real pixel-level conversion between PNG, JPEG, WebP, AVIF, TIFF, BMP, QOI, ICO, SVG and more. Not just renaming.</p>
+        </div>
+
+        <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:border-saffron-400/30 transition-colors">
+          <div class="feature-icon bg-purple-500/10 text-purple-400 mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold text-white mb-2">QR Code Studio</h3>
+          <p class="text-gray-400 text-sm">Generate QR codes for URLs, WiFi, vCards. Read QR codes from any image on the page. Export as PNG or SVG.</p>
+        </div>
+
+        <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:border-saffron-400/30 transition-colors">
+          <div class="feature-icon bg-orange-500/10 text-orange-400 mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold text-white mb-2">Smart Downloader</h3>
+          <p class="text-gray-400 text-sm">Bulk download with filters, smart filenames, format conversion on-the-fly, ZIP export. Finds originals, not thumbnails.</p>
+        </div>
+
+        <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:border-saffron-400/30 transition-colors">
+          <div class="feature-icon bg-pink-500/10 text-pink-400 mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold text-white mb-2">Quick Editor</h3>
+          <p class="text-gray-400 text-sm">Resize, crop, rotate, flip, adjust brightness/contrast, apply filters — all without leaving the browser.</p>
+        </div>
+
+        <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:border-saffron-400/30 transition-colors">
+          <div class="feature-icon bg-cyan-500/10 text-cyan-400 mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m6.8 14-3.5 2"/><path d="m20.7 16-3.5-2"/><path d="M6.8 10 3.3 8"/><path d="m20.7 8-3.5 2"/><path d="m9 22 3-8 3 8"/><circle cx="12" cy="12" r="2"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold text-white mb-2">Color Extraction</h3>
+          <p class="text-gray-400 text-sm">Pick any pixel color, extract dominant palettes, copy as HEX/RGB/HSL. Perfect for designers.</p>
+        </div>
+
+        <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:border-saffron-400/30 transition-colors">
+          <div class="feature-icon bg-emerald-500/10 text-emerald-400 mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14L21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold text-white mb-2">SVG Tools</h3>
+          <p class="text-gray-400 text-sm">Render SVG to raster at any resolution, inspect structure, view source. No other extension does this.</p>
+        </div>
+
+        <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:border-saffron-400/30 transition-colors">
+          <div class="feature-icon bg-yellow-500/10 text-yellow-400 mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold text-white mb-2">Clipboard Magic</h3>
+          <p class="text-gray-400 text-sm">Copy any image as PNG to clipboard, copy as base64, paste images into the editor from clipboard.</p>
+        </div>
+
+        <div class="bg-slate-900/50 border border-slate-800 rounded-xl p-6 hover:border-saffron-400/30 transition-colors">
+          <div class="feature-icon bg-red-500/10 text-red-400 mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3 class="text-lg font-semibold text-white mb-2">Accessibility Audit</h3>
+          <p class="text-gray-400 text-sm">Find missing alt text, oversized images, broken images, and performance issues on any page.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section id="how-it-works" class="py-20 px-6 border-t border-slate-800/50">
+    <div class="max-w-4xl mx-auto">
+      <div class="text-center mb-16">
+        <p class="text-saffron-400 text-sm font-semibold uppercase tracking-wider mb-2">How It Works</p>
+        <h2 class="text-4xl font-bold text-white">Powered by Rust, runs in your browser</h2>
+      </div>
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="text-center">
+          <div class="w-16 h-16 gradient-saffron rounded-2xl flex items-center justify-center mx-auto mb-4 text-saffron-950 font-bold text-2xl">R</div>
+          <h3 class="text-lg font-semibold text-white mb-2">Read</h3>
+          <p class="text-gray-400 text-sm">Detects every image on the page — &lt;img&gt;, CSS backgrounds, canvas, SVG, base64 — and reads all metadata instantly.</p>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 gradient-saffron rounded-2xl flex items-center justify-center mx-auto mb-4 text-saffron-950 font-bold text-2xl">O</div>
+          <h3 class="text-lg font-semibold text-white mb-2">Optimise</h3>
+          <p class="text-gray-400 text-sm">Rust/WASM engine processes images at native speed — convert formats, resize, crop, adjust, generate QR — all offline.</p>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 gradient-saffron rounded-2xl flex items-center justify-center mx-auto mb-4 text-saffron-950 font-bold text-2xl">O</div>
+          <h3 class="text-lg font-semibold text-white mb-2">Output</h3>
+          <p class="text-gray-400 text-sm">Save to disk, copy to clipboard, download as ZIP, export as any format — your images never leave your machine.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tech -->
+  <section class="py-16 px-6 border-t border-slate-800/50">
+    <div class="max-w-4xl mx-auto text-center">
+      <p class="text-saffron-400 text-sm font-semibold uppercase tracking-wider mb-4">Under the hood</p>
+      <div class="flex flex-wrap justify-center gap-3">
+        <span class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-sm text-gray-300 font-mono">Rust</span>
+        <span class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-sm text-gray-300 font-mono">WebAssembly</span>
+        <span class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-sm text-gray-300 font-mono">Manifest V3</span>
+        <span class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-sm text-gray-300 font-mono">Tailwind CSS</span>
+        <span class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-sm text-gray-300 font-mono">image-rs</span>
+        <span class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-sm text-gray-300 font-mono">resvg</span>
+        <span class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-sm text-gray-300 font-mono">qrcode</span>
+        <span class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-sm text-gray-300 font-mono">kamadak-exif</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Privacy -->
+  <section id="privacy" class="py-20 px-6 border-t border-slate-800/50">
+    <div class="max-w-4xl mx-auto">
+      <div class="bg-slate-900/80 border border-saffron-400/20 rounded-2xl p-10 glow-saffron">
+        <div class="text-center">
+          <div class="w-16 h-16 bg-saffron-400/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#F4C430" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+          </div>
+          <h2 class="text-3xl font-bold text-white mb-4">Your images never leave your device</h2>
+          <p class="text-gray-400 max-w-2xl mx-auto mb-8">
+            Every operation runs locally in WebAssembly. No servers. No uploads. No telemetry. No ads. No affiliate links. We don't even know you exist.
+          </p>
+          <div class="grid sm:grid-cols-3 gap-6 text-left">
+            <div>
+              <h4 class="text-saffron-400 font-semibold mb-1">Zero network calls</h4>
+              <p class="text-gray-500 text-sm">WASM module has no network access. Processing is physically impossible to leak.</p>
+            </div>
+            <div>
+              <h4 class="text-saffron-400 font-semibold mb-1">Minimal permissions</h4>
+              <p class="text-gray-500 text-sm">Only activeTab, contextMenus, downloads, storage, sidePanel. No browsing history. No &lt;all_urls&gt;.</p>
+            </div>
+            <div>
+              <h4 class="text-saffron-400 font-semibold mb-1">Open source</h4>
+              <p class="text-gray-500 text-sm">Full source on GitHub. Reproducible builds. Verify the WASM binary matches the code yourself.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Download -->
+  <section id="download" class="py-20 px-6 border-t border-slate-800/50">
+    <div class="max-w-4xl mx-auto text-center">
+      <h2 class="text-4xl font-bold text-white mb-4">Get Pixeroo</h2>
+      <p class="text-gray-400 mb-10">Free and open source. Install in seconds.</p>
+      <div class="grid sm:grid-cols-3 gap-4 max-w-2xl mx-auto">
+        <a href="#" class="bg-slate-900 border border-slate-700 hover:border-saffron-400/50 rounded-xl p-6 transition-colors group">
+          <div class="text-3xl mb-3">
+            <svg class="mx-auto" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="21.17" y1="8" x2="12" y2="8"/><line x1="3.95" y1="6.06" x2="8.54" y2="14"/><line x1="10.88" y1="21.94" x2="15.46" y2="14"/></svg>
+          </div>
+          <h3 class="text-white font-semibold group-hover:text-saffron-400 transition-colors">Chrome</h3>
+          <p class="text-gray-500 text-xs mt-1">Chrome Web Store</p>
+        </a>
+        <a href="#" class="bg-slate-900 border border-slate-700 hover:border-saffron-400/50 rounded-xl p-6 transition-colors group">
+          <div class="text-3xl mb-3">
+            <svg class="mx-auto" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg>
+          </div>
+          <h3 class="text-white font-semibold group-hover:text-saffron-400 transition-colors">Edge</h3>
+          <p class="text-gray-500 text-xs mt-1">Edge Add-ons</p>
+        </a>
+        <a href="#" class="bg-slate-900 border border-slate-700 hover:border-saffron-400/50 rounded-xl p-6 transition-colors group">
+          <div class="text-3xl mb-3">
+            <svg class="mx-auto" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <h3 class="text-white font-semibold group-hover:text-saffron-400 transition-colors">Firefox</h3>
+          <p class="text-gray-500 text-xs mt-1">Add-ons for Firefox</p>
+        </a>
+      </div>
+      <p class="text-gray-600 text-sm mt-6">Also available as a <a href="/website/pwa" class="text-saffron-400 hover:underline">Progressive Web App</a></p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-10 px-6 border-t border-slate-800/50">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2">
+        <div class="w-6 h-6 rounded gradient-saffron"></div>
+        <span class="text-sm text-gray-500">Pixeroo &mdash; Private Image Experience Engine</span>
+      </div>
+      <div class="flex items-center gap-6 text-sm text-gray-500">
+        <a href="https://github.com/oriclabs/pixeroo" class="hover:text-saffron-400 transition-colors">GitHub</a>
+        <a href="/website/docs/privacy.html" class="hover:text-saffron-400 transition-colors">Privacy</a>
+        <a href="/website/docs/changelog.html" class="hover:text-saffron-400 transition-colors">Changelog</a>
+        <span>MIT License</span>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

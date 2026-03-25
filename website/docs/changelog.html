@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Changelog - Pixeroo</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{saffron:{400:'#F4C430',500:'#D4A017',600:'#B8860B',950:'#2A1E05'}},fontFamily:{sans:['Inter','system-ui','sans-serif']}}}}</script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-slate-950 text-gray-100 font-sans min-h-screen">
+  <nav class="border-b border-slate-800/50 px-6 py-4">
+    <div class="max-w-3xl mx-auto flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-2 text-white font-bold">
+        <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-saffron-400 to-saffron-600 flex items-center justify-center">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2A1E05" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        </div>
+        Pixeroo
+      </a>
+      <div class="flex gap-4 text-sm text-gray-400">
+        <a href="features.html" class="hover:text-saffron-400">Features</a>
+        <a href="privacy.html" class="hover:text-saffron-400">Privacy</a>
+        <a href="contact.html" class="hover:text-saffron-400">Contact</a>
+        <a href="changelog.html" class="text-saffron-400">Changelog</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-3xl mx-auto px-6 py-16">
+    <h1 class="text-3xl font-bold mb-8">Changelog</h1>
+
+    <div class="space-y-8">
+      <article class="border-l-2 border-saffron-400 pl-6">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="bg-saffron-400 text-saffron-950 font-bold px-3 py-1 rounded-full text-sm">v0.1.0</span>
+          <span class="text-gray-500 text-sm">March 2026</span>
+          <span class="text-gray-600 text-xs">Initial Release</span>
+        </div>
+        <h3 class="text-lg font-semibold text-white mb-2">Every pixel. One toolkit.</h3>
+        <div class="text-gray-400 text-sm space-y-2">
+          <p><strong class="text-gray-300">Side Panel</strong> -- Browse page images with 5 view modes (tiles, medium, large, details, names), sort, filter, type badges, overlay inspector with EXIF, bulk download</p>
+          <p><strong class="text-gray-300">Colors Tab</strong> -- Eyedropper with magnifier (captureVisibleTab), favorites library (synced), session picks, export as CSS/JSON/text</p>
+          <p><strong class="text-gray-300">Screenshot</strong> -- Capture visible tab, copy to clipboard, save as PNG</p>
+          <p><strong class="text-gray-300">Toolkit (9 modes)</strong>:</p>
+          <ul class="list-disc list-inside ml-4 space-y-1">
+            <li>Edit -- resize, interactive crop (5 ratios), rotate, flip, brightness/contrast/saturation/hue, filters, annotate (rect/arrow/text/redact), watermark, vignette, denoise, rounded corners, border, tiling, color blindness simulation, CMYK preview, histogram, levels adjustment, pixel art, sprite slicer, steganography detector, channel separation, color replace, background remove, padding, split, social media presets, favicon preview, ASCII art, reverse image search, metadata strip, image to PDF</li>
+            <li>Convert -- batch format conversion (PNG/JPEG/WebP/AVIF/BMP/ICO/TIFF/QOI), quality controls, batch resize, compression optimizer, metadata strip</li>
+            <li>Store Assets -- icon/screenshot generation for Google Play, Apple App Store, Chrome Web Store, Edge Add-ons, Firefox Add-ons, Microsoft Store</li>
+            <li>Info -- file info, DPI/PPI, EXIF, JPEG structure analysis, image hash (SHA-256 + perceptual), base64 export</li>
+            <li>QR Code -- generate with custom colors/size/ECC, presets (URL/WiFi/email/phone/vCard), export PNG/SVG, QR reader (WASM)</li>
+            <li>Colors -- eyedropper on local images, dominant palette extraction (k-means), HEX/RGB/HSL</li>
+            <li>SVG -- inspect structure, render to raster at custom resolution, view/copy source</li>
+            <li>Compare -- side-by-side, pixel diff with percentage</li>
+            <li>OCR -- text extraction (WASM engine)</li>
+          </ul>
+          <p><strong class="text-gray-300">Popup</strong> -- Instant QR for current page, Page Images + Toolkit launchers</p>
+          <p><strong class="text-gray-300">Generators</strong> -- Gradient, checkerboard pattern, placeholder images from scratch</p>
+          <p><strong class="text-gray-300">Privacy</strong> -- 100% offline, zero CDN dependencies, zero network calls, 7 minimal permissions, open source</p>
+          <p><strong class="text-gray-300">Cross-browser</strong> -- Chrome, Edge, Firefox, PWA</p>
+        </div>
+      </article>
+    </div>
+  </main>
+
+  <footer class="border-t border-slate-800/50 px-6 py-6 text-center text-sm text-gray-600">
+    <a href="https://github.com/oriclabs/pixeroo" class="hover:text-saffron-400">GitHub</a> &middot;
+    <a href="privacy.html" class="hover:text-saffron-400">Privacy</a> &middot;
+    <a href="contact.html" class="hover:text-saffron-400">Contact</a> &middot;
+    MIT License &middot; oriclabs
+  </footer>
+</body>
+</html>

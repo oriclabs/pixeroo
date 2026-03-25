@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --saffron-50: #FFFBEB;
+    --saffron-100: #FEF3C7;
+    --saffron-200: #FDE68A;
+    --saffron-300: #FCD34D;
+    --saffron-400: #F4C430;
+    --saffron-500: #D4A017;
+    --saffron-600: #B8860B;
+    --saffron-700: #92690A;
+    --saffron-800: #6B4D09;
+    --saffron-900: #453208;
+    --saffron-950: #2A1E05;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-saffron-400 hover:bg-saffron-500 text-saffron-950 font-semibold px-4 py-2 rounded-lg transition-colors;
+  }
+
+  .btn-secondary {
+    @apply border border-saffron-400 text-saffron-400 hover:bg-saffron-400 hover:text-saffron-950 font-semibold px-4 py-2 rounded-lg transition-colors;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-md border border-gray-100 p-5;
+  }
+
+  .card-dark {
+    @apply bg-gray-900 rounded-xl shadow-md border border-gray-800 p-5;
+  }
+}

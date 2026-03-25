@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pixeroo</title>
+  <link rel="stylesheet" href="../styles/shared.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { min-height: 100vh; display: flex; flex-direction: column; }
+
+    /* --- Topbar --- */
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1rem; border-bottom: 1px solid var(--slate-800); height: 48px; flex-shrink: 0; }
+    .topbar-left { display: flex; align-items: center; gap: 0.5rem; }
+    .topbar-right { display: flex; align-items: center; gap: 0.375rem; }
+    .tool-btn { padding: 5px; border-radius: 5px; border: none; background: none; color: var(--slate-400); cursor: pointer; transition: all 0.12s; display: flex; align-items: center; justify-content: center; }
+    .tool-btn:hover { background: var(--slate-800); color: var(--slate-200); }
+    .sep { width: 1px; height: 20px; background: var(--slate-800); }
+    .back-btn { display: none; gap: 4px; font-size: 0.75rem; }
+    .back-btn.visible { display: flex; }
+
+    /* --- Home Screen --- */
+    .home { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; }
+    .home.hidden { display: none; }
+    .home-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.25rem; }
+    .home-sub { font-size: 0.8125rem; color: var(--slate-500); margin-bottom: 2rem; font-family: 'JetBrains Mono', monospace; }
+    .home-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; max-width: 540px; width: 100%; }
+    .home-card { background: var(--slate-900); border: 1px solid var(--slate-800); border-radius: 12px; padding: 1.25rem 1rem; cursor: pointer; transition: all 0.15s; text-align: center; }
+    .home-card:hover { border-color: var(--saffron-400); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(244,196,48,0.08); }
+    .home-card-icon { width: 40px; height: 40px; border-radius: 10px; margin: 0 auto 0.75rem; display: flex; align-items: center; justify-content: center; }
+    .home-card-title { font-size: 0.8125rem; font-weight: 600; color: var(--slate-200); margin-bottom: 0.25rem; }
+    .home-card-desc { font-size: 0.625rem; color: var(--slate-500); line-height: 1.4; }
+    .home-recent { margin-top: 2rem; max-width: 540px; width: 100%; }
+    .home-recent-title { font-size: 0.6875rem; font-weight: 600; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+    .home-recent-empty { font-size: 0.75rem; color: var(--slate-600); }
+
+    /* --- Mode Container --- */
+    .mode-view { display: none; flex: 1; overflow: hidden; }
+    .mode-view.active { display: flex; }
+
+    /* --- Common mode layout --- */
+    .work-area { flex: 1; display: flex; align-items: center; justify-content: center; background: var(--slate-900); overflow: hidden; position: relative; }
+    .work-area canvas { max-width: 90%; max-height: 90%; }
+    .sidebar { width: 280px; border-left: 1px solid var(--slate-800); overflow-y: auto; flex-shrink: 0; }
+    .sidebar-section { padding: 0.75rem 1rem; border-bottom: 1px solid var(--slate-800); }
+    .sidebar-title { font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--slate-500); margin-bottom: 0.5rem; }
+    .dropzone { border: 2px dashed var(--slate-700); border-radius: 12px; padding: 2.5rem; text-align: center; cursor: pointer; transition: border-color 0.15s; margin: 1.5rem; }
+    .dropzone:hover, .dropzone.dragover { border-color: var(--saffron-400); }
+    .drop-title { color: var(--slate-400); font-size: 0.875rem; margin-bottom: 0.25rem; }
+    .drop-sub { color: var(--slate-600); font-size: 0.6875rem; }
+
+    /* --- Form --- */
+    .input-field { width: 100%; background: var(--slate-800); color: var(--slate-200); border: 1px solid var(--slate-700); border-radius: 5px; padding: 6px 8px; font-size: 0.75rem; }
+    .input-field:focus { outline: none; border-color: var(--saffron-400); }
+    .select-field { width: 100%; background: var(--slate-800); color: var(--slate-200); border: 1px solid var(--slate-700); border-radius: 5px; padding: 6px 8px; font-size: 0.75rem; }
+    textarea.input-field { resize: vertical; min-height: 60px; font-family: inherit; }
+    .range-input { width: 100%; accent-color: var(--saffron-400); }
+    .range-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem; }
+    .range-label { font-size: 0.75rem; color: var(--slate-400); }
+    .range-value { font-size: 0.75rem; color: var(--slate-200); font-weight: 500; min-width: 2rem; text-align: right; }
+    .format-btn { background: var(--slate-800); border: 1px solid var(--slate-700); color: var(--slate-400); border-radius: 5px; padding: 4px 10px; font-size: 0.6875rem; font-weight: 500; cursor: pointer; transition: all 0.12s; }
+    .format-btn:hover { border-color: var(--saffron-400); color: var(--saffron-400); }
+    .format-btn.active { background: rgba(244,196,48,0.1); border-color: var(--saffron-400); color: var(--saffron-400); }
+    .btn-row { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+    .info-row { display: flex; justify-content: space-between; padding: 0.375rem 0; border-bottom: 1px solid var(--slate-800); font-size: 0.75rem; }
+    .info-label { color: var(--slate-500); flex-shrink: 0; }
+    .info-value { color: var(--slate-200); font-weight: 500; text-align: right; word-break: break-all; cursor: pointer; max-width: 55%; }
+    .info-value:hover { color: var(--saffron-400); }
+
+    /* --- Colors --- */
+    .color-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0; border-bottom: 1px solid var(--slate-800); }
+    .color-preview { width: 28px; height: 28px; border-radius: 4px; flex-shrink: 0; border: 1px solid var(--slate-700); }
+    .color-hex { color: var(--slate-200); font-weight: 600; font-family: monospace; font-size: 0.6875rem; cursor: pointer; }
+    .color-hex:hover { color: var(--saffron-400); }
+    .color-secondary { color: var(--slate-500); font-size: 0.625rem; }
+
+    /* --- Compare --- */
+    .compare-container { display: flex; gap: 1rem; flex: 1; padding: 1rem; overflow: hidden; }
+    .compare-slot { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+    .compare-slot canvas { max-width: 100%; max-height: 70vh; border-radius: 6px; background: var(--slate-800); }
+    .compare-label { font-size: 0.6875rem; color: var(--slate-500); }
+    .compare-info { font-size: 0.625rem; color: var(--slate-500); }
+
+    /* --- SVG / OCR --- */
+    .svg-source { background: var(--slate-800); border-radius: 6px; padding: 0.75rem; font-family: 'JetBrains Mono', monospace; font-size: 0.6875rem; color: var(--slate-300); line-height: 1.5; white-space: pre-wrap; word-break: break-all; max-height: 200px; overflow-y: auto; }
+    .ocr-result { background: var(--slate-800); border-radius: 6px; padding: 0.75rem; font-size: 0.8125rem; color: var(--slate-200); line-height: 1.6; white-space: pre-wrap; word-break: break-word; max-height: 300px; overflow-y: auto; }
+
+    /* --- Store Assets --- */
+    .store-nav { width: 160px; border-right: 1px solid var(--slate-800); overflow-y: auto; flex-shrink: 0; }
+    .store-nav-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1rem; font-size: 0.75rem; color: var(--slate-400); cursor: pointer; border-left: 3px solid transparent; transition: all 0.12s; }
+    .store-nav-item:hover { background: var(--slate-900); color: var(--slate-200); }
+    .store-nav-item.active { color: var(--saffron-400); border-left-color: var(--saffron-400); background: rgba(244,196,48,0.03); }
+    .store-nav-item .badge { font-size: 0.5625rem; background: var(--slate-800); color: var(--slate-500); padding: 1px 5px; border-radius: 3px; margin-left: auto; }
+    .asset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem; padding: 1rem; flex: 1; overflow-y: auto; align-content: start; }
+    .asset-card { background: var(--slate-800); border: 1px solid var(--slate-700); border-radius: 8px; overflow: hidden; transition: border-color 0.12s; }
+    .asset-card:hover { border-color: var(--slate-600); }
+    .asset-card-preview { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background: var(--slate-900); overflow: hidden; }
+    .asset-card-preview img, .asset-card-preview canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
+    .asset-card-label { padding: 0.375rem 0.5rem; font-size: 0.625rem; }
+    .asset-card-name { color: var(--slate-200); font-weight: 500; }
+    .asset-card-dims { color: var(--slate-500); }
+    .asset-status { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 4px; }
+    .asset-status.ready { background: #22c55e; }
+    .asset-status.missing { background: #ef4444; }
+    .asset-status.pending { background: var(--slate-600); }
+  </style>
+</head>
+<body class="bg-slate-950 text-gray-100 font-sans">
+
+  <!-- ============================================================ -->
+  <!-- TOPBAR (always visible) -->
+  <!-- ============================================================ -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <button id="btn-back" class="tool-btn back-btn" title="Back to home">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <span>Home</span>
+      </button>
+      <div class="w-6 h-6 rounded-lg bg-gradient-saffron flex items-center justify-center">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2A1E05" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+      </div>
+      <span class="font-bold text-sm">Pixeroo</span>
+      <span id="mode-label" style="font-size:0.6875rem;color:var(--slate-500);margin-left:4px;"></span>
+    </div>
+    <div class="topbar-right">
+      <button id="btn-undo" class="tool-btn" title="Undo (Ctrl+Z)" style="display:none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+      </button>
+      <button id="btn-redo" class="tool-btn" title="Redo (Ctrl+Y)" style="display:none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      </button>
+      <span id="file-label" style="font-size:0.6875rem;color:var(--slate-500);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+      <button id="btn-editor-settings" class="tool-btn" title="Settings">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- HOME SCREEN -->
+  <!-- ============================================================ -->
+  <div class="home" id="home">
+    <h1 class="home-title">
+      <span class="bg-gradient-to-r from-saffron-300 via-saffron-400 to-saffron-600 bg-clip-text" style="background:linear-gradient(135deg,#FCD34D,#F4C430,#B8860B);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Pixeroo</span>
+    </h1>
+    <p class="home-sub">Read. Optimise. Output.</p>
+
+    <div class="home-grid">
+      <!-- Row 1: Create -->
+      <div class="home-card" data-mode="edit">
+        <div class="home-card-icon" style="background:rgba(244,196,48,0.1);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F4C430" stroke-width="2"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg>
+        </div>
+        <div class="home-card-title">Edit</div>
+        <div class="home-card-desc">Resize, crop, rotate, adjust, filters, annotate</div>
+      </div>
+      <div class="home-card" data-mode="convert">
+        <div class="home-card-icon" style="background:rgba(34,197,94,0.1);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>
+        </div>
+        <div class="home-card-title">Convert</div>
+        <div class="home-card-desc">Batch format conversion with quality controls</div>
+      </div>
+      <div class="home-card" data-mode="store">
+        <div class="home-card-icon" style="background:rgba(168,85,247,0.1);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <div class="home-card-title">Store Assets</div>
+        <div class="home-card-desc">Icons & screenshots for all app stores</div>
+      </div>
+
+      <!-- Row 2: Analyze -->
+      <div class="home-card" data-mode="info">
+        <div class="home-card-icon" style="background:rgba(59,130,246,0.1);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        </div>
+        <div class="home-card-title">Info</div>
+        <div class="home-card-desc">EXIF, metadata, JPEG structure, dimensions</div>
+      </div>
+      <div class="home-card" data-mode="colors">
+        <div class="home-card-icon" style="background:rgba(236,72,153,0.1);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12" r="2.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+        </div>
+        <div class="home-card-title">Colors</div>
+        <div class="home-card-desc">Eyedropper, palette extraction, HEX/RGB/HSL</div>
+      </div>
+      <div class="home-card" data-mode="svg">
+        <div class="home-card-icon" style="background:rgba(20,184,166,0.1);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#14b8a6" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        </div>
+        <div class="home-card-title">SVG Tools</div>
+        <div class="home-card-desc">Inspect, render to raster, view source</div>
+      </div>
+
+      <!-- Row 3: Tools -->
+      <div class="home-card" data-mode="qr">
+        <div class="home-card-icon" style="background:rgba(249,115,22,0.1);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </div>
+        <div class="home-card-title">QR Code</div>
+        <div class="home-card-desc">Generate, customize, read QR codes</div>
+      </div>
+      <div class="home-card" data-mode="compare">
+        <div class="home-card-icon" style="background:rgba(234,179,8,0.1);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2"><rect x="3" y="3" width="8" height="18" rx="1"/><rect x="13" y="3" width="8" height="18" rx="1"/></svg>
+        </div>
+        <div class="home-card-title">Compare</div>
+        <div class="home-card-desc">Side-by-side diff, pixel-level comparison</div>
+      </div>
+      <div class="home-card" data-mode="ocr">
+        <div class="home-card-icon" style="background:rgba(99,102,241,0.1);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><path d="M4 7V4h3"/><path d="M17 4h3v3"/><path d="M20 17v3h-3"/><path d="M7 20H4v-3"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="13" x2="15" y2="13"/></svg>
+        </div>
+        <div class="home-card-title">OCR</div>
+        <div class="home-card-desc">Extract text from images, 11+ languages</div>
+      </div>
+    </div>
+
+    <div class="home-recent">
+      <div class="home-recent-title">Drop a file anywhere to get started</div>
+      <div class="home-recent-empty">PNG, JPEG, WebP, AVIF, GIF, BMP, TIFF, SVG, ICO</div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODE: Edit -->
+  <!-- ============================================================ -->
+  <div class="mode-view" id="mode-edit">
+    <div class="work-area" id="edit-work">
+      <div id="edit-dropzone" class="dropzone">
+        <p class="drop-title">Drop an image, click to browse, or Ctrl+V</p>
+        <p class="drop-sub">PNG, JPEG, WebP, AVIF, GIF, BMP, TIFF, SVG, ICO</p>
+        <input type="file" id="edit-file" accept="image/*" style="display:none;">
+      </div>
+      <canvas id="editor-canvas" style="display:none;"></canvas>
+    </div>
+    <div class="sidebar">
+      <div class="sidebar-section"><div class="sidebar-title">Resize</div><div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;"><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">W</label><input type="number" id="resize-w" class="input-field"></div><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">H</label><input type="number" id="resize-h" class="input-field"></div></div><div style="display:flex;align-items:center;gap:0.5rem;"><label style="font-size:0.6875rem;color:var(--slate-400);display:flex;align-items:center;gap:4px;flex:1;"><input type="checkbox" id="lock-ratio" checked style="accent-color:var(--saffron-400);">Lock</label><button id="btn-apply-resize" class="btn-primary" style="font-size:0.6875rem;padding:3px 10px;">Apply</button></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">Transform</div><div class="btn-row"><button class="tool-btn" id="btn-rotate-left" title="Rotate left"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button><button class="tool-btn" id="btn-rotate-right" title="Rotate right"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button><button class="tool-btn" id="btn-flip-h" title="Flip H"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3"/><line x1="12" y1="20" x2="12" y2="4"/></svg></button><button class="tool-btn" id="btn-flip-v" title="Flip V"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8V5c0-1.1.9-2 2-2h14a2 2 0 0 1 2 2v3"/><path d="M3 16v3c0 1.1.9 2 2 2h14a2 2 0 0 1 2 2v-3"/><line x1="4" y1="12" x2="20" y2="12"/></svg></button></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">Adjustments</div><div class="range-row"><span class="range-label">Brightness</span><span class="range-value" id="val-brightness">0</span></div><input type="range" class="range-input" id="adj-brightness" min="-100" max="100" value="0"><div class="range-row" style="margin-top:0.375rem;"><span class="range-label">Contrast</span><span class="range-value" id="val-contrast">0</span></div><input type="range" class="range-input" id="adj-contrast" min="-100" max="100" value="0"><div class="range-row" style="margin-top:0.375rem;"><span class="range-label">Saturation</span><span class="range-value" id="val-saturation">0</span></div><input type="range" class="range-input" id="adj-saturation" min="-100" max="100" value="0"><div class="range-row" style="margin-top:0.375rem;"><span class="range-label">Hue</span><span class="range-value" id="val-hue">0</span></div><input type="range" class="range-input" id="adj-hue" min="0" max="360" value="0"></div>
+      <div class="sidebar-section"><div class="sidebar-title">Filters</div><div class="btn-row"><button class="tool-btn" data-filter="grayscale">B&W</button><button class="tool-btn" data-filter="sepia">Sepia</button><button class="tool-btn" data-filter="invert">Invert</button><button class="tool-btn" data-filter="blur">Blur</button><button class="tool-btn" data-filter="sharpen">Sharp</button></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">Crop</div><div class="btn-row" style="margin-bottom:0.375rem;"><button class="tool-btn" id="btn-crop-free">Free</button><button class="tool-btn" id="btn-crop-1-1">1:1</button><button class="tool-btn" id="btn-crop-4-3">4:3</button><button class="tool-btn" id="btn-crop-16-9">16:9</button><button class="tool-btn" id="btn-crop-3-2">3:2</button></div><div class="btn-row"><button id="btn-crop-apply" class="btn-primary" style="font-size:0.6875rem;padding:3px 10px;display:none;">Apply Crop</button><button id="btn-crop-cancel" class="tool-btn" style="font-size:0.6875rem;display:none;">Cancel</button></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">Annotate</div><div class="btn-row" style="margin-bottom:0.375rem;"><button class="tool-btn" id="btn-ann-rect">Rect</button><button class="tool-btn" id="btn-ann-arrow">Arrow</button><button class="tool-btn" id="btn-ann-text">Text</button><button class="tool-btn" id="btn-ann-redact">Redact</button></div><div style="display:flex;gap:0.375rem;align-items:center;"><label class="range-label" style="flex-shrink:0;">Color</label><input type="color" id="ann-color" value="#ef4444" style="width:28px;height:22px;border:none;background:none;cursor:pointer;"><label class="range-label" style="flex-shrink:0;margin-left:0.25rem;">Width</label><input type="range" id="ann-width" min="1" max="10" value="3" style="flex:1;accent-color:var(--saffron-400);"></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">Watermark</div><div style="display:flex;gap:0.375rem;margin-bottom:0.375rem;"><input type="text" id="watermark-text" class="input-field" placeholder="Watermark text" style="flex:1;"></div><div style="display:flex;gap:0.375rem;align-items:center;margin-bottom:0.375rem;"><label class="range-label">Opacity</label><input type="range" id="watermark-opacity" min="5" max="80" value="30" style="flex:1;accent-color:var(--saffron-400);"><span id="watermark-opacity-val" class="range-value">30</span></div><button id="btn-watermark" class="tool-btn" style="width:100%;justify-content:center;font-size:0.6875rem;">Apply Watermark</button></div>
+      <div class="sidebar-section"><div class="sidebar-title">Effects</div><div class="btn-row" style="margin-bottom:0.375rem;"><button class="tool-btn" id="btn-vignette">Vignette</button><button class="tool-btn" id="btn-denoise">Denoise</button><button class="tool-btn" id="btn-round-corners">Rounded</button></div><div style="display:flex;gap:0.375rem;margin-bottom:0.375rem;"><input type="number" id="border-width" class="input-field" placeholder="Border px" style="flex:1;"><input type="color" id="border-color" value="#ffffff" style="width:28px;height:26px;border:none;cursor:pointer;"><button class="tool-btn" id="btn-border">Border</button></div><div class="btn-row"><button class="tool-btn" id="btn-tile" title="Tile 2x2">Tile 2x2</button><button class="tool-btn" id="btn-tile3" title="Tile 3x3">3x3</button></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">Color Blindness</div><div class="btn-row"><button class="tool-btn" data-cb="protanopia">Protan</button><button class="tool-btn" data-cb="deuteranopia">Deuter</button><button class="tool-btn" data-cb="tritanopia">Tritan</button><button class="tool-btn" data-cb="achromatopsia">Achrom</button></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">CMYK Preview</div><button class="tool-btn" id="btn-cmyk-sim" style="width:100%;justify-content:center;font-size:0.6875rem;">Simulate CMYK</button></div>
+      <div class="sidebar-section"><div class="sidebar-title">Histogram</div><canvas id="histogram-canvas" style="width:100%;height:60px;border-radius:4px;background:var(--slate-800);"></canvas></div>
+      <div class="sidebar-section"><div class="sidebar-title">Sprite Slicer</div><div style="display:flex;gap:0.375rem;margin-bottom:0.375rem;"><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">Cols</label><input type="number" id="sprite-cols" class="input-field" value="4" min="1"></div><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">Rows</label><input type="number" id="sprite-rows" class="input-field" value="4" min="1"></div></div><button class="tool-btn" id="btn-slice-sprite" style="width:100%;justify-content:center;font-size:0.6875rem;">Slice & Download</button></div>
+      <div class="sidebar-section"><div class="sidebar-title">Steganography</div><div class="btn-row"><button class="tool-btn" id="btn-steg-detect">Detect</button><button class="tool-btn" id="btn-steg-visualize">Visualize LSB</button></div><div id="steg-result" style="font-size:0.625rem;color:var(--slate-500);margin-top:0.375rem;"></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">Reverse Search</div><div class="btn-row"><button class="tool-btn" data-rsearch="google">Google</button><button class="tool-btn" data-rsearch="tineye">TinEye</button><button class="tool-btn" data-rsearch="bing">Bing</button><button class="tool-btn" data-rsearch="yandex">Yandex</button></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">Canvas</div><div style="display:flex;gap:0.375rem;margin-bottom:0.375rem;"><input type="number" id="pad-size" class="input-field" placeholder="Padding px" style="flex:1;"><input type="color" id="pad-color" value="#ffffff" style="width:28px;height:26px;border:none;cursor:pointer;"><button class="tool-btn" id="btn-padding">Pad</button></div><div class="btn-row" style="margin-bottom:0.375rem;"><button class="tool-btn" id="btn-split-h2">Split H2</button><button class="tool-btn" id="btn-split-v2">Split V2</button><button class="tool-btn" id="btn-split-h3">H3</button><button class="tool-btn" id="btn-split-v3">V3</button></div><button class="tool-btn" id="btn-bg-remove" style="width:100%;justify-content:center;font-size:0.6875rem;">Remove Background</button></div>
+      <div class="sidebar-section"><div class="sidebar-title">Color Replace</div><div style="display:flex;gap:0.375rem;align-items:center;margin-bottom:0.375rem;"><label class="range-label">From</label><input type="color" id="color-from" value="#ffffff" style="width:28px;height:22px;border:none;cursor:pointer;"><label class="range-label">To</label><input type="color" id="color-to" value="#000000" style="width:28px;height:22px;border:none;cursor:pointer;"><button class="tool-btn" id="btn-color-replace">Apply</button></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">Channels</div><div class="btn-row"><button class="tool-btn" data-channel="r">Red</button><button class="tool-btn" data-channel="g">Green</button><button class="tool-btn" data-channel="b">Blue</button><button class="tool-btn" data-channel="a">Alpha</button></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">Levels</div><div class="range-row"><span class="range-label">Black</span><span class="range-value" id="level-black-val">0</span></div><input type="range" class="range-input" id="level-black" min="0" max="128" value="0"><div class="range-row"><span class="range-label">White</span><span class="range-value" id="level-white-val">255</span></div><input type="range" class="range-input" id="level-white" min="128" max="255" value="255"><div class="range-row"><span class="range-label">Gamma</span><span class="range-value" id="level-gamma-val">1.0</span></div><input type="range" class="range-input" id="level-gamma" min="20" max="300" value="100"><button class="tool-btn" id="btn-apply-levels" style="width:100%;justify-content:center;font-size:0.6875rem;margin-top:0.375rem;">Apply Levels</button></div>
+      <div class="sidebar-section"><div class="sidebar-title">Pixel Art</div><div style="display:flex;gap:0.375rem;align-items:center;"><label class="range-label">Block</label><input type="number" id="pixelate-size" class="input-field" value="8" min="2" max="64" style="width:60px;"><button class="tool-btn" id="btn-pixelate">Pixelate</button></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">Social Media</div><div class="btn-row" style="flex-wrap:wrap;gap:3px;"><button class="tool-btn" data-social="ig-post" style="font-size:0.5625rem;">IG Post</button><button class="tool-btn" data-social="ig-story" style="font-size:0.5625rem;">IG Story</button><button class="tool-btn" data-social="tw-post" style="font-size:0.5625rem;">Twitter</button><button class="tool-btn" data-social="yt-thumb" style="font-size:0.5625rem;">YouTube</button><button class="tool-btn" data-social="fb-post" style="font-size:0.5625rem;">FB Post</button><button class="tool-btn" data-social="li-post" style="font-size:0.5625rem;">LinkedIn</button><button class="tool-btn" data-social="og-image" style="font-size:0.5625rem;">OG</button><button class="tool-btn" data-social="pin-standard" style="font-size:0.5625rem;">Pin</button></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">Favicon Preview</div><div id="favicon-previews" class="btn-row" style="gap:4px;"></div><button class="tool-btn" id="btn-gen-favicons" style="width:100%;justify-content:center;font-size:0.6875rem;">Generate Previews</button></div>
+      <div class="sidebar-section"><div class="sidebar-title">ASCII Art</div><div style="display:flex;gap:0.375rem;align-items:center;margin-bottom:0.375rem;"><label class="range-label">Cols</label><input type="number" id="ascii-cols" class="input-field" value="80" min="20" max="200" style="width:60px;"><button class="tool-btn" id="btn-ascii">Generate</button></div><pre id="ascii-output" style="font-size:0.375rem;line-height:0.4375rem;color:var(--slate-400);max-height:120px;overflow:auto;background:var(--slate-800);border-radius:4px;padding:4px;display:none;"></pre></div>
+      <div class="sidebar-section"><div class="sidebar-title">Generate</div><div class="btn-row" style="margin-bottom:0.375rem;"><button class="tool-btn" id="btn-gen-gradient">Gradient</button><button class="tool-btn" id="btn-gen-pattern">Pattern</button><button class="tool-btn" id="btn-gen-placeholder">Placeholder</button></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">Metadata</div><button class="tool-btn" id="btn-strip-meta" style="width:100%;justify-content:center;font-size:0.6875rem;">Strip All & Re-export</button></div>
+      <div class="sidebar-section"><div class="sidebar-title">Image to PDF</div><button class="tool-btn" id="btn-to-pdf" style="width:100%;justify-content:center;font-size:0.6875rem;">Export as PDF</button></div>
+      <div class="sidebar-section"><div class="sidebar-title">Export</div><select id="export-format" class="select-field" style="margin-bottom:0.5rem;"><option value="png">PNG</option><option value="jpeg">JPEG (85%)</option><option value="webp">WebP</option><option value="avif">AVIF (WASM)</option><option value="bmp">BMP</option><option value="ico">ICO (WASM)</option></select><button id="btn-export" class="btn-primary" style="width:100%;">Export Image</button></div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODE: Convert -->
+  <!-- ============================================================ -->
+  <div class="mode-view" id="mode-convert">
+    <div class="work-area">
+      <div id="convert-drop" class="dropzone"><p class="drop-title">Drop image(s) to convert</p><p class="drop-sub">Batch conversion supported</p><input type="file" id="convert-file" accept="image/*" multiple style="display:none;"></div>
+      <div id="convert-preview" style="display:none;text-align:center;"><img id="convert-img" src="" alt="" style="max-width:80%;max-height:60vh;border-radius:8px;"><div id="convert-batch-info" style="margin-top:0.5rem;font-size:0.75rem;color:var(--slate-400);"></div></div>
+    </div>
+    <div class="sidebar">
+      <div class="sidebar-section"><div class="sidebar-title">Output Format</div><div class="btn-row" id="convert-formats"><button class="format-btn active" data-fmt="png">PNG</button><button class="format-btn" data-fmt="jpeg">JPEG</button><button class="format-btn" data-fmt="webp">WebP</button><button class="format-btn" data-fmt="avif">AVIF</button><button class="format-btn" data-fmt="bmp">BMP</button><button class="format-btn" data-fmt="ico">ICO</button><button class="format-btn" data-fmt="tiff">TIFF</button><button class="format-btn" data-fmt="qoi">QOI</button></div></div>
+      <div class="sidebar-section" id="convert-quality-section" style="display:none;"><div class="sidebar-title">Quality</div><div class="range-row"><span class="range-label">Quality</span><span class="range-value" id="convert-quality-val">85</span></div><input type="range" class="range-input" id="convert-quality" min="1" max="100" value="85"></div>
+      <div class="sidebar-section"><label style="font-size:0.6875rem;color:var(--slate-400);display:flex;align-items:center;gap:4px;"><input type="checkbox" id="convert-strip-meta" style="accent-color:var(--saffron-400);">Strip metadata</label></div>
+      <div class="sidebar-section"><div class="sidebar-title">Batch Resize</div><div style="display:flex;gap:0.375rem;margin-bottom:0.375rem;"><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">W</label><input type="number" id="batch-resize-w" class="input-field" placeholder="px"></div><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">H</label><input type="number" id="batch-resize-h" class="input-field" placeholder="px"></div></div><label style="font-size:0.6875rem;color:var(--slate-400);display:flex;align-items:center;gap:4px;"><input type="checkbox" id="batch-resize-lock" checked style="accent-color:var(--saffron-400);">Maintain ratio</label></div>
+      <div class="sidebar-section"><div class="sidebar-title">Compression Preview</div><div id="compression-preview"><span style="color:var(--slate-500);font-size:0.6875rem;">Load an image to see sizes</span></div></div>
+      <div class="sidebar-section"><button id="btn-convert-go" class="btn-primary" style="width:100%;" disabled>Convert & Save</button></div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODE: Store Assets -->
+  <!-- ============================================================ -->
+  <div class="mode-view" id="mode-store">
+    <div class="store-nav">
+      <div class="store-nav-item active" data-store="all">All Stores <span class="badge" id="store-count-all">0</span></div>
+      <div class="store-nav-item" data-store="play">Google Play <span class="badge" id="store-count-play">0</span></div>
+      <div class="store-nav-item" data-store="apple">Apple <span class="badge" id="store-count-apple">0</span></div>
+      <div class="store-nav-item" data-store="chrome">Chrome <span class="badge" id="store-count-chrome">0</span></div>
+      <div class="store-nav-item" data-store="edge">Edge <span class="badge" id="store-count-edge">0</span></div>
+      <div class="store-nav-item" data-store="firefox">Firefox <span class="badge" id="store-count-firefox">0</span></div>
+      <div class="store-nav-item" data-store="ms">Microsoft <span class="badge" id="store-count-ms">0</span></div>
+    </div>
+    <div id="store-assets" class="asset-grid">
+      <div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--slate-500);font-size:0.8125rem;">Upload a source icon to generate all store assets</div>
+    </div>
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">Source Icon</div>
+        <div id="store-icon-drop" style="border:1px dashed var(--slate-700);border-radius:8px;padding:1rem;text-align:center;cursor:pointer;">
+          <p style="font-size:0.6875rem;color:var(--slate-500);">Drop 1024x1024 icon</p>
+          <input type="file" id="store-icon-file" accept="image/*" style="display:none;">
+        </div>
+        <div id="store-icon-preview" style="display:none;margin-top:0.5rem;text-align:center;">
+          <canvas id="store-icon-canvas" style="max-width:100%;border-radius:8px;background:var(--slate-800);"></canvas>
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">Source Screenshot</div>
+        <div id="store-screenshot-drop" style="border:1px dashed var(--slate-700);border-radius:8px;padding:1rem;text-align:center;cursor:pointer;">
+          <p style="font-size:0.6875rem;color:var(--slate-500);">Drop screenshot</p>
+          <input type="file" id="store-screenshot-file" accept="image/*" style="display:none;">
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">Background</div>
+        <div style="display:flex;gap:0.5rem;">
+          <div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">Color</label><input type="color" id="store-bg-color" value="#1e293b" style="width:100%;height:28px;border:none;background:none;cursor:pointer;"></div>
+          <div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">Corner</label><input type="number" id="store-corner-radius" value="0" min="0" max="100" class="input-field"></div>
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <button id="btn-store-generate" class="btn-primary" style="width:100%;margin-bottom:0.5rem;" disabled>Generate All Assets</button>
+        <button id="btn-store-export" class="btn-primary" style="width:100%;background:var(--slate-800);color:var(--saffron-400);border:1px solid var(--saffron-400);" disabled>Export All as ZIP</button>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">Validation</div>
+        <div id="store-validation" style="font-size:0.6875rem;color:var(--slate-500);">Upload source icon to validate</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODE: Info -->
+  <!-- ============================================================ -->
+  <div class="mode-view" id="mode-info">
+    <div class="work-area"><div id="info-drop" class="dropzone"><p class="drop-title">Drop an image to inspect metadata</p><p class="drop-sub">EXIF, JPEG structure, ICC profiles</p><input type="file" id="info-file" accept="image/*" style="display:none;"></div><div id="info-preview" style="display:none;text-align:center;"><img id="info-img" src="" alt="" style="max-width:80%;max-height:60vh;border-radius:8px;"></div></div>
+    <div class="sidebar"><div class="sidebar-section"><div class="sidebar-title">File Info</div><div id="info-file-details"><span style="color:var(--slate-500);font-size:0.75rem;">No image loaded</span></div></div><div class="sidebar-section"><div class="sidebar-title">DPI / Resolution</div><div id="info-dpi"><span style="color:var(--slate-500);font-size:0.75rem;">No image loaded</span></div></div><div class="sidebar-section"><div class="sidebar-title">EXIF</div><div id="info-exif"><span style="color:var(--slate-500);font-size:0.75rem;">No image loaded</span></div></div><div class="sidebar-section"><div class="sidebar-title">JPEG Structure</div><div id="info-structure"><span style="color:var(--slate-500);font-size:0.75rem;">No image loaded</span></div></div><div class="sidebar-section"><div class="sidebar-title">Image Hash</div><div id="info-hash"><span style="color:var(--slate-500);font-size:0.75rem;">No image loaded</span></div></div><div class="sidebar-section"><div class="sidebar-title">Base64</div><button id="btn-copy-base64" class="tool-btn" style="width:100%;justify-content:center;font-size:0.6875rem;" disabled>Copy as Data URI</button></div></div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODE: QR Code -->
+  <!-- ============================================================ -->
+  <div class="mode-view" id="mode-qr">
+    <div class="work-area" style="flex-direction:column;gap:0.75rem;">
+      <canvas id="qr-canvas" style="border-radius:8px;"></canvas>
+      <div style="display:flex;gap:0.5rem;">
+        <button id="btn-qr-copy" class="tool-btn" style="gap:4px;padding:6px 12px;font-size:0.75rem;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button>
+        <button id="btn-qr-download" class="tool-btn" style="gap:4px;padding:6px 12px;font-size:0.75rem;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>PNG</button>
+        <button id="btn-qr-svg" class="tool-btn" style="gap:4px;padding:6px 12px;font-size:0.75rem;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>SVG</button>
+      </div>
+    </div>
+    <div class="sidebar">
+      <div class="sidebar-section"><div class="sidebar-title">Content</div><textarea id="qr-text" class="input-field" placeholder="URL, text, WiFi, vCard..." rows="4"></textarea></div>
+      <div class="sidebar-section"><div class="sidebar-title">Presets</div><div class="btn-row"><button class="tool-btn" data-qr-preset="url">URL</button><button class="tool-btn" data-qr-preset="wifi">WiFi</button><button class="tool-btn" data-qr-preset="email">Email</button><button class="tool-btn" data-qr-preset="phone">Phone</button><button class="tool-btn" data-qr-preset="vcard">vCard</button></div></div>
+      <div class="sidebar-section"><div class="sidebar-title">Error Correction</div><select id="qr-ecc" class="select-field"><option value="L">Low (7%)</option><option value="M" selected>Medium (15%)</option><option value="Q">Quartile (25%)</option><option value="H">High (30%)</option></select></div>
+      <div class="sidebar-section"><div class="sidebar-title">Size</div><div class="range-row"><span class="range-label">Pixel</span><span class="range-value" id="qr-px-val">8</span></div><input type="range" class="range-input" id="qr-px" min="2" max="20" value="8"><div class="range-row" style="margin-top:0.375rem;"><span class="range-label">Margin</span><span class="range-value" id="qr-margin-val">4</span></div><input type="range" class="range-input" id="qr-margin" min="0" max="10" value="4"></div>
+      <div class="sidebar-section"><div class="sidebar-title">Colors</div><div style="display:flex;gap:0.5rem;"><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">FG</label><input type="color" id="qr-fg" value="#000000" style="width:100%;height:28px;border:none;background:none;cursor:pointer;"></div><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">BG</label><input type="color" id="qr-bg" value="#ffffff" style="width:100%;height:28px;border:none;background:none;cursor:pointer;"></div></div></div>
+      <div class="sidebar-section"><button id="btn-qr-generate" class="btn-primary" style="width:100%;">Generate QR Code</button></div>
+      <div class="sidebar-section"><div class="sidebar-title">Read QR from Image</div><div id="qr-read-drop" style="border:1px dashed var(--slate-700);border-radius:8px;padding:0.75rem;text-align:center;cursor:pointer;"><p style="font-size:0.6875rem;color:var(--slate-500);">Drop image with QR code</p><input type="file" id="qr-read-file" accept="image/*" style="display:none;"></div><div id="qr-read-result" style="margin-top:0.5rem;font-size:0.75rem;color:var(--slate-300);display:none;"></div></div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODE: Colors -->
+  <!-- ============================================================ -->
+  <div class="mode-view" id="mode-colors">
+    <div class="work-area"><div id="colors-drop" class="dropzone"><p class="drop-title">Drop an image to extract colors</p><p class="drop-sub">Click any pixel to pick a color</p><input type="file" id="colors-file" accept="image/*" style="display:none;"></div><div id="colors-preview" style="display:none;text-align:center;"><canvas id="colors-canvas" style="max-width:80%;max-height:60vh;border-radius:8px;cursor:crosshair;"></canvas></div></div>
+    <div class="sidebar"><div class="sidebar-section"><div class="sidebar-title">Eyedropper</div><div id="picked-color" style="text-align:center;color:var(--slate-500);font-size:0.75rem;">Click any pixel</div></div><div class="sidebar-section"><div class="sidebar-title">Dominant Palette</div><div id="palette-colors"><span style="color:var(--slate-500);font-size:0.75rem;">No image loaded</span></div></div><div class="sidebar-section"><div class="sidebar-title">Count</div><div class="range-row"><span class="range-label">Colors</span><span class="range-value" id="palette-count-val">6</span></div><input type="range" class="range-input" id="palette-count" min="2" max="12" value="6"><button id="btn-reextract" class="btn-primary" style="width:100%;margin-top:0.5rem;font-size:0.75rem;">Re-extract</button></div></div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODE: SVG -->
+  <!-- ============================================================ -->
+  <div class="mode-view" id="mode-svg">
+    <div class="work-area"><div id="svg-drop" class="dropzone"><p class="drop-title">Drop an SVG file to inspect and convert</p><p class="drop-sub">.svg files only</p><input type="file" id="svg-file" accept=".svg,image/svg+xml" style="display:none;"></div><div id="svg-preview" style="display:none;text-align:center;"><img id="svg-img" src="" alt="" style="max-width:80%;max-height:60vh;border-radius:8px;background:var(--slate-800);"></div></div>
+    <div class="sidebar"><div class="sidebar-section"><div class="sidebar-title">SVG Info</div><div id="svg-info"><span style="color:var(--slate-500);font-size:0.75rem;">No SVG loaded</span></div></div><div class="sidebar-section"><div class="sidebar-title">Export Raster</div><div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;"><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">W</label><input type="number" id="svg-export-w" class="input-field"></div><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">H</label><input type="number" id="svg-export-h" class="input-field"></div></div><select id="svg-export-fmt" class="select-field" style="margin-bottom:0.5rem;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option></select><button id="btn-svg-export" class="btn-primary" style="width:100%;" disabled>Export Raster</button></div><div class="sidebar-section"><div class="sidebar-title">Source</div><div id="svg-source" class="svg-source">No SVG loaded</div><button id="btn-svg-copy-source" class="tool-btn" style="width:100%;margin-top:0.5rem;justify-content:center;font-size:0.6875rem;">Copy Source</button></div></div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODE: Compare -->
+  <!-- ============================================================ -->
+  <div class="mode-view" id="mode-compare">
+    <div class="compare-container">
+      <div class="compare-slot"><div class="compare-label">Image A</div><div id="compare-drop-a" class="dropzone" style="margin:0;padding:1.5rem;flex:1;display:flex;align-items:center;justify-content:center;width:100%;"><div><p style="color:var(--slate-500);font-size:0.75rem;">Drop image A</p><input type="file" id="compare-file-a" accept="image/*" style="display:none;"></div></div><canvas id="compare-canvas-a" style="display:none;"></canvas><div id="compare-info-a" class="compare-info"></div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;padding:0 0.5rem;"><button id="btn-compare-diff" class="tool-btn" style="font-size:0.625rem;padding:6px;">Diff</button><button id="btn-compare-swap" class="tool-btn" style="font-size:0.625rem;padding:6px;">Swap</button></div>
+      <div class="compare-slot"><div class="compare-label">Image B</div><div id="compare-drop-b" class="dropzone" style="margin:0;padding:1.5rem;flex:1;display:flex;align-items:center;justify-content:center;width:100%;"><div><p style="color:var(--slate-500);font-size:0.75rem;">Drop image B</p><input type="file" id="compare-file-b" accept="image/*" style="display:none;"></div></div><canvas id="compare-canvas-b" style="display:none;"></canvas><div id="compare-info-b" class="compare-info"></div></div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODE: OCR -->
+  <!-- ============================================================ -->
+  <div class="mode-view" id="mode-ocr">
+    <div class="work-area"><div id="ocr-drop" class="dropzone"><p class="drop-title">Drop an image to extract text (OCR)</p><p class="drop-sub">11+ languages supported</p><input type="file" id="ocr-file" accept="image/*" style="display:none;"></div><div id="ocr-preview" style="display:none;text-align:center;"><img id="ocr-img" src="" alt="" style="max-width:80%;max-height:40vh;border-radius:8px;"></div></div>
+    <div class="sidebar"><div class="sidebar-section"><div class="sidebar-title">Language</div><select id="ocr-lang" class="select-field"><option value="eng" selected>English</option><option value="fra">French</option><option value="deu">German</option><option value="spa">Spanish</option><option value="ita">Italian</option><option value="por">Portuguese</option><option value="jpn">Japanese</option><option value="kor">Korean</option><option value="chi_sim">Chinese (Simplified)</option><option value="ara">Arabic</option><option value="hin">Hindi</option></select></div><div class="sidebar-section"><button id="btn-ocr-run" class="btn-primary" style="width:100%;" disabled>Extract Text</button><div id="ocr-progress" style="display:none;margin-top:0.5rem;"><div style="background:var(--slate-800);border-radius:4px;height:6px;overflow:hidden;"><div id="ocr-progress-bar" style="height:100%;background:var(--saffron-400);width:0%;transition:width 0.3s;"></div></div><div id="ocr-progress-text" style="font-size:0.625rem;color:var(--slate-500);margin-top:2px;"></div></div></div><div class="sidebar-section"><div class="sidebar-title">Result</div><div id="ocr-result" class="ocr-result" style="min-height:100px;">No text extracted yet</div><button id="btn-ocr-copy" class="tool-btn" style="width:100%;margin-top:0.5rem;justify-content:center;font-size:0.6875rem;" disabled>Copy Text</button></div></div>
+  </div>
+
+  <script src="../shared/theme.js"></script>
+  <script src="../popup/qr.js"></script>
+  <script src="tools.js"></script>
+  <script src="tools2.js"></script>
+  <script src="editor.js"></script>
+</body>
+</html>
