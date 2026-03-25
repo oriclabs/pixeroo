@@ -219,7 +219,17 @@ function setupDropzone(dropEl, fileInput, onFile, opts = {}) {
   });
 }
 
-function loadImg(file) {
+async function loadImg(file) {
+  // Use createImageBitmap with EXIF orientation correction (handles rotated phone photos)
+  try {
+    const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+    const c = document.createElement('canvas'); c.width = bitmap.width; c.height = bitmap.height;
+    c.getContext('2d').drawImage(bitmap, 0, 0); bitmap.close();
+    const img = new Image(); img.src = c.toDataURL();
+    await new Promise((ok, fail) => { img.onload = ok; img.onerror = fail; });
+    return img;
+  } catch {}
+  // Fallback for older browsers
   return new Promise(r => {
     const reader = new FileReader();
     reader.onload = (e) => { const img = new Image(); img.onload = () => r(img); img.onerror = () => r(null); img.src = e.target.result; };
