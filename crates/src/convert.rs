@@ -54,25 +54,16 @@ pub fn detect_mime(input: &[u8]) -> String {
 
 /// Get supported input formats
 #[wasm_bindgen]
-pub fn supported_input_formats() -> Vec<JsValue> {
-    vec![
-        "PNG", "JPEG", "GIF", "WebP", "BMP", "TIFF", "TGA", "QOI",
-        "ICO", "PNM", "DDS", "EXR", "HDR", "AVIF", "SVG",
-    ]
-    .into_iter()
-    .map(|s| JsValue::from_str(s))
-    .collect()
+pub fn supported_input_formats() -> JsValue {
+    let formats = vec!["PNG", "JPEG", "GIF", "WebP", "BMP", "TIFF", "TGA", "QOI", "ICO", "PNM", "DDS", "EXR", "HDR", "AVIF", "SVG"];
+    serde_wasm_bindgen::to_value(&formats).unwrap_or(JsValue::NULL)
 }
 
 /// Get supported output formats
 #[wasm_bindgen]
-pub fn supported_output_formats() -> Vec<JsValue> {
-    vec![
-        "PNG", "JPEG", "WebP", "BMP", "GIF", "TIFF", "TGA", "QOI", "ICO",
-    ]
-    .into_iter()
-    .map(|s| JsValue::from_str(s))
-    .collect()
+pub fn supported_output_formats() -> JsValue {
+    let formats = vec!["PNG", "JPEG", "WebP", "BMP", "GIF", "TIFF", "TGA", "QOI", "ICO"];
+    serde_wasm_bindgen::to_value(&formats).unwrap_or(JsValue::NULL)
 }
 
 /// Simple MIME detection from magic bytes (no filesystem dependency)

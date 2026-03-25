@@ -82,20 +82,6 @@ pub fn get_exif(input: &[u8]) -> Result<JsValue, JsError> {
         .map_err(|e| JsError::new(&e.to_string()))
 }
 
-/// Get image dimensions without fully decoding
-#[wasm_bindgen]
-pub fn get_dimensions(input: &[u8]) -> Result<JsValue, JsError> {
-    let reader = image::ImageReader::new(Cursor::new(input))
-        .with_guessed_format()
-        .map_err(|e| JsError::new(&format!("Format detection failed: {}", e)))?;
-    let (w, h) = reader.into_dimensions()
-        .map_err(|e| JsError::new(&format!("Failed to get dimensions: {}", e)))?;
-    serde_wasm_bindgen::to_value(&(w, h))
-        .map_err(|e| JsError::new(&e.to_string()))
-}
+// get_dimensions exported from convert.rs -- removed duplicate here
 
-/// Detect MIME type from image bytes
-#[wasm_bindgen]
-pub fn detect_mime(input: &[u8]) -> String {
-    crate::convert::detect_mime_from_bytes(input)
-}
+// detect_mime exported from convert.rs -- removed duplicate here
