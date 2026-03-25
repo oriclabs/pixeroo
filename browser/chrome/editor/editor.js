@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', (e) => {
     if (e.ctrlKey && e.key === 'z') { e.preventDefault(); editUndo(); }
     if (e.ctrlKey && (e.key === 'y' || (e.shiftKey && e.key === 'z'))) { e.preventDefault(); editRedo(); }
+    if (e.ctrlKey && e.key === 's') { e.preventDefault(); if (currentMode === 'edit') editExport(); }
   });
 
   const mode = new URLSearchParams(location.search).get('mode');
@@ -530,39 +531,41 @@ function initEdit() {
   });
 
   // Generators
-  document.getElementById('btn-gen-gradient')?.addEventListener('click', () => {
-    const w = +document.getElementById('resize-w').value || 800;
-    const h = +document.getElementById('resize-h').value || 600;
-    const c = generateGradient(w, h, 'linear', [
-      { pos: 0, color: '#F4C430' }, { pos: 1, color: '#B8860B' }
-    ]);
-    editCanvas.width = c.width; editCanvas.height = c.height;
-    editCtx.drawImage(c, 0, 0);
+  // Generators with full options
+  function showGenerated(canvas, name) {
+    editCanvas.width = canvas.width; editCanvas.height = canvas.height;
+    editCtx.drawImage(canvas, 0, 0);
     editCanvas.style.display = 'block';
     document.getElementById('edit-dropzone').style.display = 'none';
-    editFilename = 'gradient'; updResize(); saveEdit();
+    editFilename = name; updResize(); saveEdit();
+  }
+
+  document.getElementById('btn-gen-gradient')?.addEventListener('click', () => {
+    const w = +document.getElementById('gen-w').value || 800;
+    const h = +document.getElementById('gen-h').value || 600;
+    const type = document.getElementById('gen-grad-type').value;
+    const c1 = document.getElementById('gen-grad-c1').value;
+    const c2 = document.getElementById('gen-grad-c2').value;
+    showGenerated(generateGradient(w, h, type, [{ pos: 0, color: c1 }, { pos: 1, color: c2 }]), 'gradient');
   });
 
   document.getElementById('btn-gen-pattern')?.addEventListener('click', () => {
-    const w = +document.getElementById('resize-w').value || 800;
-    const h = +document.getElementById('resize-h').value || 600;
-    const c = generatePattern(w, h, 'checkerboard', '#e2e8f0', '#ffffff', 40);
-    editCanvas.width = c.width; editCanvas.height = c.height;
-    editCtx.drawImage(c, 0, 0);
-    editCanvas.style.display = 'block';
-    document.getElementById('edit-dropzone').style.display = 'none';
-    editFilename = 'pattern'; updResize(); saveEdit();
+    const w = +document.getElementById('gen-w').value || 800;
+    const h = +document.getElementById('gen-h').value || 600;
+    const type = document.getElementById('gen-pat-type').value;
+    const c1 = document.getElementById('gen-pat-c1').value;
+    const c2 = document.getElementById('gen-pat-c2').value;
+    const cell = +document.getElementById('gen-pat-cell').value || 40;
+    showGenerated(generatePattern(w, h, type, c1, c2, cell), 'pattern');
   });
 
   document.getElementById('btn-gen-placeholder')?.addEventListener('click', () => {
-    const w = +document.getElementById('resize-w').value || 800;
-    const h = +document.getElementById('resize-h').value || 600;
-    const c = generatePlaceholder(w, h, '#94a3b8', '#ffffff');
-    editCanvas.width = c.width; editCanvas.height = c.height;
-    editCtx.drawImage(c, 0, 0);
-    editCanvas.style.display = 'block';
-    document.getElementById('edit-dropzone').style.display = 'none';
-    editFilename = 'placeholder'; updResize(); saveEdit();
+    const w = +document.getElementById('gen-w').value || 800;
+    const h = +document.getElementById('gen-h').value || 600;
+    const bg = document.getElementById('gen-ph-bg').value;
+    const tc = document.getElementById('gen-ph-text-color').value;
+    const text = document.getElementById('gen-ph-text').value || '';
+    showGenerated(generatePlaceholder(w, h, bg, tc, text), 'placeholder');
   });
 
   // Strip metadata
@@ -590,8 +593,25 @@ function saveEdit() {
   editUndoStack.push(editCtx.getImageData(0, 0, editCanvas.width, editCanvas.height));
   if (editUndoStack.length > 30) editUndoStack.shift();
   editRedoStack = [];
-  // Update histogram if visible
   try { const h = computeHistogram(editCanvas); drawHistogram(document.getElementById('histogram-canvas'), h); } catch {}
+  updateDimensionBadge();
+  pulseExportButton();
+}
+
+function updateDimensionBadge() {
+  const badge = document.getElementById('dimension-badge');
+  if (!badge || !editCanvas.width) return;
+  badge.style.display = 'block';
+  badge.textContent = `${editCanvas.width} x ${editCanvas.height}`;
+}
+
+let pulseTimeout = null;
+function pulseExportButton() {
+  const btn = document.getElementById('btn-export');
+  if (!btn) return;
+  btn.classList.remove('export-pulse');
+  clearTimeout(pulseTimeout);
+  pulseTimeout = setTimeout(() => btn.classList.add('export-pulse'), 50);
 }
 function editUndo() { if (editUndoStack.length <= 1) return; editRedoStack.push(editUndoStack.pop()); const s = editUndoStack.at(-1); editCanvas.width = s.width; editCanvas.height = s.height; editCtx.putImageData(s, 0, 0); updResize(); }
 function editRedo() { if (!editRedoStack.length) return; const s = editRedoStack.pop(); editUndoStack.push(s); editCanvas.width = s.width; editCanvas.height = s.height; editCtx.putImageData(s, 0, 0); updResize(); }

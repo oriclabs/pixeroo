@@ -103,6 +103,10 @@
     .asset-status.missing { background: #ef4444; }
     .asset-status.pending { background: var(--slate-600); }
 
+    /* Export button pulse after edit */
+    @keyframes exportPulse { 0%,100% { box-shadow: none; } 50% { box-shadow: 0 0 12px rgba(244,196,48,0.4); } }
+    .export-pulse { animation: exportPulse 1.5s ease-in-out 2; }
+
     /* --- Edit Layout: Category Tabs + Ribbon/Sidebar --- */
     .edit-cat-tabs { display: flex; flex-wrap: wrap; gap: 2px; padding: 0.375rem 0.5rem; border-bottom: 1px solid var(--slate-800); flex-shrink: 0; }
     .edit-cat-tab { padding: 3px 8px; font-size: 0.625rem; font-weight: 500; color: var(--slate-500); background: none; border: 1px solid transparent; border-radius: 4px; cursor: pointer; transition: all 0.12s; white-space: nowrap; }
@@ -268,10 +272,18 @@
   <div class="mode-view edit-panel layout-sidebar" id="mode-edit">
     <div class="work-area" id="edit-work">
       <div id="edit-dropzone" class="dropzone">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--slate-600)" stroke-width="1.5" style="margin:0 auto 0.75rem;display:block;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
         <p class="drop-title">Drop an image, click to browse, or Ctrl+V</p>
         <p class="drop-sub">PNG, JPEG, WebP, AVIF, GIF, BMP, TIFF, SVG, ICO</p>
+        <div style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid var(--slate-800);">
+          <p style="color:var(--slate-500);font-size:0.6875rem;margin-bottom:0.375rem;">Use the category tabs to switch tools:</p>
+          <p style="color:var(--slate-600);font-size:0.625rem;">Transform &middot; Adjust &middot; Filters &middot; Draw &middot; Canvas &middot; Analyze &middot; Social &middot; Generate &middot; Export</p>
+          <p style="color:var(--slate-600);font-size:0.625rem;margin-top:0.375rem;">Ctrl+S to export &middot; Ctrl+Z to undo</p>
+        </div>
         <input type="file" id="edit-file" accept="image/*" style="display:none;">
       </div>
+      <!-- Dimension badge (shown when image is loaded) -->
+      <div id="dimension-badge" style="display:none;position:absolute;bottom:8px;right:8px;background:rgba(15,23,42,0.8);border:1px solid var(--slate-700);border-radius:4px;padding:2px 8px;font-size:0.625rem;color:var(--slate-400);font-family:monospace;pointer-events:none;z-index:1;"></div>
       <canvas id="editor-canvas" style="display:none;"></canvas>
     </div>
     <div class="edit-controls">
@@ -310,7 +322,23 @@
       <div class="sidebar-section" data-cat="social"><div class="sidebar-title">Social Media</div><div class="btn-row" style="flex-wrap:wrap;gap:3px;"><button class="tool-btn" data-social="ig-post" style="font-size:0.5625rem;">IG Post</button><button class="tool-btn" data-social="ig-story" style="font-size:0.5625rem;">IG Story</button><button class="tool-btn" data-social="tw-post" style="font-size:0.5625rem;">Twitter</button><button class="tool-btn" data-social="yt-thumb" style="font-size:0.5625rem;">YouTube</button><button class="tool-btn" data-social="fb-post" style="font-size:0.5625rem;">FB Post</button><button class="tool-btn" data-social="li-post" style="font-size:0.5625rem;">LinkedIn</button><button class="tool-btn" data-social="og-image" style="font-size:0.5625rem;">OG</button><button class="tool-btn" data-social="pin-standard" style="font-size:0.5625rem;">Pin</button></div></div>
       <div class="sidebar-section" data-cat="social"><div class="sidebar-title">Favicon Preview</div><div id="favicon-previews" class="btn-row" style="gap:4px;"></div><button class="tool-btn" id="btn-gen-favicons" style="width:100%;justify-content:center;font-size:0.6875rem;">Generate Previews</button></div>
       <div class="sidebar-section" data-cat="generate"><div class="sidebar-title">ASCII Art</div><div style="display:flex;gap:0.375rem;align-items:center;margin-bottom:0.375rem;"><label class="range-label">Cols</label><input type="number" id="ascii-cols" class="input-field" value="80" min="20" max="200" style="width:60px;"><button class="tool-btn" id="btn-ascii">Generate</button></div><pre id="ascii-output" style="font-size:0.375rem;line-height:0.4375rem;color:var(--slate-400);max-height:120px;overflow:auto;background:var(--slate-800);border-radius:4px;padding:4px;display:none;"></pre></div>
-      <div class="sidebar-section" data-cat="generate"><div class="sidebar-title">Generate</div><div class="btn-row" style="margin-bottom:0.375rem;"><button class="tool-btn" id="btn-gen-gradient">Gradient</button><button class="tool-btn" id="btn-gen-pattern">Pattern</button><button class="tool-btn" id="btn-gen-placeholder">Placeholder</button></div></div>
+      <div class="sidebar-section" data-cat="generate"><div class="sidebar-title">Generate New Image</div>
+        <div style="display:flex;gap:0.375rem;margin-bottom:0.375rem;"><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">W</label><input type="number" id="gen-w" class="input-field" value="800"></div><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">H</label><input type="number" id="gen-h" class="input-field" value="600"></div></div>
+        <div style="margin-bottom:0.5rem;border-bottom:1px solid var(--slate-800);padding-bottom:0.5rem;">
+          <label class="range-label" style="display:block;margin-bottom:3px;">Gradient</label>
+          <div style="display:flex;gap:0.25rem;align-items:center;margin-bottom:0.25rem;"><select id="gen-grad-type" class="select-field" style="width:70px;"><option value="linear">Linear</option><option value="radial">Radial</option></select><input type="color" id="gen-grad-c1" value="#F4C430" style="width:24px;height:22px;border:none;cursor:pointer;"><input type="color" id="gen-grad-c2" value="#B8860B" style="width:24px;height:22px;border:none;cursor:pointer;"><button class="tool-btn" id="btn-gen-gradient" style="font-size:0.625rem;">Create</button></div>
+        </div>
+        <div style="margin-bottom:0.5rem;border-bottom:1px solid var(--slate-800);padding-bottom:0.5rem;">
+          <label class="range-label" style="display:block;margin-bottom:3px;">Pattern</label>
+          <div style="display:flex;gap:0.25rem;align-items:center;margin-bottom:0.25rem;"><select id="gen-pat-type" class="select-field" style="width:80px;"><option value="checkerboard">Checker</option><option value="stripes-h">Stripes H</option><option value="stripes-v">Stripes V</option><option value="dots">Dots</option><option value="noise">Noise</option></select><input type="color" id="gen-pat-c1" value="#e2e8f0" style="width:24px;height:22px;border:none;cursor:pointer;"><input type="color" id="gen-pat-c2" value="#ffffff" style="width:24px;height:22px;border:none;cursor:pointer;"></div>
+          <div style="display:flex;gap:0.25rem;align-items:center;"><label class="range-label">Cell</label><input type="number" id="gen-pat-cell" class="input-field" value="40" min="4" max="200" style="width:50px;"><button class="tool-btn" id="btn-gen-pattern" style="font-size:0.625rem;">Create</button></div>
+        </div>
+        <div>
+          <label class="range-label" style="display:block;margin-bottom:3px;">Placeholder</label>
+          <div style="display:flex;gap:0.25rem;align-items:center;margin-bottom:0.25rem;"><input type="text" id="gen-ph-text" class="input-field" placeholder="Custom text (optional)" style="flex:1;"></div>
+          <div style="display:flex;gap:0.25rem;align-items:center;"><input type="color" id="gen-ph-bg" value="#94a3b8" style="width:24px;height:22px;border:none;cursor:pointer;"><input type="color" id="gen-ph-text-color" value="#ffffff" style="width:24px;height:22px;border:none;cursor:pointer;"><button class="tool-btn" id="btn-gen-placeholder" style="font-size:0.625rem;">Create</button></div>
+        </div>
+      </div>
       <div class="sidebar-section" data-cat="export"><div class="sidebar-title">Metadata</div><button class="tool-btn" id="btn-strip-meta" style="width:100%;justify-content:center;font-size:0.6875rem;">Strip All & Re-export</button></div>
       <div class="sidebar-section" data-cat="export"><div class="sidebar-title">Image to PDF</div><button class="tool-btn" id="btn-to-pdf" style="width:100%;justify-content:center;font-size:0.6875rem;">Export as PDF</button></div>
       <div class="sidebar-section" data-cat="export"><div class="sidebar-title">Export</div><select id="export-format" class="select-field" style="margin-bottom:0.5rem;"><option value="png">PNG</option><option value="jpeg">JPEG (85%)</option><option value="webp">WebP</option><option value="avif">AVIF (WASM)</option><option value="bmp">BMP</option><option value="ico">ICO (WASM)</option></select><button id="btn-export" class="btn-primary" style="width:100%;">Export Image</button></div>
