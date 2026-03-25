@@ -119,19 +119,25 @@
     .edit-panel.layout-sidebar .edit-cat-content.active { padding: 0; }
     .edit-panel.layout-sidebar .sidebar-section { padding: 0.75rem 1rem; border-bottom: 1px solid var(--slate-800); }
 
-    /* Ribbon layout */
+    /* Ribbon layout -- compact horizontal strip */
     .edit-panel.layout-ribbon { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
-    .edit-panel.layout-ribbon .edit-controls { border-bottom: 1px solid var(--slate-800); flex-shrink: 0; overflow-x: auto; overflow-y: hidden; max-height: none; }
+    .edit-panel.layout-ribbon .edit-controls { border-bottom: 1px solid var(--slate-800); flex-shrink: 0; overflow-x: auto; overflow-y: hidden; }
     .edit-panel.layout-ribbon .edit-work { flex: 1; }
-    .edit-panel.layout-ribbon .edit-cat-content.active { display: flex; flex-wrap: wrap; gap: 0.75rem; padding: 0.5rem 0.75rem; align-items: flex-start; }
-    .edit-panel.layout-ribbon .sidebar-section { padding: 0.375rem 0.5rem; border-bottom: none; border-right: 1px solid var(--slate-800); min-width: fit-content; flex-shrink: 0; }
-    .edit-panel.layout-ribbon .sidebar-title { margin-bottom: 0.25rem; font-size: 0.5625rem; }
-    .edit-panel.layout-ribbon .range-input { width: 80px; }
-    .edit-panel.layout-ribbon .input-field { width: 60px; }
-    .edit-panel.layout-ribbon .btn-row { gap: 2px; }
-    .edit-panel.layout-ribbon .range-row { margin-bottom: 0.125rem; }
-    .edit-panel.layout-ribbon .range-label { font-size: 0.625rem; }
-    .edit-panel.layout-ribbon .range-value { font-size: 0.625rem; }
+    .edit-panel.layout-ribbon .edit-cat-content.active { display: flex; flex-wrap: nowrap; gap: 0; padding: 0; align-items: stretch; overflow-x: auto; }
+    .edit-panel.layout-ribbon .sidebar-section { padding: 0.375rem 0.625rem; border-bottom: none; border-right: 1px solid var(--slate-800); min-width: auto; max-width: 200px; flex-shrink: 0; display: flex; flex-direction: column; gap: 0.25rem; }
+    .edit-panel.layout-ribbon .sidebar-section:last-child { border-right: none; }
+    .edit-panel.layout-ribbon .sidebar-title { margin-bottom: 0.125rem; font-size: 0.5rem; letter-spacing: 0.06em; }
+    .edit-panel.layout-ribbon .range-input { width: 70px; height: 14px; }
+    .edit-panel.layout-ribbon .input-field { width: 50px; padding: 3px 5px; font-size: 0.6875rem; }
+    .edit-panel.layout-ribbon .btn-row { gap: 1px; }
+    .edit-panel.layout-ribbon .range-row { margin-bottom: 0; }
+    .edit-panel.layout-ribbon .range-label { font-size: 0.5625rem; }
+    .edit-panel.layout-ribbon .range-value { font-size: 0.5625rem; min-width: 1.5rem; }
+    .edit-panel.layout-ribbon .tool-btn { padding: 3px; font-size: 0.5625rem; }
+    .edit-panel.layout-ribbon .tool-btn svg { width: 12px; height: 12px; }
+    .edit-panel.layout-ribbon .btn-primary { padding: 2px 8px; font-size: 0.5625rem; }
+    .edit-panel.layout-ribbon .select-field { padding: 3px 5px; font-size: 0.625rem; }
+    .edit-panel.layout-ribbon .format-btn { padding: 2px 6px; font-size: 0.5625rem; }
   </style>
 </head>
 <body class="bg-slate-950 text-gray-100 font-sans">
