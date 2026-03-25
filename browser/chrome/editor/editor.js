@@ -429,18 +429,23 @@ function initEdit() {
     document.getElementById('btn-crop-cancel').style.display = 'none';
   });
 
-  // Annotation Tools
-  Annotate.init(editCanvas, editCtx, saveEdit);
+  // Object-based Drawing (replaces stamp-based Annotate)
+  const objLayer = new ObjectLayer(editCanvas, saveEdit);
+
+  // Attach object layer when image loads (called from image load handlers)
+  window._pixerooObjLayer = objLayer;
+
   const annTools = { 'btn-ann-rect': 'rect', 'btn-ann-arrow': 'arrow', 'btn-ann-text': 'text', 'btn-ann-redact': 'redact' };
   Object.entries(annTools).forEach(([id, tool]) => {
     document.getElementById(id)?.addEventListener('click', () => {
       if (!editCanvas.width) return;
-      Annotate.setTool(tool, document.getElementById('edit-work'));
+      if (!objLayer.active) objLayer.attach(document.getElementById('edit-work'));
+      objLayer.startTool(tool);
     });
   });
 
-  document.getElementById('ann-color')?.addEventListener('input', (e) => { Annotate.color = e.target.value; });
-  document.getElementById('ann-width')?.addEventListener('input', (e) => { Annotate.lineWidth = +e.target.value; });
+  document.getElementById('ann-color')?.addEventListener('input', (e) => { objLayer.color = e.target.value; });
+  document.getElementById('ann-width')?.addEventListener('input', (e) => { objLayer.lineWidth = +e.target.value; });
 
   // Watermark
   document.getElementById('watermark-opacity')?.addEventListener('input', (e) => {
@@ -917,6 +922,8 @@ function applyAdj() {
 
 function editExport() {
   if (!editCanvas.width) return;
+  // Flatten any drawn objects into the canvas before export
+  if (window._pixerooObjLayer?.hasObjects()) window._pixerooObjLayer.flatten();
   const fmt = document.getElementById('export-format').value;
   const wasmFormats = ['avif', 'ico', 'tiff', 'qoi'];
 
