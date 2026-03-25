@@ -921,11 +921,22 @@ function editExport() {
   const wasmFormats = ['avif', 'ico', 'tiff', 'qoi'];
 
   if (wasmFormats.includes(fmt)) {
-    // WASM-only formats
     if (window.pixerooWasm?.convert_image) {
-      // TODO: use WASM convert_image when engine is built
+      // Use WASM engine for formats Canvas can't handle
+      editCanvas.toBlob(async (pngBlob) => {
+        try {
+          const buffer = await pngBlob.arrayBuffer();
+          const quality = +(document.getElementById('export-quality')?.value || 85);
+          const result = window.pixerooWasm.convert_image(new Uint8Array(buffer), fmt, quality);
+          const outBlob = new Blob([result], { type: `image/${fmt}` });
+          chrome.runtime.sendMessage({ action:'download', url: URL.createObjectURL(outBlob), filename:`pixeroo/${editFilename}.${fmt}`, saveAs:true });
+        } catch (e) {
+          pixDialog.alert('Export Failed', `WASM conversion to ${fmt.toUpperCase()} failed: ${e.message}`);
+        }
+      }, 'image/png');
+      return;
     }
-    pixDialog.alert('WASM Required', `${fmt.toUpperCase()} export requires the WASM engine. Use PNG, JPEG, WebP, or BMP for now.`);
+    pixDialog.alert('WASM Required', `${fmt.toUpperCase()} export requires the WASM engine. The engine may still be loading -- try again in a moment.`);
     return;
   }
 
