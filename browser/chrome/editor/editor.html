@@ -147,6 +147,29 @@
     </div>
   </div>
 
+  <!-- Quick Settings Popover -->
+  <div id="settings-popover" style="display:none;position:fixed;top:48px;right:12px;z-index:1000;background:var(--slate-900);border:1px solid var(--slate-700);border-radius:10px;padding:0.75rem;width:240px;box-shadow:0 12px 40px rgba(0,0,0,0.5);">
+    <div style="font-size:0.75rem;font-weight:600;color:var(--slate-300);margin-bottom:0.75rem;">Quick Settings</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.625rem;">
+      <span style="font-size:0.6875rem;color:var(--slate-400);">Theme</span>
+      <div style="display:flex;gap:4px;">
+        <button class="tool-btn qs-theme" data-theme="dark" title="Dark" style="font-size:0.5625rem;padding:3px 8px;border:1px solid var(--slate-700);border-radius:4px;">Dark</button>
+        <button class="tool-btn qs-theme" data-theme="light" title="Light" style="font-size:0.5625rem;padding:3px 8px;border:1px solid var(--slate-700);border-radius:4px;">Light</button>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.625rem;">
+      <span style="font-size:0.6875rem;color:var(--slate-400);">Default format</span>
+      <select id="qs-format" class="select-field" style="width:70px;font-size:0.625rem;padding:2px 4px;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option></select>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.625rem;">
+      <span style="font-size:0.6875rem;color:var(--slate-400);">Download folder</span>
+      <input type="text" id="qs-folder" class="input-field" value="pixeroo" style="width:80px;font-size:0.625rem;padding:2px 6px;">
+    </div>
+    <div style="border-top:1px solid var(--slate-800);padding-top:0.5rem;margin-top:0.25rem;">
+      <button id="qs-advanced" class="tool-btn" style="width:100%;justify-content:center;font-size:0.625rem;color:var(--saffron-400);">Open Advanced Settings</button>
+    </div>
+  </div>
+
   <!-- ============================================================ -->
   <!-- HOME SCREEN -->
   <!-- ============================================================ -->

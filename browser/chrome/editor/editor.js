@@ -26,8 +26,47 @@ document.addEventListener('DOMContentLoaded', () => {
   initGenerate();
   initCollage();
 
+  // Quick settings popover toggle
   document.getElementById('btn-editor-settings').addEventListener('click', () => {
+    const pop = document.getElementById('settings-popover');
+    pop.style.display = pop.style.display === 'none' ? 'block' : 'none';
+  });
+
+  // Close popover when clicking outside
+  document.addEventListener('click', (e) => {
+    const pop = document.getElementById('settings-popover');
+    if (pop.style.display !== 'none' && !pop.contains(e.target) && e.target.id !== 'btn-editor-settings' && !e.target.closest('#btn-editor-settings')) {
+      pop.style.display = 'none';
+    }
+  });
+
+  // Theme toggle
+  document.querySelectorAll('.qs-theme').forEach(btn => {
+    btn.addEventListener('click', () => {
+      chrome.storage.sync.set({ theme: btn.dataset.theme });
+    });
+  });
+
+  // Default format
+  document.getElementById('qs-format')?.addEventListener('change', (e) => {
+    chrome.storage.sync.set({ defaultFormat: e.target.value });
+  });
+
+  // Download folder
+  document.getElementById('qs-folder')?.addEventListener('change', (e) => {
+    chrome.storage.sync.set({ downloadPrefix: e.target.value });
+  });
+
+  // Advanced settings opens in new tab
+  document.getElementById('qs-advanced')?.addEventListener('click', () => {
     chrome.tabs.create({ url: chrome.runtime.getURL('settings/settings.html') });
+    document.getElementById('settings-popover').style.display = 'none';
+  });
+
+  // Load saved settings into popover
+  chrome.storage.sync.get({ defaultFormat: 'png', downloadPrefix: 'pixeroo' }, (r) => {
+    const fmtEl = document.getElementById('qs-format'); if (fmtEl) fmtEl.value = r.defaultFormat;
+    const folderEl = document.getElementById('qs-folder'); if (folderEl) folderEl.value = r.downloadPrefix;
   });
 
   document.addEventListener('keydown', (e) => {
