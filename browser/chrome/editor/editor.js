@@ -444,6 +444,16 @@ function initEdit() {
 
   document.getElementById('ann-color')?.addEventListener('input', (e) => { objLayer.color = e.target.value; });
   document.getElementById('ann-width')?.addEventListener('input', (e) => { objLayer.lineWidth = +e.target.value; });
+  document.getElementById('ann-font')?.addEventListener('change', (e) => { objLayer.fontFamily = e.target.value; });
+  document.getElementById('ann-fontsize')?.addEventListener('change', (e) => { objLayer.fontSize = +e.target.value || 24; });
+
+  // Mask filter tool
+  document.getElementById('btn-mask-filter')?.addEventListener('click', () => {
+    if (!editCanvas.width) return;
+    if (!objLayer.active) objLayer.attach(document.getElementById('edit-work'));
+    objLayer.maskFilter = 'blur'; // default mask filter
+    objLayer.startTool('mask');
+  });
 
   // Watermark
   document.getElementById('watermark-opacity')?.addEventListener('input', (e) => {

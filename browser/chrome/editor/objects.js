@@ -19,10 +19,16 @@ class DrawObject {
     this.lineWidth = 3;
     this.text = '';
     this.fontSize = 24;
+    this.fontFamily = 'Inter, system-ui, sans-serif';
+    this.fontWeight = 'bold';
     this.opacity = 1;
     this.selected = false;
-    this.editing = false; // text editing mode
-    // For arrow: x,y = start; w,h = end offset
+    this.editing = false;
+    this.redactMode = 'pixelate'; // 'pixelate' or 'solid'
+    this.redactStrength = 3; // 1=light, 2=medium, 3=heavy
+    this.filter = null; // for mask filter: 'blur', 'brightness', etc.
+    this.filterValue = null;
+    // For arrow
     this.x2 = x + w;
     this.y2 = y + h;
   }
@@ -69,20 +75,36 @@ class DrawObject {
       this._drawArrow(ctx);
     } else if (this.type === 'text') {
       ctx.fillStyle = this.color;
-      ctx.font = `bold ${this.fontSize}px Inter, system-ui, sans-serif`;
+      ctx.font = `${this.fontWeight} ${this.fontSize}px ${this.fontFamily}`;
       ctx.textBaseline = 'top';
-      // Word wrap within bounds
-      const lines = this._wrapText(ctx, this.text, this.w || 9999);
+      const lines = (this.text || '').split('\n');
+      const lineH = this.fontSize * 1.3;
+      // Measure and auto-size bounding box
+      let maxW = 0;
+      lines.forEach(line => { maxW = Math.max(maxW, ctx.measureText(line).width); });
+      this.w = Math.max(maxW + 8, 20);
+      this.h = Math.max(lines.length * lineH, lineH);
+      // Draw text
       lines.forEach((line, i) => {
-        ctx.fillText(line, this.x, this.y + i * this.fontSize * 1.2);
+        ctx.fillText(line, this.x + 4, this.y + i * lineH + 2);
       });
-      // Update height based on text
-      if (lines.length > 0) this.h = lines.length * this.fontSize * 1.2;
     } else if (this.type === 'redact') {
-      // Pixelated block
-      ctx.fillStyle = this.color;
-      ctx.globalAlpha = 0.8;
+      // Solid black fill (text unreadable)
+      ctx.fillStyle = '#000000';
       ctx.fillRect(this.x, this.y, this.w, this.h);
+    } else if (this.type === 'mask') {
+      // Mask filter indicator (actual filter applied on flatten)
+      ctx.strokeStyle = '#F4C430';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 3]);
+      ctx.strokeRect(this.x, this.y, this.w, this.h);
+      ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(244,196,48,0.1)';
+      ctx.fillRect(this.x, this.y, this.w, this.h);
+      ctx.fillStyle = '#F4C430';
+      ctx.font = '11px Inter, system-ui, sans-serif';
+      ctx.textBaseline = 'top';
+      ctx.fillText(this.filter || 'mask', this.x + 4, this.y + 4);
     }
 
     ctx.restore();
@@ -114,13 +136,17 @@ class DrawObject {
 
     // Text cursor when editing
     if (this.type === 'text' && this.editing) {
+      ctx.font = `${this.fontWeight} ${this.fontSize}px ${this.fontFamily}`;
+      const lines = (this.text || '').split('\n');
+      const lastLine = lines[lines.length - 1] || '';
+      const cursorX = this.x + 4 + ctx.measureText(lastLine).width + 2;
+      const cursorY = this.y + (lines.length - 1) * this.fontSize * 1.3 + 2;
       ctx.strokeStyle = '#F4C430';
       ctx.lineWidth = 2;
       ctx.setLineDash([]);
-      const cursorX = this.x + ctx.measureText(this.text).width + 2;
       ctx.beginPath();
-      ctx.moveTo(cursorX, this.y);
-      ctx.lineTo(cursorX, this.y + this.fontSize);
+      ctx.moveTo(cursorX, cursorY);
+      ctx.lineTo(cursorX, cursorY + this.fontSize);
       ctx.stroke();
     }
 
@@ -283,6 +309,7 @@ class ObjectLayer {
     obj.text = text || '';
     obj.color = this.color;
     obj.fontSize = this.fontSize;
+    obj.fontFamily = this.fontFamily || 'Inter, system-ui, sans-serif';
     obj.editing = true;
     this.objects.push(obj);
     this.select(obj);
@@ -291,6 +318,15 @@ class ObjectLayer {
 
   addRedact(x, y, w, h) {
     const obj = new DrawObject('redact', x, y, w, h);
+    this.objects.push(obj);
+    this.select(obj);
+    return obj;
+  }
+
+  addMask(x, y, w, h, filter, filterValue) {
+    const obj = new DrawObject('mask', x, y, w, h);
+    obj.filter = filter || 'blur';
+    obj.filterValue = filterValue;
     this.objects.push(obj);
     this.select(obj);
     return obj;
@@ -462,6 +498,7 @@ class ObjectLayer {
         if (this.creating === 'rect') this.addRect(rx, ry, rw, rh);
         else if (this.creating === 'arrow') this.addArrow(this.dragStartX, this.dragStartY, x, y);
         else if (this.creating === 'redact') this.addRedact(rx, ry, rw, rh);
+        else if (this.creating === 'mask') this.addMask(rx, ry, rw, rh, this.maskFilter);
       }
       this.stopTool();
     }
@@ -548,8 +585,12 @@ class ObjectLayer {
     this.deselectAll();
     for (const obj of this.objects) {
       if (obj.type === 'redact') {
-        // Pixelate the region on the base canvas
-        this._pixelateRegion(obj.x, obj.y, obj.w, obj.h);
+        this._pixelateRegion(obj.x, obj.y, obj.w, obj.h, obj.redactStrength);
+        // Draw solid black on top for full concealment
+        this.baseCtx.fillStyle = '#000000';
+        this.baseCtx.fillRect(Math.round(obj.x), Math.round(obj.y), Math.round(obj.w), Math.round(obj.h));
+      } else if (obj.type === 'mask') {
+        this._applyMaskFilter(obj);
       } else {
         obj.draw(this.baseCtx);
       }
@@ -559,14 +600,46 @@ class ObjectLayer {
     if (this.saveState) this.saveState();
   }
 
-  _pixelateRegion(rx, ry, rw, rh) {
+  // Apply a filter only within the mask region
+  _applyMaskFilter(obj) {
+    const rx = Math.max(0, Math.round(obj.x));
+    const ry = Math.max(0, Math.round(obj.y));
+    const rw = Math.min(Math.round(obj.w), this.base.width - rx);
+    const rh = Math.min(Math.round(obj.h), this.base.height - ry);
+    if (rw < 2 || rh < 2) return;
+
+    // Extract region, apply to temp canvas with filter, put back
+    const imgData = this.baseCtx.getImageData(rx, ry, rw, rh);
+    const tmp = document.createElement('canvas'); tmp.width = rw; tmp.height = rh;
+    const tc = tmp.getContext('2d');
+    tc.putImageData(imgData, 0, 0);
+
+    const out = document.createElement('canvas'); out.width = rw; out.height = rh;
+    const oc = out.getContext('2d');
+
+    const filterMap = {
+      'blur': 'blur(5px)', 'sharpen': 'contrast(150%) brightness(110%)',
+      'grayscale': 'grayscale(100%)', 'sepia': 'sepia(100%)',
+      'invert': 'invert(100%)', 'brightness': `brightness(${obj.filterValue || 150}%)`
+    };
+
+    oc.filter = filterMap[obj.filter] || 'blur(5px)';
+    oc.drawImage(tmp, 0, 0);
+    oc.filter = 'none';
+
+    this.baseCtx.drawImage(out, rx, ry);
+  }
+
+  _pixelateRegion(rx, ry, rw, rh, strength) {
     rx = Math.max(0, Math.round(rx));
     ry = Math.max(0, Math.round(ry));
     rw = Math.min(Math.round(rw), this.base.width - rx);
     rh = Math.min(Math.round(rh), this.base.height - ry);
     if (rw < 2 || rh < 2) return;
 
-    const blockSize = Math.max(4, Math.floor(Math.min(rw, rh) / 10));
+    // strength 1=light(big blocks), 2=medium, 3=heavy(tiny blocks, unreadable)
+    const s = strength || 3;
+    const blockSize = Math.max(2, Math.floor(Math.min(rw, rh) / (s * 8)));
     const imgData = this.baseCtx.getImageData(rx, ry, rw, rh);
     const data = imgData.data;
 
