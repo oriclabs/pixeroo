@@ -21,7 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initColors();
   initSVG();
   initCompare();
-  // OCR removed from v1 (Tesseract.js too large for extension)
   initGlobalDrop();
   initGenerate();
   initCollage();
@@ -287,6 +286,7 @@ function gcd(a,b){return b===0?a:gcd(b,a%b);}
 // ============================================================
 
 let editCanvas, editCtx, editOriginal, editFilename = 'edited';
+const pipeline = new EditPipeline();
 let editUndoStack = [], editRedoStack = [];
 
 function initEdit() {
@@ -299,8 +299,9 @@ function initEdit() {
     const img = await loadImg(file);
     if (!img) return;
     editOriginal = img;
-    editCanvas.width = img.naturalWidth; editCanvas.height = img.naturalHeight;
-    editCtx.drawImage(img, 0, 0);
+    // Non-destructive: load into pipeline, pipeline renders to display canvas
+    pipeline.setDisplayCanvas(editCanvas);
+    pipeline.loadImage(img);
     editCanvas.style.display = 'block'; document.querySelector('.edit-ribbon')?.classList.add('visible');
     document.getElementById('edit-dropzone').style.display = 'none';
     updResize(); editUndoStack = []; editRedoStack = []; originalW = 0; originalH = 0; saveEdit();
@@ -311,9 +312,8 @@ function initEdit() {
     if (!editOriginal) return;
     const ok = await pixDialog.confirm('Reset Image', 'Reset all edits and revert to original image?', { danger: true, okText: 'Reset' });
     if (!ok) return;
-    editCanvas.width = editOriginal.naturalWidth;
-    editCanvas.height = editOriginal.naturalHeight;
-    editCtx.drawImage(editOriginal, 0, 0);
+    // Non-destructive reset: pipeline replays from original
+    pipeline.resetAll();
     updResize();
     editUndoStack = []; editRedoStack = [];
     saveEdit();
@@ -888,8 +888,8 @@ function initInfoBar() {
     if (!newW || !newH || newW < 1 || newH < 1) return;
     if (newW === editCanvas.width && newH === editCanvas.height) return;
 
-    const t = steppedResize(editCanvas, newW, newH);
-    editCanvas.width = newW; editCanvas.height = newH; editCtx.drawImage(t, 0, 0);
+    // Non-destructive: pipeline resize renders from original at target size
+    pipeline.setExportSize(newW, newH);
     updResize(); saveEdit();
   }
 
