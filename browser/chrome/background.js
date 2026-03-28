@@ -146,17 +146,42 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.action === 'openEditor') {
+    const mode = message.mode || '';
+    const fromLib = message.fromLib || false;
     const editorUrl = chrome.runtime.getURL('editor/editor.html');
-    chrome.tabs.create({ url: editorUrl });
+    const url = mode ? `${editorUrl}?mode=${mode}${fromLib ? '&fromLib=1' : ''}` : editorUrl;
+
+    if (editorTabIds.size > 0) {
+      // Reuse existing editor tab — navigate it to the new URL (triggers fresh page load)
+      const existingId = [...editorTabIds][0];
+      chrome.tabs.update(existingId, { url, active: true }).catch(() => {
+        chrome.tabs.create({ url });
+      });
+    } else {
+      chrome.tabs.create({ url });
+    }
     sendResponse({ success: true });
   }
 
   if (message.action === 'captureTab') {
     (async () => {
       try {
-        // captureVisibleTab captures the current window's active tab
         const dataUrl = await chrome.tabs.captureVisibleTab(null, { format: 'png' });
         sendResponse({ dataUrl });
+      } catch (e) {
+        sendResponse({ error: e.message });
+      }
+    })();
+    return true;
+  }
+
+  if (message.action === 'captureRegion') {
+    (async () => {
+      try {
+        const dataUrl = await chrome.tabs.captureVisibleTab(null, { format: 'png' });
+        // Relay the full capture + region coords to all extension pages (side panel will pick it up)
+        chrome.runtime.sendMessage({ action: 'regionCaptured', dataUrl, region: message.region });
+        sendResponse({ ok: true });
       } catch (e) {
         sendResponse({ error: e.message });
       }
@@ -183,13 +208,33 @@ chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false })
 
 // --- Auto-rescan: notify side panel on tab change / page load ---
 let rescanTimer = null;
+const editorTabIds = new Set();
 
 function notifySidePanelRescan() {
   clearTimeout(rescanTimer);
-  rescanTimer = setTimeout(() => {
-    chrome.runtime.sendMessage({ action: 'tabChanged' }).catch(() => {});
-  }, 300); // debounce 300ms
+  rescanTimer = setTimeout(async () => {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab?.id && editorTabIds.has(tab.id)) {
+        chrome.runtime.sendMessage({ action: 'editorOpened' }).catch(() => {});
+      } else {
+        chrome.runtime.sendMessage({ action: 'tabChanged' }).catch(() => {});
+      }
+    } catch {
+      chrome.runtime.sendMessage({ action: 'tabChanged' }).catch(() => {});
+    }
+  }, 300);
 }
+
+// Track editor tabs
+chrome.runtime.onMessage.addListener((message, sender) => {
+  if (message.action === 'editorOpened' && sender.tab?.id) {
+    editorTabIds.add(sender.tab.id);
+  }
+  if (message.action === 'editorClosed' && sender.tab?.id) {
+    editorTabIds.delete(sender.tab.id);
+  }
+});
 
 // User switches tabs
 chrome.tabs.onActivated.addListener(() => notifySidePanelRescan());
@@ -197,4 +242,13 @@ chrome.tabs.onActivated.addListener(() => notifySidePanelRescan());
 // Page finishes loading (navigation, refresh)
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   if (changeInfo.status === 'complete') notifySidePanelRescan();
+});
+
+// Clean up closed tabs
+chrome.tabs.onRemoved.addListener((tabId) => {
+  if (editorTabIds.has(tabId)) {
+    editorTabIds.delete(tabId);
+    // If the closed tab was active, notify side panel
+    notifySidePanelRescan();
+  }
 });

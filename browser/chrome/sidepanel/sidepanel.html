@@ -6,57 +6,60 @@
   <title>Pixeroo - Toolkit</title>
   <link rel="stylesheet" href="../styles/shared.css">
   <style>
-    body { width: 100%; min-height: 100vh; display: flex; flex-direction: column; }
+    body { width: 100%; height: 100vh; display: flex; flex-direction: column; overflow: hidden; font-size: 0.79rem; }
 
     /* --- Toolbar --- */
-    .toolbar { display: flex; align-items: center; gap: 0.375rem; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--slate-800); flex-wrap: wrap; }
+    .toolbar { display: flex; align-items: center; gap: 0.375rem; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--slate-800); flex-wrap: wrap; flex-shrink: 0; }
     .toolbar-group { display: flex; align-items: center; gap: 2px; }
     .toolbar-sep { width: 1px; height: 18px; background: var(--slate-800); margin: 0 0.25rem; }
     .tool-btn { padding: 4px; border-radius: 4px; border: none; background: none; color: var(--slate-500); cursor: pointer; transition: all 0.12s; display: flex; align-items: center; justify-content: center; }
     .tool-btn:hover { background: var(--slate-800); color: var(--slate-300); }
     .tool-btn.active { background: var(--saffron-400); color: var(--saffron-950); }
     .tool-btn svg { pointer-events: none; }
-    .filter-select { background: var(--slate-800); color: var(--slate-300); border: none; border-radius: 4px; padding: 3px 6px; font-size: 0.6875rem; cursor: pointer; }
+    .filter-select { background: var(--slate-800); color: var(--slate-300); border: none; border-radius: 4px; padding: 3px 6px; cursor: pointer; }
+    .filter-btn { background: var(--slate-800); color: var(--slate-400); border: 1px solid var(--slate-700); border-radius: 4px; cursor: pointer; transition: all 0.12s; font-family: inherit; white-space: nowrap; }
+    .filter-btn:hover { background: var(--slate-700); color: var(--slate-200); }
+    .filter-btn.active { background: rgba(244,196,48,0.12); color: var(--saffron-400); border-color: var(--saffron-400); }
 
     /* --- Main Tabs --- */
     .main-tabs { display: flex; border-bottom: 1px solid var(--slate-800); flex-shrink: 0; }
-    .main-tab { flex: 1; padding: 0.5rem; text-align: center; font-size: 0.75rem; font-weight: 500; cursor: pointer; border: none; background: none; color: var(--slate-500); border-bottom: 2px solid transparent; transition: all 0.12s; }
+    .main-tab { flex: 1; padding: 0.5rem; text-align: center; font-weight: 500; cursor: pointer; border: none; background: none; color: var(--slate-500); border-bottom: 2px solid transparent; transition: all 0.12s; }
     .main-tab:hover { color: var(--slate-300); }
     .main-tab.active { color: var(--saffron-400); border-bottom-color: var(--saffron-400); }
     .tab-content { display: none; flex-direction: column; flex: 1; overflow: hidden; }
     .tab-content.active { display: flex; }
 
     /* --- Gallery Views --- */
-    .gallery { flex: 1; overflow-y: auto; padding: 0.5rem; position: relative; }
-    .gallery.view-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 0.375rem; align-content: start; }
-    .gallery.view-tiles .img-card { aspect-ratio: 1; border-radius: 6px; overflow: hidden; border: 2px solid transparent; cursor: pointer; transition: border-color 0.12s; position: relative; }
+    .gallery { flex: 1; overflow-y: auto; padding: 0.5rem; }
+    .gallery.view-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 0.375rem; align-content: start; }
+    .gallery.view-tiles .img-card { width: 100%; height: 0; padding-bottom: 100%; border-radius: 6px; overflow: hidden; border: 1px solid var(--slate-700); cursor: pointer; transition: border-color 0.12s; position: relative; }
     .gallery.view-tiles .img-card:hover { border-color: var(--slate-600); }
-    .gallery.view-tiles .img-card.selected { border-color: var(--saffron-400); }
-    .gallery.view-tiles .img-card img { width: 100%; height: 100%; object-fit: cover; }
+    .gallery.view-tiles .img-card.selected { border: 2px solid var(--saffron-400); }
+    .gallery.view-tiles .img-card img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
     .gallery.view-tiles .img-card .card-label { display: none; }
-    .gallery.view-tiles .img-card .card-check { position: absolute; top: 3px; left: 3px; }
+    .gallery.view-tiles .img-card .card-check { position: absolute; top: 3px; left: 3px; z-index: 2; }
     .gallery.view-medium { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.5rem; align-content: start; }
-    .gallery.view-medium .img-card { border-radius: 8px; overflow: hidden; border: 2px solid transparent; cursor: pointer; transition: border-color 0.12s; position: relative; }
+    .gallery.view-medium .img-card { border-radius: 8px; overflow: hidden; border: 1px solid var(--slate-700); cursor: pointer; transition: border-color 0.12s; position: relative; }
     .gallery.view-medium .img-card:hover { border-color: var(--slate-600); }
-    .gallery.view-medium .img-card.selected { border-color: var(--saffron-400); }
-    .gallery.view-medium .img-card img { width: 100%; aspect-ratio: 1; object-fit: cover; }
-    .gallery.view-medium .img-card .card-label { padding: 4px 6px; font-size: 0.625rem; color: var(--slate-400); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: var(--slate-900); }
+    .gallery.view-medium .img-card.selected { border: 2px solid var(--saffron-400); }
+    .gallery.view-medium .img-card img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
+    .gallery.view-medium .img-card .card-label { padding: 4px 6px; color: var(--slate-400); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: var(--slate-900); }
     .gallery.view-medium .img-card .card-check { position: absolute; top: 4px; left: 4px; }
     .gallery.view-large { display: flex; flex-direction: column; gap: 0.5rem; align-content: start; }
-    .gallery.view-large .img-card { border-radius: 8px; overflow: hidden; border: 2px solid transparent; cursor: pointer; transition: border-color 0.12s; position: relative; }
+    .gallery.view-large .img-card { border-radius: 8px; overflow: hidden; border: 1px solid var(--slate-700); cursor: pointer; transition: border-color 0.12s; position: relative; }
     .gallery.view-large .img-card:hover { border-color: var(--slate-600); }
-    .gallery.view-large .img-card.selected { border-color: var(--saffron-400); }
-    .gallery.view-large .img-card img { width: 100%; max-height: 200px; object-fit: contain; background: var(--slate-900); }
-    .gallery.view-large .img-card .card-label { padding: 6px 8px; font-size: 0.6875rem; color: var(--slate-400); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: var(--slate-900); }
+    .gallery.view-large .img-card.selected { border: 2px solid var(--saffron-400); }
+    .gallery.view-large .img-card img { width: 100%; max-height: 200px; object-fit: contain; background: var(--slate-900); display: block; }
+    .gallery.view-large .img-card .card-label { padding: 6px 8px; color: var(--slate-400); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: var(--slate-900); }
     .gallery.view-large .img-card .card-check { position: absolute; top: 6px; left: 6px; }
     .gallery.view-details { display: flex; flex-direction: column; gap: 1px; align-content: start; }
-    .gallery.view-details .img-card { display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.5rem; border-radius: 4px; cursor: pointer; border: 1px solid transparent; transition: all 0.12s; }
-    .gallery.view-details .img-card:hover { background: var(--slate-900); border-color: var(--slate-800); }
+    .gallery.view-details .img-card { display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.5rem; border-radius: 4px; cursor: pointer; border: 1px solid var(--slate-800); transition: all 0.12s; }
+    .gallery.view-details .img-card:hover { background: var(--slate-900); border-color: var(--slate-600); }
     .gallery.view-details .img-card.selected { background: rgba(244,196,48,0.05); border-color: var(--saffron-400); }
     .gallery.view-details .img-card img { width: 48px; height: 48px; object-fit: cover; border-radius: 4px; flex-shrink: 0; }
     .gallery.view-details .img-card .card-label { flex: 1; min-width: 0; }
-    .gallery.view-details .img-card .card-name { font-size: 0.75rem; color: var(--slate-200); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .gallery.view-details .img-card .card-meta { font-size: 0.625rem; color: var(--slate-500); }
+    .gallery.view-details .img-card .card-name { color: var(--slate-200); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .gallery.view-details .img-card .card-meta { color: var(--slate-500); }
     .gallery.view-details .img-card .card-check { flex-shrink: 0; }
     .gallery.view-names { display: flex; flex-direction: column; gap: 1px; align-content: start; }
     .gallery.view-names .img-card { display: flex; align-items: center; gap: 0.375rem; padding: 0.25rem 0.5rem; cursor: pointer; border-radius: 3px; border: 1px solid transparent; transition: all 0.12s; }
@@ -64,13 +67,13 @@
     .gallery.view-names .img-card.selected { background: rgba(244,196,48,0.05); border-color: var(--saffron-400); }
     .gallery.view-names .img-card img { display: none; }
     .gallery.view-names .img-card .card-label { flex: 1; min-width: 0; }
-    .gallery.view-names .img-card .card-name { font-size: 0.6875rem; color: var(--slate-300); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'JetBrains Mono', monospace; }
+    .gallery.view-names .img-card .card-name { color: var(--slate-300); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: 'JetBrains Mono', monospace; }
     .gallery.view-names .img-card .card-meta { display: none; }
     .gallery.view-names .img-card .card-check { flex-shrink: 0; }
     .card-check input { accent-color: var(--saffron-400); width: 14px; height: 14px; cursor: pointer; }
 
     /* Type badge */
-    .type-badge { position: absolute; bottom: 3px; right: 3px; padding: 1px 4px; border-radius: 3px; font-size: 0.5625rem; font-weight: 600; line-height: 1.4; letter-spacing: 0.02em; text-transform: uppercase; pointer-events: none; }
+    .type-badge { position: absolute; bottom: 3px; right: 3px; padding: 1px 4px; border-radius: 3px; font-size: 0.625rem; font-weight: 600; line-height: 1.4; letter-spacing: 0.02em; text-transform: uppercase; pointer-events: none; z-index: 2; }
     .type-badge-jpeg { background: #1e40af; color: #93c5fd; }
     .type-badge-png  { background: #065f46; color: #6ee7b7; }
     .type-badge-webp { background: #7c2d12; color: #fdba74; }
@@ -95,51 +98,116 @@
     .overlay-preview { padding: 0.75rem; display: flex; justify-content: center; background: var(--slate-950); max-height: 180px; overflow: hidden; }
     .overlay-preview img { max-width: 100%; max-height: 160px; object-fit: contain; border-radius: 4px; }
     .overlay-tabs { display: flex; border-bottom: 1px solid var(--slate-800); position: sticky; top: 45px; background: var(--slate-900); z-index: 1; }
-    .overlay-tab { flex: 1; padding: 0.5rem; text-align: center; font-size: 0.6875rem; font-weight: 500; color: var(--slate-500); border: none; background: none; border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.12s; }
+    .overlay-tab { flex: 1; padding: 0.5rem; text-align: center; font-weight: 500; color: var(--slate-500); border: none; background: none; border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.12s; }
     .overlay-tab:hover { color: var(--slate-300); }
     .overlay-tab.active { color: var(--saffron-400); border-bottom-color: var(--saffron-400); }
     .overlay-body { padding: 0.75rem 1rem; min-height: 160px; }
     .overlay-panel { display: none; }
     .overlay-panel.active { display: block; min-height: 140px; }
-    .info-row { display: flex; justify-content: space-between; padding: 0.375rem 0; border-bottom: 1px solid var(--slate-800); font-size: 0.75rem; }
+    .info-row { display: flex; justify-content: space-between; padding: 0.375rem 0; border-bottom: 1px solid var(--slate-800); }
     .info-label { color: var(--slate-500); flex-shrink: 0; }
     .info-value { color: var(--slate-200); font-weight: 500; text-align: right; word-break: break-all; cursor: pointer; max-width: 55%; }
     .info-value:hover { color: var(--saffron-400); }
     .overlay-actions { display: flex; gap: 0.375rem; flex-wrap: wrap; padding: 0.75rem 1rem; border-top: 1px solid var(--slate-800); }
-    .overlay-actions .action-btn { flex: 1; min-width: 45%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--slate-700); background: var(--slate-800); color: var(--slate-300); font-size: 0.6875rem; font-weight: 500; cursor: pointer; text-align: center; transition: all 0.12s; }
+    .overlay-actions .action-btn { flex: 1; min-width: 45%; padding: 0.5rem; border-radius: 6px; border: 1px solid var(--slate-700); background: var(--slate-800); color: var(--slate-300); font-weight: 500; cursor: pointer; text-align: center; transition: all 0.12s; }
     .overlay-actions .action-btn:hover { border-color: var(--saffron-400); color: var(--saffron-400); }
 
     /* --- Bottom Bar --- */
     .bottom-bar { padding: 0.5rem 0.75rem; border-top: 1px solid var(--slate-800); display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-shrink: 0; }
-    .bottom-bar .sel-count { font-size: 0.6875rem; color: var(--slate-500); }
+    .bottom-bar .sel-count { color: var(--slate-500); }
     .bottom-bar .dl-btns { display: flex; gap: 0.375rem; }
-    .bottom-bar .dl-btn { padding: 0.375rem 0.75rem; border-radius: 6px; font-size: 0.6875rem; font-weight: 600; cursor: pointer; transition: all 0.12s; border: none; }
+    .bottom-bar .dl-btn { padding: 0.375rem 0.75rem; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.12s; border: none; }
     .dl-btn-primary { background: var(--saffron-400); color: var(--saffron-950); }
     .dl-btn-primary:hover { background: var(--saffron-500); }
     .dl-btn-primary:disabled { opacity: 0.4; cursor: default; }
     .dl-btn-secondary { background: var(--slate-800); color: var(--slate-300); border: 1px solid var(--slate-700) !important; }
     .dl-btn-secondary:hover { border-color: var(--saffron-400) !important; color: var(--saffron-400); }
-    .format-btn { background: var(--slate-800); border: 1px solid var(--slate-700); color: var(--slate-400); border-radius: 4px; padding: 3px 8px; font-size: 0.625rem; font-weight: 500; cursor: pointer; transition: all 0.12s; }
+    .format-btn { background: var(--slate-800); border: 1px solid var(--slate-700); color: var(--slate-400); border-radius: 4px; padding: 3px 8px; font-weight: 500; cursor: pointer; transition: all 0.12s; }
     .format-btn:hover { border-color: var(--saffron-400); color: var(--saffron-400); }
     .format-btn.active { background: rgba(244,196,48,0.1); border-color: var(--saffron-400); color: var(--saffron-400); }
 
-    /* --- Color list --- */
+    /* --- Color swatch grid --- */
+    .color-swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(32px, 1fr)); gap: 4px; padding: 0.5rem; }
+    .color-swatch { width: 100%; aspect-ratio: 1; border-radius: 4px; border: 1px solid var(--slate-700); cursor: pointer; position: relative; transition: transform 0.1s, border-color 0.1s; }
+    .color-swatch:hover { transform: scale(1.15); border-color: var(--slate-500); z-index: 1; }
+    .color-swatch .swatch-heart { position: absolute; top: -4px; right: -4px; width: 14px; height: 14px; display: none; align-items: center; justify-content: center; background: var(--slate-900); border-radius: 50%; border: 1px solid var(--slate-700); cursor: pointer; z-index: 2; }
+    .color-swatch:hover .swatch-heart { display: flex; }
+    .color-swatch .swatch-count { position: absolute; bottom: 1px; right: 2px; font-size: 0.5rem; font-weight: 700; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.8); pointer-events: none; }
+    .color-section-title { font-weight: 600; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.05em; padding: 0.5rem 0.75rem 0.25rem; }
+    /* Color detail popover */
+    .color-detail { position: fixed; z-index: 2000; width: 220px; background: var(--slate-900); border: 1px solid var(--slate-700); border-radius: 8px; box-shadow: 0 8px 30px rgba(0,0,0,0.5); padding: 0.5rem; }
+    .color-detail-preview { width: 100%; height: 60px; border-radius: 6px; margin-bottom: 0.5rem; }
+    .color-detail-values { display: flex; flex-direction: column; gap: 2px; margin-bottom: 0.5rem; }
+    .color-detail-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 4px; border-radius: 3px; }
+    .color-detail-row:hover { background: var(--slate-800); }
+    .color-detail-row span:first-child { color: var(--slate-500); font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; }
+    .color-detail-row .copyable { color: var(--slate-400); font-family: monospace; font-size: 0.75rem; cursor: pointer; }
+    .color-detail-row .copyable:hover { color: var(--saffron-400); }
+    .color-detail-actions { display: flex; gap: 4px; }
+    .color-detail-actions button { flex: 1; padding: 4px 6px; border-radius: 4px; border: 1px solid var(--slate-700); background: var(--slate-800); color: var(--slate-400); font-size: 0.6875rem; font-weight: 500; cursor: pointer; transition: all 0.12s; }
+    .color-detail-actions button:hover { border-color: var(--saffron-400); color: var(--saffron-400); }
+    /* Contrast checker */
+    .contrast-checker { border-top: 1px solid var(--slate-800); }
+    .contrast-swatch { cursor: pointer; transition: transform 0.1s; }
+    .contrast-swatch:hover { transform: scale(1.1); }
+    .contrast-swatch.active { outline: 2px solid var(--saffron-400); outline-offset: 1px; }
+    /* Legacy color-item (keep for compatibility) */
     .color-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--slate-800); transition: background 0.1s; }
     .color-item:hover { background: var(--slate-900); }
     .color-item-swatch { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--slate-700); flex-shrink: 0; cursor: pointer; }
     .color-item-info { flex: 1; min-width: 0; }
-    .color-item-hex { font-size: 0.75rem; font-weight: 600; color: var(--slate-200); font-family: monospace; cursor: pointer; }
+    .color-item-hex { font-weight: 600; color: var(--slate-200); font-family: monospace; cursor: pointer; }
     .color-item-hex:hover { color: var(--saffron-400); }
-    .color-item-secondary { font-size: 0.5625rem; color: var(--slate-500); }
+    .color-item-secondary { color: var(--slate-500); }
     .color-item-actions { display: flex; gap: 2px; }
-    .color-section-title { font-size: 0.625rem; font-weight: 600; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.05em; padding: 0.5rem 0.75rem 0.25rem; }
+    /* Source filter dropdown */
+    .source-opt { display:flex; align-items:center; gap:6px; padding:4px 10px; cursor:pointer; transition:background 0.1s; }
+    .source-opt:hover { background:var(--slate-800); }
+    .source-opt input { accent-color:var(--saffron-400); cursor:pointer; }
+    .source-opt label { cursor:pointer; color:var(--slate-300); flex:1; }
+    .source-opt .source-count { color:var(--slate-500); font-size:0.6875rem; }
+
+    /* Toggle switch */
+    #sp-qs-tooltips:checked + span { background: var(--saffron-400); }
+    #sp-qs-tooltips:checked + span + span { left: 16px; background: #fff; }
+
+    /* --- Context Menu --- */
+    .sp-ctx-menu { position: fixed; z-index: 2000; background: var(--slate-900); border: 1px solid var(--slate-700); border-radius: 8px; padding: 4px 0; min-width: 160px; box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
+    .sp-ctx-item { display: flex; align-items: center; gap: 8px; padding: 6px 12px; color: var(--slate-300); cursor: pointer; transition: all 0.1s; white-space: nowrap; }
+    .sp-ctx-item:hover { background: var(--slate-800); color: var(--saffron-400); }
+    .sp-ctx-item svg { flex-shrink: 0; opacity: 0.6; }
+    .sp-ctx-item:hover svg { opacity: 1; }
+    .sp-ctx-sep { height: 1px; background: var(--slate-800); margin: 4px 0; }
+
+    /* --- Library indicator on page images --- */
+    .lib-indicator { position: absolute; bottom: 3px; left: 3px; pointer-events: none; color: var(--saffron-400); filter: drop-shadow(0 1px 2px rgba(0,0,0,0.6)); z-index: 2; }
+    .gallery.view-details .lib-indicator { position: static; flex-shrink: 0; }
+    .gallery.view-names .lib-indicator { display: none; }
+
+    /* --- Light theme overrides --- */
+    .theme-light .toolbar { border-bottom-color: var(--slate-800); }
+    .theme-light .main-tab { color: var(--slate-500); }
+    .theme-light .main-tab:hover { color: var(--slate-300); }
+    .theme-light .main-tab.active { color: var(--saffron-600); border-bottom-color: var(--saffron-600); }
+    .theme-light .tool-btn { color: var(--slate-500); }
+    .theme-light .tool-btn:hover { background: var(--slate-800); color: var(--slate-300); }
+    .theme-light .tool-btn.active { background: var(--saffron-500); color: #fff; }
+    .theme-light .filter-select { background: var(--slate-800); color: var(--slate-300); }
+    .theme-light .filter-btn { background: var(--slate-900); border-color: var(--slate-700); color: var(--slate-400); }
+    .theme-light .filter-btn.active { background: rgba(212,160,23,0.1); color: var(--saffron-600); border-color: var(--saffron-600); }
+    .theme-light .type-badge { opacity: 0.9; }
+    .theme-light .color-item:hover { background: var(--slate-900); }
+    .theme-light .overlay-tab.active { color: var(--saffron-600); border-bottom-color: var(--saffron-600); }
+    .theme-light .action-btn:hover { border-color: var(--saffron-500); color: var(--saffron-600); }
+    .theme-light .copyright-banner { background: rgba(220,38,38,0.06); border-color: rgba(220,38,38,0.15); color: #dc2626; }
   </style>
 </head>
 <body class="bg-slate-950 text-gray-100 font-sans">
 
   <!-- Copyright notice (always visible) -->
-  <div style="padding:0.5rem 0.75rem;background:var(--slate-800);border-bottom:1px solid var(--slate-700);font-size:0.6875rem;font-weight:600;color:var(--slate-400);line-height:1.4;text-align:center;">
-    Images are property of respective site owners. You are responsible for your use.
+  <div class="copyright-banner" style="padding:0.4rem 0.75rem;background:rgba(248,113,113,0.08);border-bottom:1px solid rgba(248,113,113,0.25);font-weight:600;color:#f87171;line-height:1.5;text-align:center;flex-shrink:0;">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="display:inline;vertical-align:-2px;margin-right:3px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    Images may be protected by copyright. Downloading does not grant rights. You are solely responsible for lawful use.
   </div>
 
   <!-- Header -->
@@ -148,7 +216,7 @@
       <div class="w-6 h-6 rounded-lg bg-gradient-saffron flex items-center justify-center">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2A1E05" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
       </div>
-      <span class="font-bold text-sm">Pixeroo</span>
+      <span style="font-size:1.375rem;font-weight:800;color:var(--saffron-400);letter-spacing:-0.02em;">Pixeroo</span>
       <span id="image-count" class="text-xs text-gray-500 ml-1"></span>
     </div>
     <div style="display:flex;align-items:center;gap:2px;">
@@ -161,13 +229,61 @@
     </div>
   </div>
 
+  <!-- Quick Settings Popover -->
+  <div id="sp-settings-popover" style="display:none;position:fixed;top:48px;right:8px;z-index:1000;background:var(--slate-900);border:1px solid var(--slate-700);border-radius:10px;padding:0.75rem;width:220px;box-shadow:0 12px 40px rgba(0,0,0,0.5);">
+    <div style="font-weight:600;color:var(--slate-300);margin-bottom:0.75rem;">Quick Settings</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.625rem;">
+      <span style="color:var(--slate-400);">Theme</span>
+      <div style="display:flex;gap:6px;">
+        <button class="tool-btn sp-qs-theme" data-theme="dark" title="Dark" style="padding:3px 8px;border:1px solid var(--slate-700);border-radius:4px;">Dark</button>
+        <button class="tool-btn sp-qs-theme" data-theme="light" title="Light" style="padding:3px 8px;border:1px solid var(--slate-700);border-radius:4px;">Light</button>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.625rem;">
+      <span style="color:var(--slate-400);">Font size</span>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <button class="tool-btn" id="sp-qs-font-down" style="padding:2px 6px;border:1px solid var(--slate-700);">A-</button>
+        <span id="sp-qs-font-val" style="color:var(--slate-200);min-width:28px;text-align:center;">100%</span>
+        <button class="tool-btn" id="sp-qs-font-up" style="padding:2px 6px;border:1px solid var(--slate-700);">A+</button>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.625rem;">
+      <span style="color:var(--slate-400);">Font</span>
+      <select id="sp-qs-font-family" class="filter-select" style="width:110px;padding:2px 4px;">
+        <option value="system">System UI</option>
+        <option value="inter">Inter</option>
+        <option value="roboto">Roboto</option>
+        <option value="plex">IBM Plex Sans</option>
+        <option value="source">Source Sans</option>
+        <option value="noto">Noto Sans</option>
+        <option value="ubuntu">Ubuntu</option>
+        <option value="jetbrains">JetBrains Mono</option>
+        <option value="mono">Monospace</option>
+      </select>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.625rem;">
+      <span style="color:var(--slate-400);">Hover tooltips</span>
+      <label style="position:relative;display:inline-block;width:32px;height:18px;cursor:pointer;">
+        <input type="checkbox" id="sp-qs-tooltips" checked style="opacity:0;width:0;height:0;">
+        <span style="position:absolute;inset:0;background:var(--slate-700);border-radius:9px;transition:0.2s;"></span>
+        <span style="position:absolute;top:2px;left:2px;width:14px;height:14px;background:var(--slate-300);border-radius:50%;transition:0.2s;"></span>
+      </label>
+    </div>
+    <div style="border-top:1px solid var(--slate-800);padding-top:0.5rem;margin-top:0.25rem;">
+      <button id="sp-qs-advanced" class="tool-btn" style="width:100%;justify-content:center;color:var(--saffron-400);">Open Advanced Settings</button>
+    </div>
+  </div>
+
   <!-- Main Tabs: Images | Colors -->
   <div class="main-tabs">
     <button class="main-tab active" data-main-tab="images">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:3px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Images
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:3px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Page
     </button>
     <button class="main-tab" data-main-tab="colors">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:3px;"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12" r="2.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>Colors
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:3px;"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12" r="2.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>Page Colors
+    </button>
+    <button class="main-tab" data-main-tab="library">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:3px;"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>My Library <span id="lib-count" style="color:var(--slate-500);"></span>
     </button>
   </div>
 
@@ -185,45 +301,72 @@
         <button class="tool-btn" data-view="names" title="Names"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="16" y2="17"/></svg></button>
       </div>
       <div class="toolbar-sep"></div>
-      <select id="filter-type" class="filter-select"><option value="all">All</option><option value="JPEG">JPEG</option><option value="PNG">PNG</option><option value="WebP">WebP</option><option value="SVG">SVG</option><option value="GIF">GIF</option><option value="AVIF">AVIF</option></select>
+      <div style="position:relative;">
+        <button id="btn-type-filter" class="filter-select" style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+          <span id="type-filter-label">All types</span>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div id="type-filter-dropdown" style="display:none;position:absolute;top:100%;left:0;z-index:100;background:var(--slate-900);border:1px solid var(--slate-700);border-radius:6px;padding:4px 0;margin-top:2px;min-width:120px;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+          <div class="source-opt"><input type="checkbox" id="tf-all" checked><label for="tf-all">All</label></div>
+          <div style="height:1px;background:var(--slate-800);margin:2px 0;"></div>
+          <div class="source-opt"><input type="checkbox" class="tf-type" value="JPEG" checked><label>JPEG</label></div>
+          <div class="source-opt"><input type="checkbox" class="tf-type" value="PNG" checked><label>PNG</label></div>
+          <div class="source-opt"><input type="checkbox" class="tf-type" value="WebP" checked><label>WebP</label></div>
+          <div class="source-opt"><input type="checkbox" class="tf-type" value="SVG" checked><label>SVG</label></div>
+          <div class="source-opt"><input type="checkbox" class="tf-type" value="GIF" checked><label>GIF</label></div>
+          <div class="source-opt"><input type="checkbox" class="tf-type" value="AVIF" checked><label>AVIF</label></div>
+          <div class="source-opt"><input type="checkbox" class="tf-type" value="BMP" checked><label>BMP</label></div>
+          <div class="source-opt"><input type="checkbox" class="tf-type" value="ICO" checked><label>ICO</label></div>
+        </div>
+      </div>
       <select id="sort-by" class="filter-select"><option value="position">Order</option><option value="size-desc">Size L</option><option value="size-asc">Size S</option><option value="dims-desc">Dim L</option><option value="type">Type</option><option value="name">Name</option></select>
       <div class="toolbar-sep"></div>
       <button id="btn-toggle-select" class="tool-btn" title="Select all / Deselect all">
         <svg id="icon-select" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
         <svg id="icon-deselect" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
       </button>
-      <button id="btn-screenshot" class="tool-btn" title="Screenshot">
+      <button id="btn-save-to-lib" class="tool-btn" title="Save to Library" style="color:var(--saffron-400);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+      </button>
+      <button id="btn-unsave-from-lib" class="tool-btn" title="Remove from Library" style="color:var(--slate-500);">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+      </button>
+      <div class="toolbar-sep"></div>
+      <button id="btn-screenshot" class="tool-btn" title="Screenshot viewport">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </button>
+      <button id="btn-screenshot-region" class="tool-btn" title="Screenshot region (drag to select)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" stroke-dasharray="4 2"/><path d="M15 3v18M3 15h18"/></svg>
       </button>
     </div>
 
     <!-- Extension tab message -->
     <div id="extension-tab-msg" style="display:none;flex:1;padding:2rem 1.5rem;text-align:center;">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--slate-600)" stroke-width="1.5" style="margin:0 auto 1rem;"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
-      <p style="color:var(--slate-400);font-size:0.875rem;margin-bottom:0.5rem;">Page Images</p>
-      <p style="color:var(--slate-500);font-size:0.75rem;line-height:1.5;">Switch to a website tab to browse images. The side panel reads images from the active webpage.</p>
+      <p style="color:var(--slate-400);font-size:1rem;font-weight:600;margin-bottom:0.5rem;">Page Images</p>
+      <p style="color:var(--slate-500);line-height:1.5;">Switch to a website tab to browse images. The side panel reads images from the active webpage.</p>
     </div>
 
     <!-- Screenshot result -->
-    <div id="screenshot-result" style="display:none;padding:0.75rem;border-bottom:1px solid var(--slate-800);background:var(--slate-900);">
+    <div id="screenshot-result" style="display:none;padding:0.75rem;border-bottom:1px solid var(--slate-800);background:var(--slate-900);flex-shrink:0;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
-        <span style="font-size:0.6875rem;font-weight:600;color:var(--slate-400);">Screenshot</span>
+        <span style="font-weight:600;color:var(--slate-400);">Screenshot</span>
         <button id="btn-screenshot-close" class="tool-btn" title="Close"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
       <img id="screenshot-img" src="" alt="Screenshot" style="max-width:100%;border-radius:6px;margin-bottom:0.5rem;">
       <div style="display:flex;gap:0.375rem;">
-        <button id="btn-ss-copy" class="tool-btn" style="flex:1;justify-content:center;font-size:0.625rem;gap:3px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button>
-        <button id="btn-ss-download" class="tool-btn" style="flex:1;justify-content:center;font-size:0.625rem;gap:3px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Save</button>
+        <button id="btn-ss-copy" class="tool-btn" style="flex:1;justify-content:center;gap:3px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button>
+        <button id="btn-ss-download" class="tool-btn" style="flex:1;justify-content:center;gap:3px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Save</button>
       </div>
     </div>
 
     <!-- Gallery -->
     <div id="gallery" class="gallery view-tiles">
-      <div style="text-align:center;padding:2rem;color:#64748b;font-size:0.8125rem;">Scanning page images...</div>
+      <div style="text-align:center;padding:2rem;color:var(--slate-500);">Scanning page images...</div>
     </div>
 
     <!-- Bottom Bar -->
-    <div class="bottom-bar">
+    <div class="bottom-bar" id="page-bottom-bar">
       <span class="sel-count"><span id="sel-count-num">0</span> selected</span>
       <div class="dl-btns">
         <button id="btn-dl-selected" class="dl-btn dl-btn-secondary" disabled>
@@ -237,17 +380,78 @@
   </div>
 
   <!-- ============================================================ -->
+  <!-- TAB: Library -->
+  <!-- ============================================================ -->
+  <div class="tab-content" id="tab-library">
+    <div class="toolbar" style="flex-direction:column;gap:5px;">
+      <!-- Row 1: Filter tabs + usage -->
+      <div style="display:flex;align-items:center;gap:3px;width:100%;flex-wrap:wrap;">
+        <button class="filter-btn active" data-lib-filter="all" style="padding:2px 6px;">All</button>
+        <button class="filter-btn" data-lib-filter="image" style="padding:2px 6px;">Images</button>
+        <button class="filter-btn" data-lib-filter="screenshot" style="padding:2px 6px;">Screenshots</button>
+        <button class="filter-btn" data-lib-filter="color" style="padding:2px 6px;">Colors</button>
+        <select id="lib-collection-filter" class="filter-select" style="margin-left:auto;font-size:0.6875rem;padding:2px 4px;max-width:110px;">
+          <option value="all">All Collections</option>
+        </select>
+        <span style="color:var(--slate-500);font-size:0.75rem;" id="lib-usage">0 items</span>
+      </div>
+      <!-- Row 2: Send to tool + manage -->
+      <div style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:4px;">
+        <div style="display:flex;gap:3px;align-items:center;">
+          <span style="color:var(--slate-400);font-weight:500;">Send to:</span>
+          <button class="toolbar-btn" id="btn-lib-send-edit" title="Send selected to Edit" style="background:rgba(244,196,48,0.1);border:1px solid var(--saffron-400);color:var(--saffron-400);padding:2px 8px;border-radius:4px;font-weight:600;cursor:pointer;">Edit</button>
+          <button class="toolbar-btn" id="btn-lib-send-collage" title="Send selected to Collage" style="background:rgba(14,165,233,0.1);border:1px solid #0ea5e9;color:#0ea5e9;padding:2px 8px;border-radius:4px;font-weight:600;cursor:pointer;">Collage</button>
+          <button class="toolbar-btn" id="btn-lib-send-batch" title="Send selected to Batch" style="background:rgba(234,179,8,0.1);border:1px solid #eab308;color:#eab308;padding:2px 8px;border-radius:4px;font-weight:600;cursor:pointer;">Batch</button>
+        </div>
+        <div style="display:flex;gap:3px;">
+          <button class="toolbar-btn" id="btn-lib-delete-selected" title="Delete selected" disabled style="background:none;border:1px solid var(--slate-700);color:var(--slate-500);padding:2px 6px;border-radius:4px;cursor:pointer;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+          <button class="toolbar-btn" id="btn-lib-clear" title="Clear all" style="background:rgba(239,68,68,0.1);border:1px solid #f87171;color:#f87171;padding:2px 6px;border-radius:4px;cursor:pointer;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="lib-gallery" style="flex:1;overflow-y:auto;padding:0.5rem;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;">
+      <div style="text-align:center;width:100%;padding:2rem;color:var(--slate-500);">
+        Library is empty. Save images from any tab or take screenshots.
+      </div>
+    </div>
+    <div class="bottom-bar" id="lib-bottom-bar">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <button id="btn-lib-toggle-select" class="tool-btn" title="Select all / Deselect all">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        </button>
+        <span class="sel-count"><span id="lib-sel-count">0</span> selected</span>
+      </div>
+      <div class="dl-btns">
+        <button id="btn-lib-export-selected" class="dl-btn dl-btn-secondary" disabled>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Selected
+        </button>
+        <button id="btn-lib-export-all" class="dl-btn dl-btn-primary">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline;vertical-align:middle;margin-right:2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>All
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
   <!-- TAB: Colors -->
   <!-- ============================================================ -->
   <div class="tab-content" id="tab-colors">
     <!-- Colors toolbar -->
     <div class="toolbar">
-      <button id="btn-eyedropper" class="tool-btn" title="Pick color from page" style="gap:4px;padding:4px 8px;font-size:0.6875rem;">
+      <button id="btn-eyedropper" class="tool-btn" title="Pick color from page" style="gap:4px;padding:4px 8px;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 22l1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="M14.5 5.5l4-4a1.41 1.41 0 0 1 2 2l-4 4"/><path d="M12 8l4 4"/></svg>
         Pick Color
       </button>
+      <button id="btn-extract-palette" class="tool-btn" title="Extract CSS colors from page" style="gap:4px;padding:4px 8px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg>
+        Extract Palette
+      </button>
       <div style="flex:1;"></div>
-      <button id="btn-colors-clear" class="tool-btn" title="Clear picked colors" style="font-size:0.625rem;padding:4px 6px;">Clear</button>
+      <button id="btn-colors-clear" class="tool-btn" title="Clear picked colors" style="padding:4px 6px;">Clear</button>
       <select id="colors-export" class="filter-select">
         <option value="" disabled selected>Export</option>
         <option value="css">CSS Variables</option>
@@ -256,18 +460,36 @@
       </select>
     </div>
 
-    <!-- Color lists -->
+    <!-- Color sections -->
     <div style="flex:1;overflow-y:auto;">
       <!-- Picked colors (session) -->
       <div class="color-section-title">Picked Colors</div>
-      <div id="picked-colors-list">
-        <div style="padding:1rem 0.75rem;text-align:center;color:var(--slate-600);font-size:0.75rem;">Click "Pick Color" to start</div>
+      <div id="picked-colors-list" class="color-swatch-grid">
+        <div style="grid-column:1/-1;padding:0.5rem;text-align:center;color:var(--slate-500);">Click "Pick Color" to start</div>
+      </div>
+
+      <!-- Page Palette (extracted from CSS) -->
+      <div class="color-section-title">Page Palette</div>
+      <div id="page-palette-list" class="color-swatch-grid">
+        <div style="grid-column:1/-1;padding:0.5rem;text-align:center;color:var(--slate-500);">Click "Extract Palette" to scan page CSS</div>
       </div>
 
       <!-- Favorites (permanent) -->
       <div class="color-section-title">Favorites</div>
-      <div id="fav-colors-list-full">
-        <div style="padding:0.75rem;text-align:center;color:var(--slate-600);font-size:0.75rem;">Add colors with the heart icon</div>
+      <div id="fav-colors-list-full" class="color-swatch-grid">
+        <div style="grid-column:1/-1;padding:0.5rem;text-align:center;color:var(--slate-500);">Add colors with the heart icon</div>
+      </div>
+
+      <!-- Contrast Checker -->
+      <div class="contrast-checker">
+        <span class="color-section-title">Contrast Check</span>
+        <div style="display:flex;gap:6px;align-items:center;padding:0.5rem;">
+          <div class="contrast-swatch" id="contrast-fg" style="background:#fff;width:28px;height:28px;border-radius:4px;border:1px solid var(--slate-700);cursor:pointer;" title="Click a picked color to set foreground"></div>
+          <span style="color:var(--slate-500);">on</span>
+          <div class="contrast-swatch" id="contrast-bg" style="background:#000;width:28px;height:28px;border-radius:4px;border:1px solid var(--slate-700);cursor:pointer;" title="Click a picked color to set background"></div>
+          <span id="contrast-ratio" style="font-weight:600;color:var(--slate-300);">21:1</span>
+          <span id="contrast-wcag" style="font-weight:600;"></span>
+        </div>
       </div>
     </div>
   </div>
@@ -291,7 +513,7 @@
         <div id="overlay-info" class="overlay-panel active"></div>
         <div id="overlay-actions-panel" class="overlay-panel">
           <div style="margin-bottom:0.75rem;">
-            <label style="font-size:0.6875rem;font-weight:500;color:var(--slate-400);display:block;margin-bottom:0.375rem;">Save As</label>
+            <label style="font-weight:500;color:var(--slate-400);display:block;margin-bottom:0.375rem;">Save As</label>
             <div style="display:flex;gap:4px;flex-wrap:wrap;">
               <button class="format-btn" data-save-fmt="png">PNG</button>
               <button class="format-btn" data-save-fmt="jpeg">JPEG</button>
@@ -304,7 +526,7 @@
         </div>
         <div id="overlay-exif" class="overlay-panel">
           <div id="exif-content"></div>
-          <div id="exif-loading" style="color:var(--slate-500);font-size:0.75rem;text-align:center;padding:1rem;">Loading EXIF data...</div>
+          <div id="exif-loading" style="color:var(--slate-500);text-align:center;padding:1rem;">Loading EXIF data...</div>
         </div>
       </div>
       <div class="overlay-actions">
@@ -317,6 +539,9 @@
   </div>
 
   <script src="../shared/theme.js"></script>
+  <script src="../shared/dialog.js"></script>
+  <script src="../shared/library.js"></script>
+  <script src="../editor/zipwriter.js"></script>
   <script src="sidepanel.js"></script>
 </body>
 </html>

@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../styles/shared.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; }
-    body { min-height: 100vh; display: flex; flex-direction: column; }
+    body { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
     /* Topbar */
     .topbar { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1rem; border-bottom: 1px solid var(--slate-800); height: 48px; flex-shrink: 0; }
@@ -15,115 +15,211 @@
     .topbar-right { display: flex; align-items: center; gap: 0.375rem; }
     .tool-btn { padding: 5px; border-radius: 5px; border: none; background: none; color: var(--slate-400); cursor: pointer; transition: all 0.12s; display: flex; align-items: center; justify-content: center; }
     .tool-btn:hover { background: var(--slate-800); color: var(--slate-200); }
+    .tool-btn.active { background: rgba(244,196,48,0.1); color: var(--saffron-400); border-color: var(--saffron-400); }
+    .tool-btn:disabled { color: var(--slate-500); cursor: not-allowed; pointer-events: none; }
+    .btn-primary:disabled { background: var(--slate-700); color: var(--slate-400); cursor: not-allowed; pointer-events: none; }
     .sep { width: 1px; height: 20px; background: var(--slate-800); }
-    .back-btn { display: none; gap: 4px; font-size: 0.75rem; }
+    .back-btn { display: none; gap: 4px; }
     .back-btn.visible { display: flex; }
 
     /* Home */
-    .home { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; }
+    .home { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; overflow-y: auto; min-height: 0; }
     .home.hidden { display: none; }
     .home-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.25rem; }
-    .home-sub { font-size: 0.8125rem; color: var(--slate-500); margin-bottom: 2rem; font-family: monospace; }
+    .home-sub { color: var(--slate-500); margin-bottom: 2rem; font-family: monospace; }
     .home-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.75rem; max-width: 640px; width: 100%; }
     .home-card { background: var(--slate-900); border: 1px solid var(--slate-800); border-radius: 12px; padding: 1.25rem 1rem; cursor: pointer; transition: all 0.15s; text-align: center; }
     .home-card:hover { border-color: var(--saffron-400); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(244,196,48,0.08); }
     .home-card-icon { width: 40px; height: 40px; border-radius: 10px; margin: 0 auto 0.75rem; display: flex; align-items: center; justify-content: center; }
-    .home-card-title { font-size: 0.8125rem; font-weight: 600; color: var(--slate-200); margin-bottom: 0.25rem; }
-    .home-card-desc { font-size: 0.625rem; color: var(--slate-500); line-height: 1.4; }
+    .home-card-title { font-weight: 600; color: var(--slate-200); margin-bottom: 0.25rem; }
+    .home-card-desc { color: var(--slate-500); line-height: 1.4; }
     .home-recent { margin-top: 2rem; max-width: 640px; width: 100%; }
-    .home-recent-title { font-size: 0.6875rem; font-weight: 600; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+    .home-recent-title { font-weight: 600; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
 
     /* Mode panels */
     .mode-view { display: none; flex: 1; overflow: hidden; }
     .mode-view.active { display: flex; }
 
     /* Common */
-    .work-area { flex: 1; display: flex; align-items: center; justify-content: center; background: var(--slate-900); overflow: hidden; position: relative; }
+    .work-area { flex: 1; display: flex; align-items: center; justify-content: safe center; flex-direction: column; background: var(--slate-900); overflow: auto; position: relative; min-height: 0; }
     .work-area canvas { max-width: 90%; max-height: 90%; }
-    .sidebar { width: 280px; border-left: 1px solid var(--slate-800); overflow-y: auto; flex-shrink: 0; }
     .sidebar-section { padding: 0.75rem 1rem; border-bottom: 1px solid var(--slate-800); }
-    .sidebar-title { font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--slate-500); margin-bottom: 0.5rem; }
+    .sidebar-title { font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--slate-500); margin-bottom: 0.5rem; }
     .dropzone { border: 2px dashed var(--slate-700); border-radius: 12px; padding: 2.5rem; text-align: center; cursor: pointer; transition: border-color 0.15s; margin: 1.5rem; }
     .dropzone:hover, .dropzone.dragover { border-color: var(--saffron-400); }
     .drop-title { color: var(--slate-400); font-size: 0.875rem; margin-bottom: 0.25rem; }
-    .drop-sub { color: var(--slate-600); font-size: 0.6875rem; }
-    .input-field { width: 100%; background: var(--slate-800); color: var(--slate-200); border: 1px solid var(--slate-700); border-radius: 5px; padding: 6px 8px; font-size: 0.75rem; }
+    .drop-sub { color: var(--slate-500); }
+    .input-field { width: 100%; background: var(--slate-800); color: var(--slate-200); border: 1px solid var(--slate-700); border-radius: 5px; padding: 6px 8px; }
     .input-field:focus { outline: none; border-color: var(--saffron-400); }
-    .select-field { width: 100%; background: var(--slate-800); color: var(--slate-200); border: 1px solid var(--slate-700); border-radius: 5px; padding: 6px 8px; font-size: 0.75rem; }
+    /* Number inputs: hide native spinner, use custom +/- buttons via JS */
+    input[type="number"] { -moz-appearance: textfield; min-width: 48px; min-height: 28px; box-sizing: border-box; text-align: center; }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; display: none; }
+    /* Custom spinner wrapper */
+    .num-spin { display: inline-flex; align-items: stretch; border: 1px solid var(--slate-700); border-radius: 5px; overflow: hidden; background: var(--slate-800); min-height: 30px; vertical-align: middle; }
+    .num-spin input[type="number"] { border: none; border-radius: 0; min-width: 34px; padding: 3px 5px; background: transparent; color: var(--slate-200); text-align: center; flex: 1; }
+    .num-spin input[type="number"]:focus { outline: none; }
+    .num-spin:focus-within { border-color: var(--saffron-400); }
+    .num-spin-btns { display: flex; flex-direction: column; border-left: 1px solid var(--slate-700); flex-shrink: 0; }
+    .num-spin-btn { display: flex; align-items: center; justify-content: center; width: 20px; flex: 1; cursor: pointer; color: var(--slate-400); font-size: 9px; line-height: 1; user-select: none; background: var(--slate-800); padding: 0; border: none; }
+    .num-spin-btn:hover { background: var(--slate-700); color: var(--saffron-400); }
+    .num-spin-btn + .num-spin-btn { border-top: 1px solid var(--slate-700); }
+    .select-field { width: 100%; background: var(--slate-800); color: var(--slate-200); border: 1px solid var(--slate-700); border-radius: 5px; padding: 6px 24px 6px 8px; -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2394a3b8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; cursor: pointer; }
+    .select-field:focus { outline: none; border-color: var(--saffron-400); }
     textarea.input-field { resize: vertical; min-height: 60px; font-family: inherit; }
     .range-input { width: 100%; accent-color: var(--saffron-400); }
     .range-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem; }
-    .range-label { font-size: 0.75rem; color: var(--slate-400); }
-    .range-value { font-size: 0.75rem; color: var(--slate-200); font-weight: 500; min-width: 2rem; text-align: right; }
-    .format-btn { background: var(--slate-800); border: 1px solid var(--slate-700); color: var(--slate-400); border-radius: 5px; padding: 4px 10px; font-size: 0.6875rem; font-weight: 500; cursor: pointer; transition: all 0.12s; }
+    .range-label { color: var(--slate-400); }
+    .range-value { color: var(--slate-200); font-weight: 500; min-width: 2rem; text-align: right; }
+    .format-btn { background: var(--slate-800); border: 1px solid var(--slate-700); color: var(--slate-400); border-radius: 5px; padding: 4px 10px; font-weight: 500; cursor: pointer; transition: all 0.12s; }
     .format-btn:hover { border-color: var(--saffron-400); color: var(--saffron-400); }
     .format-btn.active { background: rgba(244,196,48,0.1); border-color: var(--saffron-400); color: var(--saffron-400); }
     .btn-row { display: flex; gap: 0.25rem; flex-wrap: wrap; }
-    .info-row { display: flex; justify-content: space-between; padding: 0.375rem 0; border-bottom: 1px solid var(--slate-800); font-size: 0.75rem; }
+    .info-row { display: flex; justify-content: space-between; padding: 0.375rem 0; border-bottom: 1px solid var(--slate-800); }
     .info-label { color: var(--slate-500); flex-shrink: 0; }
     .info-value { color: var(--slate-200); font-weight: 500; text-align: right; word-break: break-all; cursor: pointer; max-width: 55%; }
     .info-value:hover { color: var(--saffron-400); }
-    .svg-source { background: var(--slate-800); border-radius: 6px; padding: 0.75rem; font-family: monospace; font-size: 0.6875rem; color: var(--slate-300); line-height: 1.5; white-space: pre-wrap; word-break: break-all; max-height: 200px; overflow-y: auto; }
+    .svg-source { background: var(--slate-800); border-radius: 6px; padding: 0.75rem; font-family: monospace; color: var(--slate-300); line-height: 1.5; white-space: pre-wrap; word-break: break-all; max-height: 200px; overflow-y: auto; }
     .color-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0; border-bottom: 1px solid var(--slate-800); }
     .color-preview { width: 28px; height: 28px; border-radius: 4px; flex-shrink: 0; border: 1px solid var(--slate-700); }
-    .color-hex { color: var(--slate-200); font-weight: 600; font-family: monospace; font-size: 0.6875rem; cursor: pointer; }
+    .color-hex { color: var(--slate-200); font-weight: 600; font-family: monospace; cursor: pointer; }
     .color-hex:hover { color: var(--saffron-400); }
-    .color-secondary { color: var(--slate-500); font-size: 0.625rem; }
+    .color-secondary { color: var(--slate-500); }
     .compare-container { display: flex; gap: 1rem; flex: 1; padding: 1rem; overflow: hidden; }
     .compare-slot { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
     .compare-slot canvas { max-width: 100%; max-height: 70vh; border-radius: 6px; background: var(--slate-800); }
-    .compare-label { font-size: 0.6875rem; color: var(--slate-500); }
-    .compare-info { font-size: 0.625rem; color: var(--slate-500); }
+    .compare-label { color: var(--slate-500); }
+    .compare-info { color: var(--slate-500); }
 
-    /* Edit ribbon */
+    /* Edit ribbon — always visible, disabled until image loads */
     .edit-panel.active { display: flex; flex-direction: column; }
-    .edit-ribbon { border-bottom: 1px solid var(--slate-800); flex-shrink: 0; overflow-x: auto; overflow-y: hidden; background: var(--slate-900); display: none; }
-    .edit-ribbon.visible { display: block; }
+    .edit-ribbon { border-bottom: 1px solid var(--slate-800); flex-shrink: 0; overflow-x: auto; overflow-y: hidden; background: var(--slate-900); }
+    .edit-ribbon.disabled { opacity: 0.35; pointer-events: none; }
+    .edit-ribbon.disabled .btn-primary,
+    .edit-ribbon.disabled .tool-btn,
+    .edit-ribbon.disabled input,
+    .edit-ribbon.disabled select { pointer-events: none; }
     .ribbon-bar { display: flex; align-items: stretch; padding: 0.25rem 0; }
-    .ribbon-group { display: flex; flex-direction: column; padding: 0.375rem 0.75rem; min-width: fit-content; flex-shrink: 0; }
-    .ribbon-tools { display: flex; flex-direction: column; gap: 3px; flex: 1; }
-    .ribbon-row { display: flex; align-items: center; gap: 4px; }
-    .ribbon-label { font-size: 0.5625rem; font-weight: 600; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.05em; text-align: center; padding-top: 3px; border-top: 1px solid var(--slate-800); margin-top: auto; }
+    .ribbon-group { display: flex; flex-direction: column; padding: 0.5rem 0.75rem; min-width: fit-content; flex-shrink: 0; align-items: stretch; }
+    .ribbon-tools { display: flex; flex-direction: column; gap: 5px; flex: 1; justify-content: flex-start; align-items: stretch; }
+    .ribbon-tools.ribbon-grid { display: grid; gap: 5px 6px; align-items: center; }
+    .ribbon-row { display: flex; align-items: center; gap: 6px; width: 100%; }
+    .ribbon-label { font-weight: 600; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.05em; text-align: center; padding-top: 4px; border-top: 1px solid var(--slate-800); margin-top: auto; cursor: pointer; user-select: none; transition: color 0.12s; }
+    .ribbon-label:hover { color: var(--saffron-400); }
+    .ribbon-group.collapsed .ribbon-tools { display: none; }
+    .ribbon-group.collapsed .ribbon-label { border-top: none; padding-top: 0; color: var(--slate-500); }
+    .ribbon-group.collapsed { padding: 0.25rem 0.5rem; justify-content: center; }
+    /* Alignment: consistent sizing within ribbon rows */
+    .ribbon-row .range-value { min-width: 22px; text-align: right; font-variant-numeric: tabular-nums; }
+    .ribbon-row .range-input { flex: 1; min-width: 50px; } /* sliders fill remaining space */
+    .ribbon-row .num-spin { flex-shrink: 0; }
+    .ribbon-row .tool-btn, .ribbon-row .btn-primary { min-height: 26px; }
+    .ribbon-row .select-field { min-height: 26px; }
+
+    /* Lightweight ribbon for non-edit tools (sticky, single-row) */
+    .tool-ribbon { display: flex; align-items: center; gap: 8px; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--slate-800); background: var(--slate-900); flex-shrink: 0; overflow-x: auto; overflow-y: hidden; flex-wrap: wrap; }
+    .tool-ribbon .ribbon-sep { width: 1px; height: 24px; background: var(--slate-800); flex-shrink: 0; }
+    .tool-ribbon .ribbon-title { font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--slate-500); flex-shrink: 0; }
+    .tool-ribbon .tool-btn { border: 1px solid var(--slate-700); }
+    .tool-ribbon .input-field { padding: 4px 6px; }
+    .tool-ribbon .num-spin { min-height: 28px; }
+    .tool-ribbon .num-spin input { }
+    .tool-ribbon.disabled { opacity: 0.35; pointer-events: none; }
+    .tool-content { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; align-items: center; justify-content: safe center; gap: 1rem; min-height: 0; }
+
+    /* Sticky footer for all modes */
+    .tool-footer { flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 1rem; padding: 0.375rem 0.75rem; border-top: 1px solid var(--slate-800); background: var(--slate-900); font-size: 0.5625rem; color: var(--slate-500); }
+    .tool-footer a { color: var(--slate-500); text-decoration: none; }
+    .tool-footer a:hover { color: var(--saffron-400); }
+    .tool-footer { display: none; } /* hidden on home screen */
+    body.tool-active .tool-footer { display: flex; }
     .ribbon-sep-v { width: 1px; background: var(--slate-700); flex-shrink: 0; margin: 0.375rem 0; }
-    .ribbon-mini-label { font-size: 0.5625rem; color: var(--slate-400); width: 12px; text-align: center; flex-shrink: 0; }
-    .ribbon-bar .tool-btn { padding: 4px 7px; font-size: 0.625rem; }
+    .ribbon-mini-label { color: var(--slate-400); min-width: 14px; text-align: center; flex-shrink: 0; }
+    .ribbon-bar .tool-btn { padding: 4px 7px; border: 1px solid var(--slate-700); }
     .ribbon-bar .tool-btn svg { width: 15px; height: 15px; }
     .ribbon-bar .range-input { height: 16px; }
     .ribbon-bar .range-value { font-size: 0.5625rem; color: var(--slate-300); min-width: 1.5rem; text-align: right; }
-    .ribbon-bar .input-field { padding: 3px 6px; font-size: 0.625rem; width: auto; }
-    .ribbon-bar .btn-primary { padding: 4px 12px; font-size: 0.625rem; }
-    .ribbon-bar .select-field { padding: 3px 6px; font-size: 0.625rem; width: auto; }
+    .ribbon-bar .input-field { padding: 4px 6px; width: auto; }
+    .ribbon-bar .num-spin { min-height: 26px; }
+    .ribbon-bar .num-spin input { }
+    .ribbon-bar .btn-primary { padding: 4px 12px; }
+    .ribbon-bar .select-field { padding: 3px 20px 3px 6px; width: auto; background-position: right 5px center; }
 
     /* Info bar (part of the ribbon, no border between them) */
-    .info-bar { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.375rem 0.75rem; background: var(--slate-900); font-size: 0.6875rem; flex-wrap: wrap; flex-shrink: 0; }
-    .info-bar .dim-input { width: 60px; background: var(--slate-800); color: var(--slate-200); border: 1px solid var(--slate-700); border-radius: 4px; padding: 4px 6px; font-size: 0.75rem; font-family: monospace; text-align: center; }
+    .info-bar { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.375rem 0.75rem; background: var(--slate-900); flex-wrap: wrap; flex-shrink: 0; }
+    .info-bar .dim-input { width: 60px; background: var(--slate-800); color: var(--slate-200); border: 1px solid var(--slate-700); border-radius: 4px; padding: 4px 6px; font-family: monospace; text-align: center; }
     .info-bar .dim-input:focus { border-color: var(--saffron-400); outline: none; }
-    .info-bar .dim-sep { color: var(--slate-600); font-size: 0.625rem; }
-    .info-bar .dim-unit { background: var(--slate-800); border: 1px solid var(--slate-700); border-radius: 4px; padding: 3px 8px; font-size: 0.625rem; cursor: pointer; color: var(--slate-400); transition: all 0.12s; }
+    .info-bar .dim-sep { color: var(--slate-500); }
+    .info-bar .dim-unit { background: var(--slate-800); border: 1px solid var(--slate-700); border-radius: 4px; padding: 3px 8px; cursor: pointer; color: var(--slate-400); transition: all 0.12s; }
     .info-bar .dim-unit.active { background: rgba(244,196,48,0.1); border-color: var(--saffron-400); color: var(--saffron-400); }
     .info-bar .dim-lock { cursor: pointer; color: var(--slate-500); transition: color 0.12s; padding: 2px; }
     .info-bar .dim-lock.locked { color: var(--saffron-400); }
     .info-bar .info-sep { width: 1px; height: 16px; background: var(--slate-800); }
-    .info-bar .itext { color: var(--slate-400); font-size: 0.6875rem; }
-    .info-bar .ibtn { background: none; border: 1px solid var(--slate-700); color: var(--slate-400); border-radius: 4px; padding: 3px 8px; font-size: 0.625rem; cursor: pointer; }
+    .info-bar .itext { color: var(--slate-400); }
+    .info-bar .ibtn { background: none; border: 1px solid var(--slate-700); color: var(--slate-400); border-radius: 4px; padding: 3px 8px; cursor: pointer; }
     .info-bar .ibtn:hover { border-color: var(--saffron-400); color: var(--saffron-400); }
 
     /* Export pulse */
     @keyframes exportPulse { 0%,100% { box-shadow: none; } 50% { box-shadow: 0 0 12px rgba(244,196,48,0.4); } }
     .export-pulse { animation: exportPulse 1.5s ease-in-out 2; }
 
+    /* Help popover */
+    .help-popover { position:absolute; z-index:100; background:var(--slate-900); border:1px solid var(--slate-700); border-radius:8px; padding:0.625rem 0.75rem; width:220px; box-shadow:0 8px 24px rgba(0,0,0,0.4);  color:var(--slate-300); line-height:1.5; }
+    .help-popover-title { font-weight:600; color:var(--saffron-400); margin-bottom:0.375rem;  }
+    .help-popover ul { margin:0; padding-left:1rem; }
+    .help-popover li { margin-bottom:0.2rem; color:var(--slate-400); }
+    .help-btn { width:18px; height:18px; padding:0;  font-weight:700; border-radius:50%; color:var(--slate-500); border:1px solid var(--slate-700); background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .help-btn:hover { color:var(--saffron-400); border-color:var(--saffron-400); }
+
+    /* Shortcuts overlay */
+    .shortcuts-overlay { position:fixed; inset:0; z-index:2000; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; }
+    .shortcuts-panel { background:var(--slate-900); border:1px solid var(--slate-700); border-radius:12px; padding:1.5rem; width:420px; max-height:80vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.5); }
+    .shortcuts-panel h2 { font-size:0.875rem; font-weight:700; color:var(--slate-200); margin:0 0 1rem; }
+    .shortcuts-panel h3 {  font-weight:600; color:var(--saffron-400); text-transform:uppercase; letter-spacing:0.05em; margin:0.75rem 0 0.375rem; }
+    .shortcut-row { display:flex; justify-content:space-between; align-items:center; padding:0.25rem 0;  }
+    .shortcut-row span:first-child { color:var(--slate-400); }
+    .shortcut-key { background:var(--slate-800); border:1px solid var(--slate-700); border-radius:4px; padding:1px 6px; font-family:monospace;  color:var(--slate-200); }
+
+    /* Context menu */
+    .ctx-menu { position:fixed; z-index:500; background:var(--slate-900); border:1px solid var(--slate-700); border-radius:8px; padding:3px 0; min-width:140px; max-height:60vh; overflow-y:auto; box-shadow:0 8px 24px rgba(0,0,0,0.5); scrollbar-width:thin; }
+    .ctx-menu-item { display:flex; align-items:center; justify-content:space-between; padding:4px 12px;  color:var(--slate-300); cursor:pointer; }
+    .ctx-menu-item:hover { background:var(--slate-800); color:var(--slate-100); }
+    .ctx-menu-item.disabled { display:none; }
+    .ctx-menu-header { padding:3px 12px; font-size:0.5625rem; font-weight:600; color:var(--slate-500); text-transform:uppercase; letter-spacing:0.04em; }
+    .ctx-menu-item.danger { color:#ef4444; }
+    .ctx-menu-item.danger:hover { background:rgba(239,68,68,0.1); }
+    .ctx-menu-shortcut {  color:var(--slate-500); margin-left:16px; }
+    .ctx-menu-sep { height:1px; background:var(--slate-800); margin:3px 0; }
+
+    /* Toggle chip (checkbox styled as pill button) */
+    .toggle-chip { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border:1.5px solid var(--slate-700); border-radius:4px;  color:var(--slate-500); cursor:pointer; transition:all 0.12s; user-select:none; }
+    .toggle-chip:hover { border-color:var(--slate-500); color:var(--slate-300); }
+    .toggle-chip input { display:none; }
+    .toggle-chip:has(input:checked) { border-color:var(--saffron-400); color:var(--saffron-400); background:rgba(244,196,48,0.08); }
+
+    /* History panel */
+    .history-panel { position:fixed; z-index:200; background:var(--slate-900); border:1px solid var(--slate-700); border-radius:8px; width:220px; max-height:300px; overflow-y:auto; box-shadow:0 8px 24px rgba(0,0,0,0.4); }
+    .history-item { display:flex; align-items:center; gap:8px; padding:6px 10px;  color:var(--slate-400); cursor:pointer; border-bottom:1px solid var(--slate-800); transition:all 0.1s; }
+    .history-item:hover { background:var(--slate-800); color:var(--slate-200); }
+    .history-item.active { background:rgba(244,196,48,0.08); color:var(--saffron-400); }
+    .history-item .hi-icon { width:16px; height:16px; flex-shrink:0; opacity:0.6; }
+    .history-item .hi-label { flex:1; }
+    .history-item .hi-num {  color:var(--slate-500); }
+    .history-origin { padding:6px 10px;  color:var(--slate-500); border-bottom:1px solid var(--slate-800); font-weight:600; cursor:pointer; }
+    .history-origin:hover { background:var(--slate-800); color:var(--saffron-400); }
+
     /* Store assets */
     .store-nav { width: 160px; border-right: 1px solid var(--slate-800); overflow-y: auto; flex-shrink: 0; }
-    .store-nav-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1rem; font-size: 0.75rem; color: var(--slate-400); cursor: pointer; border-left: 3px solid transparent; transition: all 0.12s; }
+    .store-nav-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1rem; color: var(--slate-400); cursor: pointer; border-left: 3px solid transparent; transition: all 0.12s; }
     .store-nav-item:hover { background: var(--slate-900); color: var(--slate-200); }
     .store-nav-item.active { color: var(--saffron-400); border-left-color: var(--saffron-400); background: rgba(244,196,48,0.03); }
     .store-nav-item .badge { font-size: 0.5625rem; background: var(--slate-800); color: var(--slate-500); padding: 1px 5px; border-radius: 3px; margin-left: auto; }
     .asset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem; padding: 1rem; flex: 1; overflow-y: auto; align-content: start; }
     .asset-card { background: var(--slate-800); border: 1px solid var(--slate-700); border-radius: 8px; overflow: hidden; cursor: pointer; transition: border-color 0.12s; }
-    .asset-card:hover { border-color: var(--slate-600); }
+    .asset-card:hover { border-color: var(--slate-500); }
     .asset-card-preview { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background: var(--slate-900); overflow: hidden; }
     .asset-card-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
-    .asset-card-label { padding: 0.375rem 0.5rem; font-size: 0.625rem; }
+    .asset-card-label { padding: 0.375rem 0.5rem; }
     .asset-card-name { color: var(--slate-200); font-weight: 500; }
     .asset-card-dims { color: var(--slate-500); }
     .asset-status { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 4px; }
@@ -138,35 +234,65 @@
     <div class="topbar-left">
       <button id="btn-back" class="tool-btn back-btn" title="Back to home"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg><span>Home</span></button>
       <div class="w-6 h-6 rounded-lg bg-gradient-saffron flex items-center justify-center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2A1E05" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>
-      <span class="font-bold text-sm">Pixeroo</span>
-      <span id="mode-label" style="font-size:0.6875rem;color:var(--slate-500);margin-left:4px;"></span>
+      <span style="font-size:1.375rem;font-weight:800;color:var(--saffron-400);letter-spacing:-0.02em;">Pixeroo</span>
+      <span id="mode-label" style="color:var(--slate-500);margin-left:4px;"></span>
     </div>
     <div class="topbar-right">
-      <span id="file-label" style="font-size:0.6875rem;color:var(--slate-500);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+      <span id="file-label" style="color:var(--slate-500);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+      <button id="btn-tour" class="tool-btn" title="Guided tour of current tool" style="font-size:0.5625rem;padding:2px 6px;">Tour</button>
+      <button id="btn-help-page" class="tool-btn" title="Open full help page" style="font-size:0.5625rem;padding:2px 6px;">Help</button>
+      <button id="btn-shortcuts" class="tool-btn" title="Keyboard shortcuts (Ctrl+/)" style="font-weight:700;width:22px;height:22px;padding:0;justify-content:center;">?</button>
       <button id="btn-editor-settings" class="tool-btn" title="Settings"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
   </div>
 
   <!-- Quick Settings Popover -->
   <div id="settings-popover" style="display:none;position:fixed;top:48px;right:12px;z-index:1000;background:var(--slate-900);border:1px solid var(--slate-700);border-radius:10px;padding:0.75rem;width:240px;box-shadow:0 12px 40px rgba(0,0,0,0.5);">
-    <div style="font-size:0.75rem;font-weight:600;color:var(--slate-300);margin-bottom:0.75rem;">Quick Settings</div>
+    <div style="font-weight:600;color:var(--slate-300);margin-bottom:0.75rem;">Quick Settings</div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.625rem;">
-      <span style="font-size:0.6875rem;color:var(--slate-400);">Theme</span>
-      <div style="display:flex;gap:4px;">
-        <button class="tool-btn qs-theme" data-theme="dark" title="Dark" style="font-size:0.5625rem;padding:3px 8px;border:1px solid var(--slate-700);border-radius:4px;">Dark</button>
-        <button class="tool-btn qs-theme" data-theme="light" title="Light" style="font-size:0.5625rem;padding:3px 8px;border:1px solid var(--slate-700);border-radius:4px;">Light</button>
+      <span style="color:var(--slate-400);">Theme</span>
+      <div style="display:flex;gap:6px;">
+        <button class="tool-btn qs-theme" data-theme="dark" title="Dark" style="padding:3px 8px;border:1px solid var(--slate-700);border-radius:4px;">Dark</button>
+        <button class="tool-btn qs-theme" data-theme="light" title="Light" style="padding:3px 8px;border:1px solid var(--slate-700);border-radius:4px;">Light</button>
       </div>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.625rem;">
-      <span style="font-size:0.6875rem;color:var(--slate-400);">Default format</span>
-      <select id="qs-format" class="select-field" style="width:70px;font-size:0.625rem;padding:2px 4px;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option></select>
+      <span style="color:var(--slate-400);">Default format</span>
+      <select id="qs-format" class="select-field" style="width:70px;padding:2px 4px;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option></select>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.625rem;">
-      <span style="font-size:0.6875rem;color:var(--slate-400);">Download folder</span>
-      <input type="text" id="qs-folder" class="input-field" value="pixeroo" style="width:80px;font-size:0.625rem;padding:2px 6px;">
+      <span style="color:var(--slate-400);">Download folder</span>
+      <input type="text" id="qs-folder" class="input-field" value="pixeroo" style="width:80px;padding:2px 6px;">
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.625rem;">
+      <span style="color:var(--slate-400);">Font size</span>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <button class="tool-btn" id="qs-font-down" style="padding:2px 6px;border:1px solid var(--slate-700);">A-</button>
+        <span id="qs-font-val" style="color:var(--slate-200);min-width:28px;text-align:center;">100%</span>
+        <button class="tool-btn" id="qs-font-up" style="padding:2px 6px;border:1px solid var(--slate-700);">A+</button>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.625rem;">
+      <span style="color:var(--slate-400);">Font</span>
+      <select id="qs-font-family" class="select-field" style="width:120px;padding:2px 4px;">
+        <option value="system">System UI</option>
+        <option value="inter">Inter</option>
+        <option value="roboto">Roboto</option>
+        <option value="plex">IBM Plex Sans</option>
+        <option value="source">Source Sans</option>
+        <option value="noto">Noto Sans</option>
+        <option value="ubuntu">Ubuntu</option>
+        <option value="jetbrains">JetBrains Mono</option>
+        <option value="mono">Monospace</option>
+      </select>
     </div>
     <div style="border-top:1px solid var(--slate-800);padding-top:0.5rem;margin-top:0.25rem;">
-      <button id="qs-advanced" class="tool-btn" style="width:100%;justify-content:center;font-size:0.625rem;color:var(--saffron-400);">Open Advanced Settings</button>
+      <div style="display:flex;gap:6px;margin-bottom:0.625rem;">
+        <button id="btn-workspace-save" class="tool-btn" style="flex:1;justify-content:center;padding:3px 8px;border:1px solid var(--slate-700);border-radius:4px;" title="Save all tool settings as a workspace file">Save Workspace</button>
+        <button id="btn-workspace-load" class="tool-btn" style="flex:1;justify-content:center;padding:3px 8px;border:1px solid var(--slate-700);border-radius:4px;" title="Load workspace settings from file">Load Workspace</button>
+        <input type="file" id="workspace-file-input" accept=".json,.pixeroo-ws" style="display:none;">
+      </div>
+      <button id="qs-advanced" class="tool-btn" style="width:100%;justify-content:center;color:var(--saffron-400);">Open Advanced Settings</button>
     </div>
   </div>
 
@@ -186,7 +312,10 @@
       <div class="home-card" data-mode="qr"><div class="home-card-icon" style="background:rgba(249,115,22,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></div><div class="home-card-title">QR Code</div><div class="home-card-desc">Generate, customize, read QR codes</div></div>
       <div class="home-card" data-mode="compare"><div class="home-card-icon" style="background:rgba(234,179,8,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2"><rect x="3" y="3" width="8" height="18" rx="1"/><rect x="13" y="3" width="8" height="18" rx="1"/></svg></div><div class="home-card-title">Compare</div><div class="home-card-desc">Side-by-side diff, pixel-level comparison</div></div>
       <div class="home-card" data-mode="generate"><div class="home-card-icon" style="background:rgba(99,102,241,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg></div><div class="home-card-title">Generate</div><div class="home-card-desc">Gradients, patterns, placeholders from scratch</div></div>
+      <div class="home-card" data-mode="social"><div class="home-card-icon" style="background:rgba(244,196,48,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F4C430" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="10" r="3"/><path d="M6 21v-1a6 6 0 0 1 12 0v1"/></svg></div><div class="home-card-title">Social Media</div><div class="home-card-desc">Resize & create images for social platforms</div></div>
+      <div class="home-card" data-mode="watermark"><div class="home-card-icon" style="background:rgba(244,196,48,0.1);"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--saffron-400)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 15l4-4a3 3 0 0 1 3 0l4 4"/><path d="M14 14l1-1a3 3 0 0 1 3 0l3 3"/><line x1="4" y1="20" x2="20" y2="4" stroke-dasharray="2 2" opacity="0.5"/></svg></div><div class="home-card-title">Watermark</div><div class="home-card-desc">Add text or logo watermark to images</div></div>
       <div class="home-card" data-mode="collage"><div class="home-card-icon" style="background:rgba(14,165,233,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg></div><div class="home-card-title">Collage</div><div class="home-card-desc">Combine multiple images into grid layouts</div></div>
+      <div class="home-card" data-mode="batch"><div class="home-card-icon" style="background:rgba(234,179,8,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8l-2 4h12l-2-4z"/></svg></div><div class="home-card-title">Batch Edit</div><div class="home-card-desc">Resize, filter, watermark multiple images at once</div></div>
     </div>
     <div class="home-recent">
       <div class="home-recent-title">Drop a file anywhere to get started</div>
@@ -198,30 +327,30 @@
   <!-- ============================================================ -->
   <div class="mode-view edit-panel" id="mode-edit">
     <!-- Info bar + Ribbon merged -->
-    <div class="edit-ribbon">
+    <div class="edit-ribbon disabled" id="edit-ribbon">
       <!-- Info bar row -->
       <!-- Single ribbon bar: Size group first, then tool groups -->
       <div class="ribbon-bar" id="edit-info-bar">
         <!-- Size / Info (merged info bar) -->
         <div class="ribbon-group"><div class="ribbon-tools">
-          <div class="ribbon-row"><span class="ribbon-mini-label">W</span><input type="number" id="bar-w" class="input-field" value="800" style="width:58px;"><span style="color:var(--slate-600);font-size:0.625rem;">x</span><span class="ribbon-mini-label">H</span><input type="number" id="bar-h" class="input-field" value="600" style="width:58px;"></div>
-          <div class="ribbon-row"><button id="bar-unit" class="tool-btn" title="Toggle pixels / percent" style="border:1px solid var(--slate-700);border-radius:3px;">px</button><button id="bar-lock" class="tool-btn" title="Lock aspect ratio" style="color:var(--saffron-400);"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button><button id="bar-apply" class="btn-primary" title="Apply resize (Enter)">Apply</button><button id="btn-undo" class="tool-btn" title="Undo (Ctrl+Z)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button><button id="btn-redo" class="tool-btn" title="Redo (Ctrl+Y)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button><button id="btn-reset-all" class="tool-btn" title="Reset to original image" style="color:#ef4444;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg></button></div>
-          <div class="ribbon-row"><span id="bar-size" style="font-size:0.5625rem;color:var(--slate-500);"></span><span id="bar-zoom" style="font-size:0.5625rem;color:var(--slate-500);">100%</span><button id="bar-fit" class="tool-btn" style="font-size:0.5rem;">Fit</button><button id="bar-actual" class="tool-btn" style="font-size:0.5rem;">1:1</button></div>
+          <div class="ribbon-row"><span class="ribbon-mini-label">W</span><input type="number" id="bar-w" class="input-field" value="800" style="width:58px;"><span style="color:var(--slate-500);">x</span><span class="ribbon-mini-label">H</span><input type="number" id="bar-h" class="input-field" value="600" style="width:58px;"></div>
+          <div class="ribbon-row"><button id="bar-unit" class="tool-btn" title="Toggle pixels / percent" style="border:1px solid var(--slate-700);border-radius:3px;">px</button><button id="bar-lock" class="tool-btn" title="Lock aspect ratio" style="color:var(--saffron-400);"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button><button id="bar-apply" class="btn-primary" title="Apply resize (Enter)">Apply</button><button id="btn-undo" class="tool-btn" title="Undo (Ctrl+Z)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button><button id="btn-redo" class="tool-btn" title="Redo (Ctrl+Y)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button><button id="btn-reset-all" class="tool-btn" title="Reset to original image" style="color:#ef4444;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg></button><button id="btn-history" class="tool-btn" title="Operation history (H)" style="position:relative;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span id="history-count" style="position:absolute;top:-2px;right:-2px;background:var(--saffron-400);color:var(--saffron-950);font-size:0.4375rem;font-weight:700;border-radius:50%;width:12px;height:12px;display:none;line-height:12px;text-align:center;">0</span></button></div>
+          <div class="ribbon-row"><span id="bar-size" style="color:var(--slate-500);"></span><span id="bar-zoom" style="color:var(--slate-500);">100%</span><button id="bar-fit" class="tool-btn" style="">Fit</button><button id="bar-actual" class="tool-btn" style="">1:1</button></div>
         </div><div class="ribbon-label">Size</div></div>
         <div class="ribbon-sep-v"></div>
         <!-- Transform -->
         <div class="ribbon-group"><div class="ribbon-tools">
           <div class="ribbon-row"><button class="tool-btn" id="btn-crop-auto" title="Smart crop (auto-detect subject)" style="color:var(--saffron-400);">Auto</button><button class="tool-btn" id="btn-crop-free" title="Crop (free)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg></button><button class="tool-btn" id="btn-crop-1-1" title="Crop 1:1">1:1</button><button class="tool-btn" id="btn-crop-4-3" title="Crop 4:3">4:3</button><button class="tool-btn" id="btn-crop-16-9" title="Crop 16:9">16:9</button></div>
           <div class="ribbon-row"><button class="tool-btn" id="btn-rotate-left" title="Rotate left 90"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button><button class="tool-btn" id="btn-rotate-right" title="Rotate right 90"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button><button class="tool-btn" id="btn-flip-h" title="Flip horizontal"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3"/><line x1="12" y1="20" x2="12" y2="4"/></svg></button><button class="tool-btn" id="btn-flip-v" title="Flip vertical"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8V5c0-1.1.9-2 2-2h14a2 2 0 0 1 2 2v3"/><path d="M3 16v3c0 1.1.9 2 2 2h14a2 2 0 0 1 2 2v-3"/><line x1="4" y1="12" x2="20" y2="12"/></svg></button></div>
-          <div class="ribbon-row"><button id="btn-crop-apply" class="btn-primary" style="font-size:0.5rem;padding:2px 6px;display:none;" title="Apply crop">Apply</button><button id="btn-crop-cancel" class="tool-btn" style="font-size:0.5rem;display:none;" title="Cancel crop">Cancel</button></div>
+          <div class="ribbon-row"><button id="btn-crop-apply" class="btn-primary" style="padding:2px 6px;display:none;" title="Apply crop">Apply</button><button id="btn-crop-cancel" class="tool-btn" style="display:none;" title="Cancel crop">Cancel</button></div>
         </div><div class="ribbon-label">Transform</div></div>
         <div class="ribbon-sep-v"></div>
         <!-- Adjust -->
         <div class="ribbon-group"><div class="ribbon-tools">
-          <div class="ribbon-row" style="gap:2px;"><span class="ribbon-mini-label">B</span><input type="range" class="range-input" id="adj-brightness" min="-100" max="100" value="0" style="width:75px;"><span class="range-value" id="val-brightness" style="width:18px;">0</span></div>
-          <div class="ribbon-row" style="gap:2px;"><span class="ribbon-mini-label">C</span><input type="range" class="range-input" id="adj-contrast" min="-100" max="100" value="0" style="width:75px;"><span class="range-value" id="val-contrast" style="width:18px;">0</span></div>
-          <div class="ribbon-row" style="gap:2px;"><span class="ribbon-mini-label">S</span><input type="range" class="range-input" id="adj-saturation" min="-100" max="100" value="0" style="width:75px;"><span class="range-value" id="val-saturation" style="width:18px;">0</span></div>
-          <div class="ribbon-row" style="gap:2px;"><span class="ribbon-mini-label">H</span><input type="range" class="range-input" id="adj-hue" min="0" max="360" value="0" style="width:75px;"><span class="range-value" id="val-hue" style="width:18px;">0</span><button id="btn-reset-adjust" class="tool-btn" title="Reset all adjustments to zero" style="font-size:0.4375rem;padding:1px 3px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button></div>
+          <div class="ribbon-row"><span class="ribbon-mini-label">B</span><input type="range" class="range-input" id="adj-brightness" min="-100" max="100" value="0" style="width:80px;"><span class="range-value" id="val-brightness">0</span></div>
+          <div class="ribbon-row"><span class="ribbon-mini-label">C</span><input type="range" class="range-input" id="adj-contrast" min="-100" max="100" value="0" style="width:80px;"><span class="range-value" id="val-contrast">0</span></div>
+          <div class="ribbon-row"><span class="ribbon-mini-label">S</span><input type="range" class="range-input" id="adj-saturation" min="-100" max="100" value="0" style="width:80px;"><span class="range-value" id="val-saturation">0</span></div>
+          <div class="ribbon-row"><span class="ribbon-mini-label">H</span><input type="range" class="range-input" id="adj-hue" min="0" max="360" value="0" style="width:80px;"><span class="range-value" id="val-hue">0</span><button id="btn-reset-adjust" class="tool-btn" title="Reset adjustments" style="font-size:0.4375rem;padding:2px 4px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button></div>
         </div><div class="ribbon-label">Adjust</div></div>
         <div class="ribbon-sep-v"></div>
         <!-- Filters -->
@@ -233,8 +362,8 @@
         <div class="ribbon-sep-v"></div>
         <!-- Draw -->
         <div class="ribbon-group"><div class="ribbon-tools">
-          <div class="ribbon-row"><button class="tool-btn" id="btn-ann-rect" title="Draw rectangle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></button><button class="tool-btn" id="btn-ann-arrow" title="Draw arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button><button class="tool-btn" id="btn-ann-text" title="Add text overlay"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9.5" y1="20" x2="14.5" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg></button><button class="tool-btn" id="btn-ann-redact" title="Redact / pixelate region"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></button></div>
-          <div class="ribbon-row"><input type="color" id="ann-color" value="#ef4444" title="Annotation color" style="width:22px;height:18px;border:none;cursor:pointer;"><input type="range" id="ann-width" min="1" max="10" value="3" title="Line width" style="width:50px;accent-color:var(--saffron-400);"><select id="ann-font" class="select-field" title="Font family" style="width:65px;"><option value="Inter, system-ui, sans-serif">Inter</option><option value="Georgia, serif">Georgia</option><option value="Courier New, monospace">Courier</option><option value="Arial, sans-serif">Arial</option><option value="Impact, sans-serif">Impact</option></select><input type="number" id="ann-fontsize" class="input-field" value="24" min="8" max="200" title="Font size (px)" style="width:38px;"></div>
+          <div class="ribbon-row"><button class="tool-btn" id="btn-ann-rect" title="Draw rectangle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></button><button class="tool-btn" id="btn-ann-arrow" title="Draw arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button><button class="tool-btn" id="btn-ann-text" title="Add text overlay"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9.5" y1="20" x2="14.5" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg></button><button class="tool-btn" id="btn-ann-pen" title="Freehand pen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/></svg></button><button class="tool-btn" id="btn-ann-highlighter" title="Highlighter" style="color:#facc15;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3z"/></svg></button><button class="tool-btn" id="btn-ann-redact" title="Redact / pixelate region"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></button><label title="Fill shape" style="display:flex;align-items:center;gap:2px;color:var(--slate-500);cursor:pointer;"><input type="checkbox" id="ann-fill" style="width:12px;height:12px;accent-color:var(--saffron-400);">Fill</label></div>
+          <div class="ribbon-row"><input type="color" id="ann-color" value="#000000" title="Annotation color" style="width:22px;height:18px;border:none;cursor:pointer;"><input type="range" id="ann-width" min="1" max="10" value="3" title="Line width" style="width:50px;accent-color:var(--saffron-400);"><select id="ann-font" class="select-field" title="Font family" style="width:82px;"><option value="Inter, system-ui, sans-serif">Inter</option><option value="Georgia, serif">Georgia</option><option value="Courier New, monospace">Courier</option><option value="Arial, sans-serif">Arial</option><option value="Impact, sans-serif">Impact</option></select><input type="number" id="ann-fontsize" class="input-field" value="24" min="8" max="200" title="Font size (px)" style="width:52px;"></div>
           <div class="ribbon-row"><input type="text" id="watermark-text" class="input-field" placeholder="Watermark" title="Watermark text" style="width:80px;"><button class="tool-btn" id="btn-watermark" title="Apply watermark"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg></button></div>
         </div><div class="ribbon-label">Draw</div></div>
         <div class="ribbon-sep-v"></div>
@@ -245,25 +374,24 @@
           <div class="ribbon-row"><span class="ribbon-mini-label" title="Angle">An</span><input type="range" id="watermark-angle" min="-90" max="90" value="-30" title="Rotation angle" style="width:50px;accent-color:var(--saffron-400);"><span class="range-value" id="watermark-angle-val" style="width:22px;">-30</span></div>
         </div><div class="ribbon-label">Watermark</div></div>
         <div class="ribbon-sep-v"></div>
-        <!-- Social -->
-        <div class="ribbon-group"><div class="ribbon-tools">
-          <div class="ribbon-row"><button class="tool-btn" data-social="ig-post" title="Instagram Post (1080x1080)">IG</button><button class="tool-btn" data-social="ig-story" title="Instagram Story (1080x1920)">Story</button><button class="tool-btn" data-social="tw-post" title="Twitter Post (1200x675)">TW</button><button class="tool-btn" data-social="yt-thumb" title="YouTube Thumbnail (1280x720)">YT</button></div>
-          <div class="ribbon-row"><button class="tool-btn" data-social="fb-post" title="Facebook Post (1200x630)">FB</button><button class="tool-btn" data-social="li-post" title="LinkedIn Post (1200x627)">LI</button><button class="tool-btn" data-social="og-image" title="OG Image (1200x630)">OG</button><button class="tool-btn" data-social="pin-standard" title="Pinterest Pin (1000x1500)">Pin</button></div>
-        </div><div class="ribbon-label">Social</div></div>
-        <div class="ribbon-sep-v"></div>
         <!-- Export -->
         <div class="ribbon-group"><div class="ribbon-tools">
-          <div class="ribbon-row"><select id="export-format" class="select-field" title="Output format" style="width:65px;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option><option value="bmp">BMP</option></select></div>
+          <div class="ribbon-row"><select id="export-format" class="select-field" title="Output format" style="width:75px;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option><option value="bmp">BMP</option><option value="svg">SVG</option></select></div>
           <div class="ribbon-row" id="export-quality-row" style="display:none;"><span class="ribbon-mini-label" title="Quality">Q</span><input type="range" id="export-quality" min="1" max="100" value="85" title="Export quality (1-100)" style="width:55px;accent-color:var(--saffron-400);"><span class="range-value" id="export-quality-val" style="width:20px;">85</span></div>
-          <div class="ribbon-row"><button id="btn-export" class="btn-primary" title="Export image (Ctrl+S)" style="padding:3px 10px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</button><button class="tool-btn" id="btn-strip-meta" title="Strip all metadata and re-export"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button><button class="tool-btn" id="btn-to-pdf" title="Export as PDF"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></button></div>
+          <div class="ribbon-row"><button id="btn-export" class="btn-primary" title="Export image (Ctrl+S)" style="padding:3px 10px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</button><button class="tool-btn" id="btn-strip-meta" title="Strip all metadata and re-export"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button><button class="tool-btn" id="btn-to-pdf" title="Export as PDF"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></button><button class="tool-btn" id="btn-export-annotations-svg" title="Export annotations as SVG overlay"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></button><button class="tool-btn" id="btn-edit-save-lib" title="Save to Library"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button><button class="tool-btn" id="btn-edit-save" title="Save project (.pixeroo)">Save</button><button class="tool-btn" id="btn-edit-load" title="Load project (.pixeroo)">Load<input type="file" id="edit-load-file" accept=".pixeroo,.json" style="display:none;"></button></div>
         </div><div class="ribbon-label">Export</div></div>
         <div class="ribbon-sep-v"></div>
         <!-- More -->
         <div class="ribbon-group"><div class="ribbon-tools">
-          <div class="ribbon-row"><button class="tool-btn" id="btn-padding" title="Add padding around image">Pad</button><button class="tool-btn" id="btn-bg-remove" title="Remove background (flood fill from edges)">BG Rm</button><button class="tool-btn" id="btn-color-replace" title="Replace one color with another">Recolor</button></div>
+          <div class="ribbon-row"><button class="tool-btn" id="btn-padding" title="Add uniform padding">Pad</button><input type="number" id="pad-size" class="input-field" value="20" min="1" max="500" style="width:48px;" title="Padding (px)"><input type="color" id="pad-color" value="#ffffff" style="width:18px;height:16px;border:none;cursor:pointer;" title="Padding color"><button class="tool-btn" id="btn-color-replace" title="Replace one color with another">Recolor</button></div>
           <div class="ribbon-row"><button class="tool-btn" data-channel="r" title="View red channel only" style="color:#ef4444;">R</button><button class="tool-btn" data-channel="g" title="View green channel only" style="color:#22c55e;">G</button><button class="tool-btn" data-channel="b" title="View blue channel only" style="color:#3b82f6;">B</button><button class="tool-btn" id="btn-cmyk-sim" title="Simulate CMYK print colors">CMYK</button></div>
           <div class="ribbon-row"><button class="tool-btn" id="btn-steg-detect" title="Detect steganography (hidden data)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="tool-btn" id="btn-ascii" title="Convert to ASCII art">ASCII</button><button class="tool-btn" id="btn-gen-favicons" title="Preview as favicon at multiple sizes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></button><button class="tool-btn" id="btn-slice-sprite" title="Slice sprite sheet into tiles"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></button></div>
         </div><div class="ribbon-label">More</div></div>
+        <!-- View: Ruler/Grid/Center guides -->
+        <div class="ribbon-sep-v"></div>
+        <div class="ribbon-group"><div class="ribbon-tools">
+          <div class="ribbon-row"><button class="tool-btn active" id="btn-toggle-ruler" title="Toggle ruler (R)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h18v6H3z"/><path d="M7 3v3M11 3v4M15 3v3M19 3v4"/></svg></button><button class="tool-btn active" id="btn-toggle-grid" title="Toggle grid (G)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg></button><button class="tool-btn" id="btn-toggle-center" title="Toggle center crosshair (C)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg></button></div>
+        </div><div class="ribbon-label">View</div></div>
       </div>
     </div>
     <!-- Canvas -->
@@ -273,11 +401,11 @@
         <p class="drop-title">Drop an image, click to browse, or Ctrl+V</p>
         <p class="drop-sub">PNG, JPEG, WebP, AVIF, GIF, BMP, TIFF, SVG, ICO</p>
         <div style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid var(--slate-800);">
-          <p style="color:var(--slate-600);font-size:0.625rem;">Ctrl+S to export &middot; Ctrl+Z to undo</p>
+          <p style="color:var(--slate-500);">Ctrl+S to export &middot; Ctrl+Z to undo</p>
         </div>
         <input type="file" id="edit-file" accept="image/*" style="display:none;">
       </div>
-      <div id="dimension-badge" style="display:none;position:absolute;bottom:8px;right:8px;background:rgba(15,23,42,0.8);border:1px solid var(--slate-700);border-radius:4px;padding:2px 8px;font-size:0.625rem;color:var(--slate-400);font-family:monospace;pointer-events:none;z-index:1;"></div>
+      <div id="dimension-badge" style="display:none;position:absolute;bottom:8px;right:8px;background:rgba(15,23,42,0.8);border:1px solid var(--slate-700);border-radius:4px;padding:2px 8px;color:var(--slate-400);font-family:monospace;pointer-events:none;z-index:1;"></div>
       <canvas id="editor-canvas" style="display:none;"></canvas>
     </div>
     <!-- Hidden elements for JS -->
@@ -312,22 +440,22 @@
       </div><div class="ribbon-label">Format</div></div>
       <div class="ribbon-sep-v"></div>
       <div class="ribbon-group" id="convert-quality-section" style="display:none;"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:4px;"><span class="ribbon-mini-label">Q</span><input type="range" class="range-input" id="convert-quality" min="1" max="100" value="85" style="width:80px;"><span class="range-value" id="convert-quality-val" style="width:20px;">85</span></div>
+        <div class="ribbon-row" style="gap:6px;"><span class="ribbon-mini-label">Q</span><input type="range" class="range-input" id="convert-quality" min="1" max="100" value="85" style="width:80px;"><span class="range-value" id="convert-quality-val" style="width:20px;">85</span></div>
       </div><div class="ribbon-label">Quality</div></div>
       <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:4px;"><span class="ribbon-mini-label">W</span><input type="number" id="batch-resize-w" class="input-field" placeholder="px" style="width:50px;"><span class="ribbon-mini-label">H</span><input type="number" id="batch-resize-h" class="input-field" placeholder="px" style="width:50px;"><label style="font-size:0.5rem;color:var(--slate-400);display:flex;align-items:center;gap:2px;"><input type="checkbox" id="batch-resize-lock" checked style="accent-color:var(--saffron-400);">Lock</label></div>
+        <div class="ribbon-row" style="gap:6px;"><span class="ribbon-mini-label">W</span><input type="number" id="batch-resize-w" class="input-field" placeholder="px" style="width:58px;"><span class="ribbon-mini-label">H</span><input type="number" id="batch-resize-h" class="input-field" placeholder="px" style="width:58px;"><label style="color:var(--slate-400);display:flex;align-items:center;gap:2px;"><input type="checkbox" id="batch-resize-lock" checked style="accent-color:var(--saffron-400);">Lock</label></div>
       </div><div class="ribbon-label">Resize</div></div>
       <div class="ribbon-sep-v"></div>
       <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row"><label style="font-size:0.5rem;color:var(--slate-400);display:flex;align-items:center;gap:2px;"><input type="checkbox" id="convert-strip-meta" style="accent-color:var(--saffron-400);">Strip meta</label></div>
+        <div class="ribbon-row"><label class="toggle-chip"><input type="checkbox" id="convert-strip-meta">Strip meta</label></div>
         <div class="ribbon-row"><button id="btn-convert-go" class="btn-primary" style="padding:3px 12px;" disabled>Convert & Save</button></div>
       </div><div class="ribbon-label">Export</div></div>
       <div class="ribbon-sep-v"></div>
-      <div class="ribbon-group"><div class="ribbon-tools"><div id="compression-preview" style="font-size:0.5rem;color:var(--slate-500);">Load image to see sizes</div></div><div class="ribbon-label">Size Preview</div></div>
+      <div class="ribbon-group"><div class="ribbon-tools"><div id="compression-preview" style="color:var(--slate-500);">Load image to see sizes</div></div><div class="ribbon-label">Size Preview</div></div>
     </div></div>
     <div class="work-area">
       <div id="convert-drop" class="dropzone"><p class="drop-title">Drop image(s) to convert</p><p class="drop-sub">Batch conversion supported</p><input type="file" id="convert-file" accept="image/*" multiple style="display:none;"></div>
-      <div id="convert-preview" style="display:none;text-align:center;"><img id="convert-img" src="" alt="" style="max-width:80%;max-height:60vh;border-radius:8px;"><div id="convert-batch-info" style="margin-top:0.5rem;font-size:0.75rem;color:var(--slate-400);"></div></div>
+      <div id="convert-preview" style="display:none;text-align:center;"><img id="convert-img" src="" alt="" style="max-width:80%;max-height:60vh;border-radius:8px;"><div id="convert-batch-info" style="margin-top:0.5rem;color:var(--slate-400);"></div></div>
     </div>
   </div>
 
@@ -337,155 +465,988 @@
   <div class="mode-view" id="mode-generate" style="flex-direction:column;">
     <div class="edit-ribbon"><div class="ribbon-bar">
       <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:4px;"><span class="ribbon-mini-label">W</span><input type="number" id="gen-w" class="input-field" value="800" style="width:50px;"><span class="ribbon-mini-label">H</span><input type="number" id="gen-h" class="input-field" value="600" style="width:50px;"></div>
+        <div class="ribbon-row" style="gap:6px;"><span class="ribbon-mini-label">W</span><input type="number" id="gen-w" class="input-field" value="800" style="width:58px;"><span class="ribbon-mini-label">H</span><input type="number" id="gen-h" class="input-field" value="600" style="width:58px;"></div>
       </div><div class="ribbon-label">Size</div></div>
       <div class="ribbon-sep-v"></div>
       <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:3px;"><select id="gen-grad-type" class="select-field" style="width:75px;"><option value="linear">Linear</option><option value="radial">Radial</option></select><input type="color" id="gen-grad-c1" value="#F4C430" style="width:20px;height:16px;border:none;cursor:pointer;"><input type="color" id="gen-grad-c2" value="#B8860B" style="width:20px;height:16px;border:none;cursor:pointer;"><button class="btn-primary" id="btn-gen-gradient" style="padding:2px 6px;">Go</button></div>
+        <div class="ribbon-row" style="gap:5px;"><select id="gen-grad-type" class="select-field" style="width:75px;"><option value="linear">Linear</option><option value="radial">Radial</option></select><input type="color" id="gen-grad-c1" value="#F4C430" style="width:20px;height:16px;border:none;cursor:pointer;"><input type="color" id="gen-grad-c2" value="#B8860B" style="width:20px;height:16px;border:none;cursor:pointer;"><button class="btn-primary" id="btn-gen-gradient" style="padding:2px 6px;">Go</button></div>
       </div><div class="ribbon-label">Gradient</div></div>
       <div class="ribbon-sep-v"></div>
-      <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:3px;"><select id="gen-pat-type" class="select-field" style="width:80px;"><option value="checkerboard">Checker</option><option value="stripes-h">Stripes H</option><option value="stripes-v">Stripes V</option><option value="dots">Dots</option><option value="noise">Noise</option></select><input type="color" id="gen-pat-c1" value="#e2e8f0" style="width:20px;height:16px;border:none;cursor:pointer;"><input type="color" id="gen-pat-c2" value="#ffffff" style="width:20px;height:16px;border:none;cursor:pointer;"></div>
-        <div class="ribbon-row" style="gap:3px;"><span class="ribbon-mini-label">Cell</span><input type="number" id="gen-pat-cell" class="input-field" value="40" min="4" style="width:40px;"><button class="btn-primary" id="btn-gen-pattern" style="padding:2px 6px;">Go</button></div>
+      <div class="ribbon-group"><div class="ribbon-tools ribbon-grid" style="grid-template-columns:auto auto auto;">
+          <select id="gen-pat-type" class="select-field" style="width:80px;"><option value="checkerboard">Checker</option><option value="stripes-h">Stripes H</option><option value="stripes-v">Stripes V</option><option value="dots">Dots</option><option value="noise">Noise</option></select>
+          <input type="color" id="gen-pat-c1" value="#e2e8f0" style="width:20px;height:18px;border:none;cursor:pointer;">
+          <input type="color" id="gen-pat-c2" value="#ffffff" style="width:20px;height:18px;border:none;cursor:pointer;">
+          <span class="ribbon-mini-label">Cell</span>
+          <input type="number" id="gen-pat-cell" class="input-field" value="40" min="4" style="width:52px;">
+          <button class="btn-primary" id="btn-gen-pattern" style="padding:2px 6px;">Go</button>
       </div><div class="ribbon-label">Pattern</div></div>
       <div class="ribbon-sep-v"></div>
       <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:3px;"><input type="text" id="gen-ph-text" class="input-field" placeholder="Text" style="width:80px;"><input type="color" id="gen-ph-bg" value="#94a3b8" style="width:20px;height:16px;border:none;cursor:pointer;"><input type="color" id="gen-ph-text-color" value="#ffffff" style="width:20px;height:16px;border:none;cursor:pointer;"><button class="btn-primary" id="btn-gen-placeholder" style="padding:2px 6px;">Go</button></div>
+        <div class="ribbon-row" style="gap:5px;"><input type="text" id="gen-ph-text" class="input-field" placeholder="Text" style="width:80px;"><input type="color" id="gen-ph-bg" value="#94a3b8" style="width:20px;height:16px;border:none;cursor:pointer;"><input type="color" id="gen-ph-text-color" value="#ffffff" style="width:20px;height:16px;border:none;cursor:pointer;"><button class="btn-primary" id="btn-gen-placeholder" style="padding:2px 6px;">Go</button></div>
       </div><div class="ribbon-label">Placeholder</div></div>
       <div class="ribbon-sep-v"></div>
+      <!-- Social Banner -->
       <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row"><select id="gen-export-fmt" class="select-field" style="width:55px;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option></select><button id="btn-gen-export" class="btn-primary" style="padding:2px 8px;">Export</button></div>
+        <div class="ribbon-row" style="gap:5px;"><select id="gen-social-preset" class="select-field" style="width:85px;"><option value="">Banner...</option></select><input type="text" id="gen-social-text" class="input-field" placeholder="Title" style="width:70px;"><button class="btn-primary" id="btn-gen-social" style="padding:2px 6px;">Go</button></div>
+      </div><div class="ribbon-label">Social</div></div>
+      <div class="ribbon-sep-v"></div>
+      <!-- Avatar -->
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row" style="gap:5px;"><input type="text" id="gen-avatar-initials" class="input-field" value="AB" maxlength="2" style="width:28px;"><input type="color" id="gen-avatar-bg" value="#6366f1" style="width:20px;height:16px;border:none;cursor:pointer;"><button class="btn-primary" id="btn-gen-avatar" style="padding:2px 6px;">Go</button></div>
+      </div><div class="ribbon-label">Avatar</div></div>
+      <div class="ribbon-sep-v"></div>
+      <!-- Noise -->
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row" style="gap:5px;"><select id="gen-noise-type" class="select-field" style="width:75px;"><option value="white">White</option><option value="perlin">Perlin</option><option value="color">Color</option></select><button class="btn-primary" id="btn-gen-noise" style="padding:2px 6px;">Go</button></div>
+      </div><div class="ribbon-label">Noise</div></div>
+      <div class="ribbon-sep-v"></div>
+      <!-- Favicon -->
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row" style="gap:5px;"><input type="text" id="gen-fav-letter" class="input-field" value="P" maxlength="2" style="width:24px;"><input type="color" id="gen-fav-bg" value="#F4C430" style="width:20px;height:16px;border:none;cursor:pointer;"><label style="font-size:0.45rem;color:var(--slate-400);display:flex;align-items:center;gap:1px;"><input type="checkbox" id="gen-fav-round" style="accent-color:var(--saffron-400);">Round</label><button class="btn-primary" id="btn-gen-favicon" style="padding:2px 6px;">Go</button></div>
+      </div><div class="ribbon-label">Favicon</div></div>
+      <div class="ribbon-sep-v"></div>
+      <!-- Swatch -->
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row" style="gap:5px;"><input type="text" id="gen-swatch-colors" class="input-field" placeholder="#f00,#0f0,#00f" style="width:100px;"><button class="btn-primary" id="btn-gen-swatch" style="padding:2px 6px;">Go</button></div>
+      </div><div class="ribbon-label">Swatch</div></div>
+      <div class="ribbon-sep-v"></div>
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row"><select id="gen-export-fmt" class="select-field" style="width:72px;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option></select><button id="btn-gen-export" class="btn-primary" style="padding:2px 8px;">Export</button><button class="tool-btn" id="btn-gen-save-lib" title="Save to Library"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button></div>
       </div><div class="ribbon-label">Export</div></div>
     </div></div>
-    <div class="work-area"><canvas id="gen-canvas" style="max-width:80%;max-height:80%;border-radius:8px;background:var(--slate-800);"></canvas><div id="gen-dims" style="position:absolute;bottom:8px;right:8px;font-size:0.625rem;color:var(--slate-500);"></div></div>
+    <div class="work-area"><canvas id="gen-canvas" style="max-width:80%;max-height:80%;border-radius:8px;background:var(--slate-800);"></canvas><div id="gen-dims" style="position:absolute;bottom:8px;right:8px;color:var(--slate-500);"></div></div>
   </div>
 
   <!-- ============================================================ -->
-  <!-- MODE: Collage (top ribbon, multiple images) -->
+  <!-- MODE: Collage (freeform canvas editor) -->
   <!-- ============================================================ -->
   <div class="mode-view" id="mode-collage" style="flex-direction:column;">
     <div class="edit-ribbon"><div class="ribbon-bar">
+      <!-- Canvas -->
       <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:4px;"><span class="ribbon-mini-label">Cols</span><input type="number" id="collage-cols" class="input-field" value="2" min="1" max="10" style="width:35px;"><span class="ribbon-mini-label">Gap</span><input type="number" id="collage-spacing" class="input-field" value="10" min="0" style="width:35px;"><input type="color" id="collage-bg" value="#ffffff" style="width:20px;height:16px;border:none;cursor:pointer;"></div>
-      </div><div class="ribbon-label">Layout</div></div>
+        <div class="ribbon-row"><span class="ribbon-mini-label">W</span><input type="number" id="collage-w" class="input-field" value="1200" style="width:60px;"><span class="ribbon-mini-label">H</span><input type="number" id="collage-h" class="input-field" value="800" style="width:60px;"></div>
+        <div class="ribbon-row">
+          <input type="color" id="collage-bg" value="#ffffff" style="width:18px;height:16px;border:none;cursor:pointer;" title="Background">
+          <input type="color" id="collage-bg2" value="#e2e8f0" style="width:18px;height:16px;border:none;cursor:pointer;" title="Gradient end">
+          <select id="collage-bg-type" class="select-field" style="width:72px;"><option value="solid">Solid</option><option value="gradient">Gradient</option><option value="image">Image</option></select>
+          <div id="collage-bg-img-btn" style="display:none;cursor:pointer;border:1px dashed var(--slate-600);border-radius:4px;padding:2px 6px;color:var(--slate-400);" title="Set background image"><input type="file" id="collage-bg-file" accept="image/*" style="display:none;">BG Img</div>
+          <button id="btn-collage-resize" class="tool-btn" title="Apply canvas size + background">Apply</button>
+          <button id="btn-collage-fit" class="tool-btn" title="Fit canvas to content">Fit</button>
+        </div>
+      </div><div class="ribbon-label">Canvas</div></div>
       <div class="ribbon-sep-v"></div>
+      <!-- Add + Arrange -->
       <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row"><button id="btn-collage-build" class="btn-primary" style="padding:3px 10px;" disabled>Build</button><button id="btn-collage-export" class="tool-btn" disabled style="font-size:0.5rem;">Export PNG</button></div>
-        <div class="ribbon-row"><span id="collage-count" style="font-size:0.5rem;color:var(--slate-500);">0 images</span></div>
-      </div><div class="ribbon-label">Actions</div></div>
+        <div class="ribbon-row">
+          <div id="collage-add-btn" style="cursor:pointer;border:1px dashed var(--slate-600);border-radius:4px;padding:2px 8px;color:var(--slate-400);" title="Add images"><input type="file" id="collage-files" accept="image/*" multiple style="display:none;">+ Add</div>
+          <button class="tool-btn" id="btn-collage-from-lib" title="Add from Library">Library</button>
+          <button id="btn-collage-clear" class="tool-btn">Clear</button>
+          <span id="collage-count" style="color:var(--slate-500);">0</span>
+        </div>
+        <div class="ribbon-row">
+          <button class="tool-btn" id="btn-coll-add-text" title="Add text to canvas">T+</button>
+          <input type="color" id="coll-text-color" value="#ffffff" style="width:18px;height:16px;border:none;cursor:pointer;" title="Text color">
+          <input type="number" id="coll-text-size" class="input-field" value="36" min="8" max="200" style="width:48px;" title="Font size">
+          <select id="coll-text-font" class="select-field" style="width:72px;" title="Font"><option value="Inter, system-ui, sans-serif">Inter</option><option value="Georgia, serif">Georgia</option><option value="Courier New, monospace">Courier</option><option value="Arial, sans-serif">Arial</option><option value="Impact, sans-serif">Impact</option></select>
+        </div>
+        <div class="ribbon-row">
+          <button class="tool-btn" id="btn-arrange-grid" title="Auto-arrange: Grid" style="">Grid</button>
+          <button class="tool-btn" id="btn-arrange-row" title="Auto-arrange: Single row" style="">Row</button>
+          <button class="tool-btn" id="btn-arrange-col" title="Auto-arrange: Single column" style="">Col</button>
+          <button class="tool-btn" id="btn-arrange-stack" title="Auto-arrange: Stacked (overlap)" style="">Stack</button>
+          <button class="tool-btn" id="btn-tpl-polaroid" title="Template: Polaroid scatter" style="">Polaroid</button>
+          <button class="tool-btn" id="btn-tpl-filmstrip" title="Template: Film strip" style="">Film</button>
+          <button class="tool-btn" id="btn-tpl-magazine" title="Template: Magazine layout" style="">Magazine</button>
+        </div>
+      </div><div class="ribbon-label">Arrange</div></div>
       <div class="ribbon-sep-v"></div>
-      <div class="ribbon-group"><div class="ribbon-tools"><div id="collage-thumbs" style="display:flex;gap:3px;flex-wrap:wrap;max-width:200px;"></div></div><div class="ribbon-label">Images</div></div>
+      <!-- Selected Image Properties -->
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row">
+          <label class="toggle-chip"><input type="checkbox" id="coll-item-border">Border</label>
+          <input type="color" id="coll-item-border-color" value="#ffffff" style="width:18px;height:16px;border:none;cursor:pointer;" title="Border color">
+          <input type="number" id="coll-item-border-width" class="input-field" value="0" min="0" max="30" style="width:48px;" title="Border thickness">
+          <label class="toggle-chip"><input type="checkbox" id="coll-item-shadow">Shadow</label>
+          <input type="color" id="coll-item-shadow-color" value="#000000" style="width:18px;height:16px;border:none;cursor:pointer;" title="Shadow color">
+          <input type="number" id="coll-item-shadow-blur" class="input-field" value="12" min="0" max="50" style="width:48px;" title="Blur">
+        </div>
+        <div class="ribbon-row">
+          <span class="ribbon-mini-label">R</span><input type="number" id="coll-item-radius" class="input-field" value="0" min="0" max="100" style="width:48px;" title="Corner radius">
+          <select id="coll-item-filter" class="select-field" style="width:75px;" title="Filter"><option value="none">No filter</option><option value="grayscale">Grayscale</option><option value="sepia">Sepia</option><option value="brightness">Brighten</option><option value="blur">Blur</option><option value="invert">Invert</option></select>
+          <span class="ribbon-mini-label">Op</span><input type="range" id="coll-item-opacity" class="range-input" min="10" max="100" value="100" style="width:50px;" title="Opacity">
+          <select id="coll-item-blend" class="select-field" style="width:82px;" title="Blend mode"><option value="source-over">Normal</option><option value="multiply">Multiply</option><option value="screen">Screen</option><option value="overlay">Overlay</option><option value="soft-light">Soft Light</option><option value="hard-light">Hard Light</option><option value="darken">Darken</option><option value="lighten">Lighten</option><option value="difference">Difference</option><option value="color-dodge">Color Dodge</option><option value="color-burn">Color Burn</option><option value="exclusion">Exclusion</option><option value="hue">Hue</option><option value="saturation">Saturation</option><option value="color">Color</option><option value="luminosity">Luminosity</option></select>
+        </div>
+        <div class="ribbon-row">
+          <span class="ribbon-mini-label">L</span><input type="range" id="coll-edge-left" class="range-input" min="0" max="50" value="0" style="width:32px;" title="Left fade %">
+          <span class="ribbon-mini-label">R</span><input type="range" id="coll-edge-right" class="range-input" min="0" max="50" value="0" style="width:32px;" title="Right fade %">
+          <span class="ribbon-mini-label">T</span><input type="range" id="coll-edge-top" class="range-input" min="0" max="50" value="0" style="width:32px;" title="Top fade %">
+          <span class="ribbon-mini-label">B</span><input type="range" id="coll-edge-bottom" class="range-input" min="0" max="50" value="0" style="width:32px;" title="Bottom fade %">
+          <input type="color" id="coll-item-edge-color" value="#000000" style="width:18px;height:16px;border:none;cursor:pointer;" title="Fade color">
+        </div>
+      </div><div class="ribbon-label">Selected</div></div>
+      <div class="ribbon-sep-v"></div>
+      <!-- Transform -->
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row">
+          <button class="tool-btn" id="btn-coll-rot-left" title="Rotate 90° left">&#8634;</button>
+          <button class="tool-btn" id="btn-coll-rot-right" title="Rotate 90° right">&#8635;</button>
+          <button class="tool-btn" id="btn-coll-flip-h" title="Flip horizontal">&#8596;</button>
+          <button class="tool-btn" id="btn-coll-flip-v" title="Flip vertical">&#8597;</button>
+        </div>
+        <div class="ribbon-row">
+          <button class="tool-btn" id="btn-coll-front" title="Bring to front">Front</button>
+          <button class="tool-btn" id="btn-coll-forward" title="Bring forward">Up</button>
+          <button class="tool-btn" id="btn-coll-backward" title="Send backward">Down</button>
+          <button class="tool-btn" id="btn-coll-back" title="Send to back">Back</button>
+        </div>
+        <div class="ribbon-row">
+          <button class="tool-btn" id="btn-coll-delete" title="Delete" style="color:#ef4444;">Del</button>
+          <button class="tool-btn" id="btn-coll-deselect" title="Deselect">Desel</button>
+          <button class="tool-btn" id="btn-coll-group" title="Group (Ctrl+G)">Group</button>
+          <button class="tool-btn" id="btn-coll-ungroup" title="Ungroup (Ctrl+Shift+G)">Ungrp</button>
+        </div>
+      </div><div class="ribbon-label">Transform</div></div>
+      <div class="ribbon-sep-v"></div>
+      <!-- Style + Join -->
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row">
+          <button class="tool-btn" id="btn-coll-copy-style" title="Copy style from selected">Copy Style</button>
+          <button class="tool-btn" id="btn-coll-paste-style" title="Paste style to selected">Paste Style</button>
+          <select id="coll-shadow-preset" class="select-field" style="width:72px;" title="Shadow preset"><option value="">Shadow...</option><option value="float">Float</option><option value="contact">Contact</option><option value="long">Long</option><option value="none">None</option></select>
+        </div>
+        <div class="ribbon-row">
+          <button class="tool-btn" id="btn-coll-join" title="Join Blend: auto-fade edges" style="color:var(--saffron-400);">Join</button>
+          <select id="coll-join-effect" class="select-field" style="width:78px;" title="Join blend effect"><option value="source-over">Normal</option><option value="multiply">Multiply</option><option value="screen">Screen</option><option value="overlay">Overlay</option><option value="soft-light">Soft Light</option><option value="hard-light">Hard Light</option><option value="darken">Darken</option><option value="lighten">Lighten</option><option value="difference">Diff</option><option value="exclusion">Exclusion</option></select>
+        </div>
+      </div><div class="ribbon-label">Style</div></div>
+      <div class="ribbon-sep-v"></div>
+      <!-- Align -->
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row">
+          <button class="tool-btn" id="btn-align-left" title="Align left edges" style="">&#9664;L</button>
+          <button class="tool-btn" id="btn-align-center-h" title="Align centers horizontally" style="">&#9674;H</button>
+          <button class="tool-btn" id="btn-align-right" title="Align right edges" style="">&#9654;R</button>
+          <button class="tool-btn" id="btn-distribute-h" title="Distribute horizontal spacing" style="">&#8943;</button>
+        </div>
+        <div class="ribbon-row">
+          <button class="tool-btn" id="btn-align-top" title="Align top edges" style="">&#9650;T</button>
+          <button class="tool-btn" id="btn-align-center-v" title="Align centers vertically" style="">&#9674;V</button>
+          <button class="tool-btn" id="btn-align-bottom" title="Align bottom edges" style="">&#9660;B</button>
+          <button class="tool-btn" id="btn-distribute-v" title="Distribute vertical spacing" style="">&#8942;</button>
+        </div>
+        <div class="ribbon-row">
+          <button class="tool-btn" id="btn-center-canvas-h" title="Center on canvas horizontally" style="">Canvas H</button>
+          <button class="tool-btn" id="btn-center-canvas-v" title="Center on canvas vertically" style="">Canvas V</button>
+        </div>
+      </div><div class="ribbon-label">Align</div></div>
+      <div class="ribbon-sep-v"></div>
+      <!-- Export -->
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row">
+          <select id="collage-export-fmt" class="select-field" style="width:72px;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option></select>
+          <button id="btn-collage-export" class="tool-btn" style="border:1.5px solid var(--slate-600);padding:3px 10px;">Export</button><button class="tool-btn" id="btn-collage-save-lib" title="Save to Library"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+        </div>
+        <div class="ribbon-row">
+          <label class="toggle-chip"><input type="checkbox" id="collage-trim-export">Trim to content</label>
+        </div>
+        <div class="ribbon-row">
+          <button id="btn-collage-save" class="tool-btn" style="" title="Save project (.pixeroo)">Save</button>
+          <button id="btn-collage-load" class="tool-btn" style="" title="Load project (.pixeroo)">Load<input type="file" id="collage-load-file" accept=".pixeroo,.json" style="display:none;"></button>
+        </div>
+      </div><div class="ribbon-label">Export</div></div>
     </div></div>
-    <div class="work-area">
-      <div id="collage-drop" class="dropzone"><p class="drop-title">Drop multiple images to create a collage</p><p class="drop-sub">Select 2 or more images</p><input type="file" id="collage-files" accept="image/*" multiple style="display:none;"></div>
-      <canvas id="collage-canvas" style="display:none;max-width:90%;max-height:80%;border-radius:8px;"></canvas>
+    <div id="collage-hint" style="flex-shrink:0;padding:5px 12px;background:var(--slate-800);border-bottom:1px solid var(--slate-700);color:var(--slate-300);text-align:center;display:none;">Drop images to get started</div>
+    <div class="work-area" style="overflow:auto;">
+      <div id="collage-drop" class="dropzone"><p class="drop-title">Drop images to create a collage</p><p class="drop-sub">Freeform canvas — drag, resize, layer freely</p><input type="file" id="collage-files-drop" accept="image/*" multiple style="display:none;"></div>
+      <canvas id="collage-canvas" style="display:none;border-radius:4px;flex-shrink:0;cursor:default;"></canvas>
     </div>
   </div>
 
   <!-- ============================================================ -->
   <!-- MODE: Store Assets (special layout) -->
   <!-- ============================================================ -->
-  <div class="mode-view" id="mode-store">
-    <div class="store-nav">
-      <div class="store-nav-item active" data-store="all">All Stores <span class="badge" id="store-count-all">0</span></div>
-      <div class="store-nav-item" data-store="play">Google Play <span class="badge" id="store-count-play">0</span></div>
-      <div class="store-nav-item" data-store="apple">Apple <span class="badge" id="store-count-apple">0</span></div>
-      <div class="store-nav-item" data-store="chrome">Chrome <span class="badge" id="store-count-chrome">0</span></div>
-      <div class="store-nav-item" data-store="edge">Edge <span class="badge" id="store-count-edge">0</span></div>
-      <div class="store-nav-item" data-store="firefox">Firefox <span class="badge" id="store-count-firefox">0</span></div>
-      <div class="store-nav-item" data-store="ms">Microsoft <span class="badge" id="store-count-ms">0</span></div>
+  <div class="mode-view" id="mode-store" style="flex-direction:column;">
+    <div class="tool-ribbon">
+      <span class="ribbon-title">Source</span>
+      <div id="store-icon-drop" style="border:1px dashed var(--slate-700);border-radius:6px;padding:4px 10px;cursor:pointer;color:var(--slate-500);">Drop icon<input type="file" id="store-icon-file" accept="image/*" style="display:none;"></div>
+      <div id="store-icon-preview" style="display:none;"><canvas id="store-icon-canvas" style="height:28px;border-radius:4px;"></canvas></div>
+      <div id="store-screenshot-drop" style="border:1px dashed var(--slate-700);border-radius:6px;padding:4px 10px;cursor:pointer;color:var(--slate-500);">Drop screenshot<input type="file" id="store-screenshot-file" accept="image/*" style="display:none;"></div>
+      <div class="ribbon-sep"></div>
+      <span class="ribbon-title">Options</span>
+      <input type="color" id="store-bg-color" value="#1e293b" style="width:22px;height:22px;border:none;cursor:pointer;" title="Background color">
+      <span style="color:var(--slate-500);">Corner</span>
+      <input type="number" id="store-corner-radius" value="0" min="0" max="100" class="input-field" style="width:52px;">
+      <div class="ribbon-sep"></div>
+      <button id="btn-store-generate" class="btn-primary" style="padding:4px 12px;" disabled>Generate All</button>
+      <button id="btn-store-export" class="tool-btn" style="border-color:var(--saffron-400);color:var(--saffron-400);" disabled>Export All</button>
+      <div class="ribbon-sep"></div>
+      <span id="store-validation" style="color:var(--slate-500);">Upload icon to validate</span>
     </div>
-    <div id="store-assets" class="asset-grid"><div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--slate-500);font-size:0.8125rem;">Upload source icon to generate</div></div>
-    <div class="sidebar">
-      <div class="sidebar-section"><div class="sidebar-title">Source Icon</div><div id="store-icon-drop" style="border:1px dashed var(--slate-700);border-radius:8px;padding:1rem;text-align:center;cursor:pointer;"><p style="font-size:0.6875rem;color:var(--slate-500);">Drop 1024x1024 icon</p><input type="file" id="store-icon-file" accept="image/*" style="display:none;"></div><div id="store-icon-preview" style="display:none;margin-top:0.5rem;text-align:center;"><canvas id="store-icon-canvas" style="max-width:100%;border-radius:8px;"></canvas></div></div>
-      <div class="sidebar-section"><div class="sidebar-title">Source Screenshot</div><div id="store-screenshot-drop" style="border:1px dashed var(--slate-700);border-radius:8px;padding:1rem;text-align:center;cursor:pointer;"><p style="font-size:0.6875rem;color:var(--slate-500);">Drop screenshot</p><input type="file" id="store-screenshot-file" accept="image/*" style="display:none;"></div></div>
-      <div class="sidebar-section"><div class="sidebar-title">Background</div><div style="display:flex;gap:0.5rem;"><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">Color</label><input type="color" id="store-bg-color" value="#1e293b" style="width:100%;height:28px;border:none;cursor:pointer;"></div><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">Corner</label><input type="number" id="store-corner-radius" value="0" min="0" max="100" class="input-field"></div></div></div>
-      <div class="sidebar-section"><button id="btn-store-generate" class="btn-primary" style="width:100%;margin-bottom:0.375rem;" disabled>Generate All</button><button id="btn-store-export" class="btn-primary" style="width:100%;background:var(--slate-800);color:var(--saffron-400);border:1px solid var(--saffron-400);" disabled>Export All</button></div>
-      <div class="sidebar-section"><div class="sidebar-title">Validation</div><div id="store-validation" style="font-size:0.6875rem;color:var(--slate-500);">Upload source icon to validate</div></div>
+    <div class="tool-ribbon" style="padding:0.25rem 0.75rem;gap:0;">
+      <div class="store-nav-item active" data-store="all" style="padding:4px 8px;">All <span class="badge" id="store-count-all">0</span></div>
+      <div class="store-nav-item" data-store="play" style="padding:4px 8px;">Play <span class="badge" id="store-count-play">0</span></div>
+      <div class="store-nav-item" data-store="apple" style="padding:4px 8px;">Apple <span class="badge" id="store-count-apple">0</span></div>
+      <div class="store-nav-item" data-store="chrome" style="padding:4px 8px;">Chrome <span class="badge" id="store-count-chrome">0</span></div>
+      <div class="store-nav-item" data-store="edge" style="padding:4px 8px;">Edge <span class="badge" id="store-count-edge">0</span></div>
+      <div class="store-nav-item" data-store="firefox" style="padding:4px 8px;">Firefox <span class="badge" id="store-count-firefox">0</span></div>
+      <div class="store-nav-item" data-store="ms" style="padding:4px 8px;">Microsoft <span class="badge" id="store-count-ms">0</span></div>
+    </div>
+    <div class="tool-content" style="padding:0.75rem;">
+      <div id="store-assets" class="asset-grid"><div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--slate-500);">Upload source icon to generate</div></div>
     </div>
   </div>
 
   <!-- ============================================================ -->
   <!-- MODE: Info (sidebar for scrollable lists) -->
   <!-- ============================================================ -->
-  <div class="mode-view" id="mode-info">
-    <div class="work-area"><div id="info-drop" class="dropzone"><p class="drop-title">Drop an image to inspect metadata</p><p class="drop-sub">EXIF, JPEG structure, ICC profiles</p><input type="file" id="info-file" accept="image/*" style="display:none;"></div><div id="info-preview" style="display:none;text-align:center;"><img id="info-img" src="" alt="" style="max-width:80%;max-height:60vh;border-radius:8px;"></div></div>
-    <div class="sidebar">
-      <div class="sidebar-section"><div class="sidebar-title">File Info</div><div id="info-file-details"><span style="color:var(--slate-500);font-size:0.75rem;">No image loaded</span></div></div>
-      <div class="sidebar-section"><div class="sidebar-title">DPI / Resolution</div><div id="info-dpi"><span style="color:var(--slate-500);font-size:0.75rem;">No image loaded</span></div></div>
-      <div class="sidebar-section"><div class="sidebar-title">EXIF</div><div id="info-exif"><span style="color:var(--slate-500);font-size:0.75rem;">No image loaded</span></div></div>
-      <div class="sidebar-section"><div class="sidebar-title">JPEG Structure</div><div id="info-structure"><span style="color:var(--slate-500);font-size:0.75rem;">No image loaded</span></div></div>
-      <div class="sidebar-section"><div class="sidebar-title">Image Hash</div><div id="info-hash"><span style="color:var(--slate-500);font-size:0.75rem;">No image loaded</span></div></div>
-      <div class="sidebar-section"><div class="sidebar-title">Base64</div><button id="btn-copy-base64" class="tool-btn" style="width:100%;justify-content:center;font-size:0.6875rem;" disabled>Copy as Data URI</button></div>
+  <div class="mode-view" id="mode-info" style="flex-direction:column;">
+    <div class="tool-ribbon">
+      <span class="ribbon-title">Info</span>
+      <div class="ribbon-sep"></div>
+      <button id="btn-copy-base64" class="tool-btn" style="" disabled>Copy Data URI</button>
+      <button id="btn-info-strip-meta" class="tool-btn" style="" disabled>Strip Metadata</button>
+    </div>
+    <div class="tool-content">
+      <div id="info-drop" class="dropzone" style="max-width:500px;margin:2rem auto;"><p class="drop-title">Drop an image to inspect metadata</p><p class="drop-sub">EXIF, JPEG structure, ICC profiles</p><input type="file" id="info-file" accept="image/*" style="display:none;"></div>
+      <div id="info-preview" style="display:none;text-align:center;margin-bottom:1rem;"><img id="info-img" src="" alt="" style="max-width:60%;max-height:40vh;border-radius:8px;"></div>
+      <div id="info-details-grid" style="display:none;max-width:700px;margin:0 auto;gap:0.75rem;">
+        <div class="sidebar-section" style="border:1px solid var(--slate-800);border-radius:8px;"><div class="sidebar-title">File Info</div><div id="info-file-details"><span style="color:var(--slate-500);">No image loaded</span></div></div>
+        <div class="sidebar-section" style="border:1px solid var(--slate-800);border-radius:8px;"><div class="sidebar-title">DPI / Resolution</div><div id="info-dpi"><span style="color:var(--slate-500);">No image loaded</span></div></div>
+        <div class="sidebar-section" style="border:1px solid var(--slate-800);border-radius:8px;"><div class="sidebar-title">EXIF</div><div id="info-exif"><span style="color:var(--slate-500);">No image loaded</span></div></div>
+        <div class="sidebar-section" style="border:1px solid var(--slate-800);border-radius:8px;"><div class="sidebar-title">JPEG Structure</div><div id="info-structure"><span style="color:var(--slate-500);">No image loaded</span></div></div>
+        <div class="sidebar-section" style="border:1px solid var(--slate-800);border-radius:8px;grid-column:span 2;"><div class="sidebar-title">Image Hash</div><div id="info-hash"><span style="color:var(--slate-500);">No image loaded</span></div></div>
+      </div>
     </div>
   </div>
 
   <!-- ============================================================ -->
   <!-- MODE: QR Code (sidebar for text input) -->
   <!-- ============================================================ -->
-  <div class="mode-view" id="mode-qr">
-    <div class="work-area" style="flex-direction:column;gap:0.75rem;">
-      <canvas id="qr-canvas" style="border-radius:8px;"></canvas>
-      <div style="display:flex;gap:0.5rem;">
-        <button id="btn-qr-copy" class="tool-btn" style="gap:4px;padding:6px 12px;font-size:0.75rem;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button>
-        <button id="btn-qr-download" class="tool-btn" style="gap:4px;padding:6px 12px;font-size:0.75rem;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>PNG</button>
-        <button id="btn-qr-svg" class="tool-btn" style="gap:4px;padding:6px 12px;font-size:0.75rem;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>SVG</button>
+  <div class="mode-view" id="mode-qr" style="flex-direction:column;">
+    <div class="tool-ribbon" style="align-items:stretch;">
+      <div class="ribbon-bar">
+        <!-- Content -->
+        <div class="ribbon-group">
+          <div class="ribbon-tools">
+            <textarea id="qr-text" class="input-field" placeholder="URL, text, WiFi, vCard..." rows="2" maxlength="2953" style="width:220px;min-height:40px;resize:vertical;" title="Enter text, URL, or structured data. QR generates live as you type. Max ~2953 characters."></textarea>
+          </div>
+          <div class="ribbon-label">Content</div>
+        </div>
+        <!-- Presets -->
+        <div class="ribbon-group">
+          <div class="ribbon-tools">
+            <div style="display:grid;grid-template-columns:repeat(4,auto);gap:3px;">
+              <button class="tool-btn" data-qr-preset="url" title="Website URL">URL</button>
+              <button class="tool-btn" data-qr-preset="wifi" title="WiFi credentials">WiFi</button>
+              <button class="tool-btn" data-qr-preset="email" title="Email">Email</button>
+              <button class="tool-btn" data-qr-preset="phone" title="Phone number">Phone</button>
+              <button class="tool-btn" data-qr-preset="vcard" title="Contact card">vCard</button>
+              <button class="tool-btn" data-qr-preset="sms" title="SMS message">SMS</button>
+              <button class="tool-btn" data-qr-preset="geo" title="Map location">Geo</button>
+              <button class="tool-btn" data-qr-preset="event" title="Calendar event">Event</button>
+            </div>
+          </div>
+          <div class="ribbon-label">Presets</div>
+        </div>
+        <!-- Style -->
+        <div class="ribbon-group">
+          <div class="ribbon-tools">
+            <div class="ribbon-row">
+              <select id="qr-style" class="select-field" style="width:80px;" title="Dot shape: Square (classic), Rounded (modern), Dots (circular)"><option value="square">Square</option><option value="rounded">Rounded</option><option value="dots">Dots</option></select>
+              <select id="qr-ecc" class="select-field" style="width:70px;" title="Error correction level: Higher = more damage tolerance but larger QR. Auto-set to High when logo is used."><option value="L">Low</option><option value="M" selected>Medium</option><option value="Q">Quartile</option><option value="H">High</option></select>
+            </div>
+            <div class="ribbon-row">
+              <span style="color:var(--slate-500);" title="Size of each QR module in pixels — larger = bigger output image">Px</span><input type="range" class="range-input" id="qr-px" min="2" max="20" value="8" style="width:50px;" title="Module pixel size (2–20)"><span class="range-value" id="qr-px-val">8</span>
+              <span style="color:var(--slate-500);" title="Quiet zone around the QR code — recommended at least 2">Mg</span><input type="range" class="range-input" id="qr-margin" min="0" max="10" value="4" style="width:40px;" title="Margin modules (0–10)"><span class="range-value" id="qr-margin-val">4</span>
+            </div>
+            <div class="ribbon-row">
+              <label class="toggle-chip" title="Compact mode: smallest QR possible for the content"><input type="checkbox" id="qr-compact">Compact</label>
+            </div>
+          </div>
+          <div class="ribbon-label">Style</div>
+        </div>
+        <!-- Colors & Label -->
+        <div class="ribbon-group">
+          <div class="ribbon-tools">
+            <div class="ribbon-row">
+              <span style="color:var(--slate-500);" title="QR module color — must contrast with background for scanners to read">FG</span><input type="color" id="qr-fg" value="#000000" style="width:22px;height:20px;border:none;cursor:pointer;" title="Foreground (dot) color">
+              <span style="color:var(--slate-500);" title="Background color behind the QR code">BG</span><input type="color" id="qr-bg" value="#ffffff" style="width:22px;height:20px;border:none;cursor:pointer;" title="Background color">
+            </div>
+            <div class="ribbon-row">
+              <label class="toggle-chip" title="Apply gradient to QR modules"><input type="checkbox" id="qr-gradient">Gradient</label>
+              <input type="color" id="qr-fg2" value="#0066ff" style="width:22px;height:20px;border:none;cursor:pointer;display:none;" title="Gradient end color">
+            </div>
+            <div class="ribbon-row">
+              <input type="text" id="qr-label" class="input-field" placeholder="Scan Me" maxlength="30" style="width:90px;" title="Optional label below QR (max 30 chars)">
+            </div>
+          </div>
+          <div class="ribbon-label">Colors</div>
+        </div>
+        <!-- Logo -->
+        <div class="ribbon-group">
+          <div class="ribbon-tools">
+            <div class="ribbon-row">
+              <button id="btn-qr-logo" class="tool-btn" title="Upload a logo or icon to embed in the center of the QR code. Error correction auto-set to High.">Upload</button>
+              <button id="btn-qr-logo-clear" class="tool-btn" title="Remove the center logo" style="display:none;">&#x2715;</button>
+              <input type="file" id="qr-logo-file" accept="image/*" style="display:none;">
+            </div>
+            <div class="ribbon-row">
+              <button id="btn-qr-bg-img" class="tool-btn" title="Set background image behind QR">BG Image</button>
+              <button id="btn-qr-bg-img-clear" class="tool-btn" style="display:none;" title="Remove background image">&#x2715;</button>
+              <input type="file" id="qr-bg-img-file" accept="image/*" style="display:none;">
+            </div>
+          </div>
+          <div class="ribbon-label">Logo</div>
+        </div>
+        <!-- Generate -->
+        <div class="ribbon-group">
+          <div class="ribbon-tools">
+            <button id="btn-qr-generate" class="btn-primary" style="padding:5px 14px;" title="Generate QR code (also auto-generates as you type)">Generate</button>
+            <div class="ribbon-row">
+              <button id="btn-qr-bulk" class="tool-btn" title="Opens a separate list — paste multiple URLs/texts, one per line. Downloads as ZIP.">Bulk List</button>
+              <button id="btn-qr-reset" class="tool-btn" title="Reset all QR settings to defaults" style="color:var(--slate-500);">Reset</button>
+            </div>
+          </div>
+          <div class="ribbon-label">Generate</div>
+        </div>
+        <!-- Export -->
+        <div class="ribbon-group">
+          <div class="ribbon-tools">
+            <div class="ribbon-row">
+              <button id="btn-qr-copy" class="tool-btn" title="Copy QR image to clipboard (paste into docs, chat, etc.)">Copy</button>
+              <button id="btn-qr-copy-text" class="tool-btn" title="Copy the raw text/URL encoded in the QR to clipboard">Text</button>
+              <button class="tool-btn" id="btn-qr-save-lib" title="Save to Library"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+            </div>
+            <div class="ribbon-row">
+              <button id="btn-qr-download" class="tool-btn" title="Download QR as PNG image">PNG</button>
+              <button id="btn-qr-svg" class="tool-btn" title="Download QR as scalable SVG vector">SVG</button>
+              <button id="btn-qr-sizes" class="tool-btn" title="Download QR in 4 sizes (128, 256, 512, 1024px) as ZIP">Sizes</button>
+            </div>
+          </div>
+          <div class="ribbon-label">Export</div>
+        </div>
       </div>
     </div>
-    <div class="sidebar">
-      <div class="sidebar-section"><div class="sidebar-title">Content</div><textarea id="qr-text" class="input-field" placeholder="URL, text, WiFi, vCard..." rows="4"></textarea></div>
-      <div class="sidebar-section"><div class="sidebar-title">Presets</div><div class="btn-row"><button class="tool-btn" data-qr-preset="url">URL</button><button class="tool-btn" data-qr-preset="wifi">WiFi</button><button class="tool-btn" data-qr-preset="email">Email</button><button class="tool-btn" data-qr-preset="phone">Phone</button><button class="tool-btn" data-qr-preset="vcard">vCard</button></div></div>
-      <div class="sidebar-section"><div class="sidebar-title">Error Correction</div><select id="qr-ecc" class="select-field"><option value="L">Low</option><option value="M" selected>Medium</option><option value="Q">Quartile</option><option value="H">High</option></select></div>
-      <div class="sidebar-section"><div class="sidebar-title">Size</div><div class="range-row"><span class="range-label">Pixel</span><span class="range-value" id="qr-px-val">8</span></div><input type="range" class="range-input" id="qr-px" min="2" max="20" value="8"><div class="range-row" style="margin-top:0.375rem;"><span class="range-label">Margin</span><span class="range-value" id="qr-margin-val">4</span></div><input type="range" class="range-input" id="qr-margin" min="0" max="10" value="4"></div>
-      <div class="sidebar-section"><div class="sidebar-title">Colors</div><div style="display:flex;gap:0.5rem;"><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">FG</label><input type="color" id="qr-fg" value="#000000" style="width:100%;height:28px;border:none;cursor:pointer;"></div><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">BG</label><input type="color" id="qr-bg" value="#ffffff" style="width:100%;height:28px;border:none;cursor:pointer;"></div></div></div>
-      <div class="sidebar-section"><button id="btn-qr-generate" class="btn-primary" style="width:100%;">Generate QR Code</button></div>
-      <div class="sidebar-section"><div class="sidebar-title">Read QR</div><div id="qr-read-drop" style="border:1px dashed var(--slate-700);border-radius:8px;padding:0.75rem;text-align:center;cursor:pointer;"><p style="font-size:0.6875rem;color:var(--slate-500);">Drop image with QR code</p><input type="file" id="qr-read-file" accept="image/*" style="display:none;"></div><div id="qr-read-result" style="margin-top:0.5rem;font-size:0.75rem;color:var(--slate-300);display:none;"></div></div>
+    <!-- Mode tabs -->
+    <div style="display:flex;border-bottom:1px solid var(--slate-800);flex-shrink:0;">
+      <button class="qr-mode-tab active" data-qr-mode="generate" style="flex:1;padding:0.5rem;text-align:center;font-weight:600;cursor:pointer;border:none;background:none;color:var(--saffron-400);border-bottom:2px solid var(--saffron-400);transition:all 0.12s;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:-2px;margin-right:4px;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h7v7"/></svg>
+        Generate QR
+      </button>
+      <button class="qr-mode-tab" data-qr-mode="read" style="flex:1;padding:0.5rem;text-align:center;font-weight:600;cursor:pointer;border:none;background:none;color:var(--slate-500);border-bottom:2px solid transparent;transition:all 0.12s;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:-2px;margin-right:4px;"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        Read QR
+      </button>
+    </div>
+
+    <!-- Generate panel -->
+    <div id="qr-panel-generate" class="tool-content" style="display:flex;flex-direction:column;align-items:center;gap:1rem;padding:1rem;">
+      <div style="text-align:center;max-width:400px;width:100%;">
+        <p style="color:var(--slate-400);margin-bottom:0.75rem;">Type your text or URL above &mdash; QR updates live as you type</p>
+        <canvas id="qr-canvas" style="border-radius:8px;"></canvas>
+      </div>
+      <!-- QR History -->
+      <div id="qr-history" style="width:100%;max-width:500px;display:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+          <span style="color:var(--slate-400);font-weight:600;">Recent QR Codes</span>
+          <button id="btn-qr-history-clear" class="tool-btn" title="Clear history" style="padding:2px 6px;">Clear</button>
+        </div>
+        <div id="qr-history-list" style="display:flex;gap:8px;overflow-x:auto;padding:4px 0;"></div>
+      </div>
+    </div>
+
+    <!-- Read panel -->
+    <div id="qr-panel-read" class="tool-content" style="display:none;flex-direction:column;align-items:center;gap:1rem;padding:2rem;">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--slate-600)" stroke-width="1.5" style="margin-bottom:0.5rem;"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+      <p style="color:var(--slate-400);font-weight:600;margin-bottom:0.25rem;">Decode a QR code from an image</p>
+      <p style="color:var(--slate-500);margin-bottom:1rem;">Drop an image file or click to browse. The QR content will be extracted and shown below.</p>
+      <div id="qr-read-drop" style="border:1px dashed var(--slate-700);border-radius:8px;padding:1.5rem 2rem;text-align:center;cursor:pointer;max-width:400px;width:100%;"><p class="drop-title">Drop image with QR code</p><p class="drop-sub">PNG, JPG, SVG — any image with a QR</p><input type="file" id="qr-read-file" accept="image/*" style="display:none;"></div>
+      <div id="qr-read-result" style="color:var(--slate-300);display:none;max-width:500px;width:100%;background:var(--slate-800);border-radius:8px;padding:0.75rem;word-break:break-all;margin-top:0.5rem;"></div>
     </div>
   </div>
 
   <!-- ============================================================ -->
   <!-- MODE: Colors (sidebar for palette list) -->
   <!-- ============================================================ -->
-  <div class="mode-view" id="mode-colors">
-    <div class="work-area"><div id="colors-drop" class="dropzone"><p class="drop-title">Drop an image to extract colors</p><p class="drop-sub">Click any pixel to pick a color</p><input type="file" id="colors-file" accept="image/*" style="display:none;"></div><div id="colors-preview" style="display:none;text-align:center;"><canvas id="colors-canvas" style="max-width:80%;max-height:60vh;border-radius:8px;cursor:crosshair;"></canvas></div></div>
-    <div class="sidebar">
-      <div class="sidebar-section"><div class="sidebar-title">Eyedropper</div><div id="picked-color" style="text-align:center;color:var(--slate-500);font-size:0.75rem;">Click any pixel</div></div>
-      <div class="sidebar-section"><div class="sidebar-title">Dominant Palette</div><div id="palette-colors"><span style="color:var(--slate-500);font-size:0.75rem;">No image loaded</span></div></div>
-      <div class="sidebar-section"><div class="sidebar-title">Count</div><div class="range-row"><span class="range-label">Colors</span><span class="range-value" id="palette-count-val">6</span></div><input type="range" class="range-input" id="palette-count" min="2" max="12" value="6"><button id="btn-reextract" class="btn-primary" style="width:100%;margin-top:0.5rem;font-size:0.75rem;">Re-extract</button></div>
+  <div class="mode-view" id="mode-colors" style="flex-direction:column;">
+    <div class="tool-ribbon">
+      <span class="ribbon-title">Eyedropper</span>
+      <div id="picked-color" style="color:var(--slate-500);">Click any pixel</div>
+      <div class="ribbon-sep"></div>
+      <span class="ribbon-title">Palette</span>
+      <div style="display:flex;align-items:center;gap:5px;"><span style="color:var(--slate-500);">Colors</span><input type="range" class="range-input" id="palette-count" min="2" max="12" value="6" style="width:60px;"><span class="range-value" id="palette-count-val" style="width:14px;">6</span></div>
+      <button id="btn-reextract" class="tool-btn" style="">Re-extract</button>
+    </div>
+    <div class="tool-content" style="display:flex;flex-direction:column;align-items:center;gap:1rem;">
+      <div id="colors-drop" class="dropzone" style="max-width:500px;width:100%;"><p class="drop-title">Drop an image to extract colors</p><p class="drop-sub">Click any pixel to pick a color</p><input type="file" id="colors-file" accept="image/*" style="display:none;"></div>
+      <div id="colors-preview" style="display:none;text-align:center;"><canvas id="colors-canvas" style="max-width:90%;max-height:50vh;border-radius:8px;cursor:crosshair;"></canvas></div>
+      <div id="palette-colors" style="display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;max-width:600px;"><span style="color:var(--slate-500);">No image loaded</span></div>
     </div>
   </div>
 
   <!-- ============================================================ -->
   <!-- MODE: SVG (sidebar for source code) -->
   <!-- ============================================================ -->
-  <div class="mode-view" id="mode-svg">
-    <div class="work-area"><div id="svg-drop" class="dropzone"><p class="drop-title">Drop an SVG file</p><p class="drop-sub">.svg files only</p><input type="file" id="svg-file" accept=".svg,image/svg+xml" style="display:none;"></div><div id="svg-preview" style="display:none;text-align:center;"><img id="svg-img" src="" alt="" style="max-width:80%;max-height:60vh;border-radius:8px;background:var(--slate-800);"></div></div>
-    <div class="sidebar">
-      <div class="sidebar-section"><div class="sidebar-title">SVG Info</div><div id="svg-info"><span style="color:var(--slate-500);font-size:0.75rem;">No SVG loaded</span></div></div>
-      <div class="sidebar-section"><div class="sidebar-title">Export Raster</div><div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;"><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">W</label><input type="number" id="svg-export-w" class="input-field"></div><div style="flex:1;"><label class="range-label" style="display:block;margin-bottom:2px;">H</label><input type="number" id="svg-export-h" class="input-field"></div></div><select id="svg-export-fmt" class="select-field" style="margin-bottom:0.5rem;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option></select><button id="btn-svg-export" class="btn-primary" style="width:100%;" disabled>Export Raster</button></div>
-      <div class="sidebar-section"><div class="sidebar-title">Source</div><div id="svg-source" class="svg-source">No SVG loaded</div><button id="btn-svg-copy-source" class="tool-btn" style="width:100%;margin-top:0.5rem;justify-content:center;font-size:0.6875rem;">Copy Source</button></div>
+  <div class="mode-view" id="mode-svg" style="flex-direction:column;">
+    <div class="tool-ribbon">
+      <span class="ribbon-title">SVG Inspect</span>
+      <div class="ribbon-sep"></div>
+      <span style="color:var(--slate-500);">Export</span>
+      <input type="number" id="svg-export-w" class="input-field" style="width:58px;" placeholder="W">
+      <span style="color:var(--slate-500);">x</span>
+      <input type="number" id="svg-export-h" class="input-field" style="width:58px;" placeholder="H">
+      <select id="svg-export-fmt" class="select-field" style="width:auto;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option></select>
+      <button id="btn-svg-export" class="tool-btn" style="" disabled>Export Raster</button>
+      <button id="btn-svg-copy-source" class="tool-btn" style="">Copy Source</button>
+      <div class="ribbon-sep"></div>
+      <span class="ribbon-title">Trace</span>
+      <select id="trace-preset" class="select-field" style="width:auto;" title="Trace style">
+        <option value="default">Default</option><option value="logo">Logo</option><option value="sketch">Sketch</option>
+        <option value="photo">Photo</option><option value="posterized">Posterized</option><option value="curvy">Curvy</option>
+        <option value="sharp">Sharp</option><option value="detailed">Detailed</option><option value="smoothed">Smoothed</option>
+        <option value="grayscale">Grayscale</option><option value="artistic">Artistic</option><option value="minimal">Minimal</option>
+      </select>
+      <input type="number" id="trace-colors" class="input-field" value="16" min="2" max="128" style="width:52px;" title="Number of colors">
+      <button id="btn-trace-go" class="btn-primary" style="padding:4px 10px;" disabled>Trace</button>
+      <button id="btn-trace-download" class="tool-btn" style="display:none;">Download</button>
+      <button id="btn-trace-copy" class="tool-btn" style="display:none;">Copy</button>
+      <button class="tool-btn" id="btn-trace-save-lib" title="Save traced image to Library" style="display:none;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+      <span id="trace-stats" style="color:var(--slate-500);"></span>
+      <div class="ribbon-sep"></div>
+      <button class="tool-btn" id="btn-svg-guides" title="Toggle grid overlay" style=""><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg></button>
     </div>
+    <div class="tool-content" style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;">
+      <!-- Left: SVG inspect -->
+      <div style="flex:1;min-width:280px;max-width:500px;">
+        <div id="svg-drop" class="dropzone" style="margin-bottom:1rem;"><p class="drop-title">Drop an SVG file</p><p class="drop-sub">.svg files only</p><input type="file" id="svg-file" accept=".svg,image/svg+xml" style="display:none;"></div>
+        <div id="svg-preview" style="display:none;text-align:center;margin-bottom:1rem;"><img id="svg-img" src="" alt="" style="max-width:100%;max-height:50vh;border-radius:8px;background:var(--slate-800);"></div>
+        <div id="svg-info" style="margin-bottom:0.75rem;"><span style="color:var(--slate-500);">No SVG loaded</span></div>
+        <div id="svg-source" class="svg-source">No SVG loaded</div>
+      </div>
+      <!-- Right: Image trace -->
+      <div style="flex:1;min-width:280px;max-width:500px;">
+        <div id="trace-drop" class="dropzone" style="margin-bottom:1rem;"><p class="drop-title">Drop image to trace</p><p class="drop-sub">PNG, JPEG, WebP, BMP → SVG</p><input type="file" id="trace-file" accept="image/*" style="display:none;"></div>
+        <div id="trace-result" style="display:none;">
+          <div id="trace-preview" style="text-align:center;background:var(--slate-800);border-radius:8px;padding:0.75rem;max-height:50vh;overflow:auto;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- ============================================================ -->
+  <!-- MODE: Batch Edit -->
+  <!-- ============================================================ -->
+  <div class="mode-view" id="mode-batch" style="flex-direction:column;">
+    <div class="edit-ribbon"><div class="ribbon-bar">
+      <!-- Resize -->
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row"><span class="ribbon-mini-label">W</span><input type="number" id="batch-w" class="input-field" placeholder="px" style="width:58px;"><span class="ribbon-mini-label">H</span><input type="number" id="batch-h" class="input-field" placeholder="px" style="width:58px;"><label class="toggle-chip"><input type="checkbox" id="batch-lock" checked>Lock</label></div>
+        <div class="ribbon-row"><label class="toggle-chip"><input type="checkbox" id="batch-multi-size">Multi-size</label><input type="text" id="batch-sizes" class="input-field" value="150,600,1200" style="width:90px;" title="Comma-separated widths (px)"></div>
+      </div><div class="ribbon-label">Resize</div></div>
+      <div class="ribbon-sep-v"></div>
+      <!-- Pipeline -->
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row"><button class="tool-btn" id="btn-batch-import-pipeline" title="Import operations from Edit mode">Import Edit</button></div>
+        <div class="ribbon-row"><span id="batch-pipeline-info" style="font-size:0.5625rem;color:var(--slate-500);">No pipeline</span></div>
+      </div><div class="ribbon-label">Pipeline</div></div>
+      <div class="ribbon-sep-v"></div>
+      <!-- Filter -->
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row"><select id="batch-filter" class="select-field" style="width:85px;"><option value="none">No filter</option><option value="grayscale">Grayscale</option><option value="sepia">Sepia</option><option value="sharpen">Sharpen</option><option value="blur">Blur</option><option value="invert">Invert</option></select></div>
+      </div><div class="ribbon-label">Filter</div></div>
+      <div class="ribbon-sep-v"></div>
+      <!-- Watermark -->
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row"><input type="text" id="batch-watermark" class="input-field" placeholder="Watermark text" style="width:80px;"><span class="ribbon-mini-label">Op</span><input type="range" id="batch-wm-opacity" class="range-input" min="10" max="100" value="30" style="width:40px;"><span class="range-value" id="batch-wm-opacity-val">30</span></div>
+        <div class="ribbon-row"><select id="batch-wm-mode" class="select-field" style="width:78px;" title="Watermark mode"><option value="text">Text</option><option value="diagonal">Diagonal</option><option value="grid">Grid</option><option value="stamp">Stamp</option><option value="image">Image</option></select><select id="batch-wm-position" class="select-field" style="width:78px;" title="Position"><option value="center">Center</option><option value="tiled">Tiled</option><option value="bottom-right">Bot Right</option><option value="bottom-left">Bot Left</option><option value="top-right">Top Right</option><option value="top-left">Top Left</option></select></div>
+        <div class="ribbon-row"><input type="color" id="batch-wm-color" value="#ffffff" style="width:18px;height:16px;border:none;cursor:pointer;" title="Watermark color"><select id="batch-wm-font" class="select-field" style="width:72px;" title="Font"><option value="Inter, system-ui, sans-serif">Inter</option><option value="Georgia, serif">Georgia</option><option value="Courier New, monospace">Courier</option><option value="Arial, sans-serif">Arial</option><option value="Impact, sans-serif">Impact</option></select><div id="batch-wm-img-btn" style="display:none;cursor:pointer;border:1px dashed var(--slate-600);border-radius:4px;padding:2px 6px;color:var(--slate-400);"><input type="file" id="batch-wm-img-file" accept="image/*" style="display:none;">Logo</div></div>
+      </div><div class="ribbon-label">Watermark</div></div>
+      <div class="ribbon-sep-v"></div>
+      <!-- Output -->
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row"><select id="batch-format" class="select-field" style="width:72px;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option><option value="original">Original</option></select><span class="ribbon-mini-label">Q</span><input type="range" id="batch-quality" class="range-input" min="1" max="100" value="85" style="width:40px;"><span class="range-value" id="batch-quality-val">85</span></div>
+        <div class="ribbon-row"><label class="toggle-chip"><input type="checkbox" id="batch-strip-meta">Strip meta</label><label class="toggle-chip"><input type="checkbox" id="batch-add-copyright">Copyright</label><input type="text" id="batch-copyright-text" class="input-field" value="© {year} All Rights Reserved" style="width:110px;display:none;" title="Copyright text. {year} = current year"></div>
+      </div><div class="ribbon-label">Output</div></div>
+      <div class="ribbon-sep-v"></div>
+      <!-- Rename -->
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row"><input type="text" id="batch-rename" class="input-field" value="{name}" style="width:110px;" title="{name} {index} {date} {w} {h} {ext}"></div>
+        <div class="ribbon-row"><span id="batch-rename-preview" style="color:var(--saffron-400);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span></div>
+        <div class="ribbon-row" style="flex-wrap:wrap;gap:2px;" id="batch-rename-tokens"><button class="tool-btn" data-token="{name}" style="font-size:0.5rem;padding:1px 4px;">{name}</button><button class="tool-btn" data-token="{index}" style="font-size:0.5rem;padding:1px 4px;">{index}</button><button class="tool-btn" data-token="{date}" style="font-size:0.5rem;padding:1px 4px;">{date}</button><button class="tool-btn" data-token="{w}" style="font-size:0.5rem;padding:1px 4px;">{w}</button><button class="tool-btn" data-token="{h}" style="font-size:0.5rem;padding:1px 4px;">{h}</button></div>
+      </div><div class="ribbon-label">Rename</div></div>
+      <div class="ribbon-sep-v"></div>
+      <!-- Actions -->
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row"><button id="btn-batch-preview" class="tool-btn" disabled title="Preview selected image with current settings">Preview</button><button id="btn-batch-process" class="btn-primary" style="padding:3px 12px;" disabled>Process All</button><label class="toggle-chip" id="batch-zip-label"><input type="checkbox" id="batch-zip" checked>Zip</label></div>
+        <div class="ribbon-row"><button class="tool-btn" id="btn-batch-from-lib" title="Add from Library">Library</button><button class="tool-btn" id="btn-batch-sel-all" title="Select all">All</button><button class="tool-btn" id="btn-batch-sel-none" title="Deselect all">None</button><button class="tool-btn" id="btn-batch-check" title="Check consistency">Check</button><button class="tool-btn" id="btn-batch-clear" title="Clear all images" style="color:#ef4444;">Clear</button></div>
+        <div class="ribbon-row"><span id="batch-status" style="color:var(--slate-500);">0 images loaded</span></div>
+      </div><div class="ribbon-label">Actions</div></div>
+      <div class="ribbon-sep-v"></div>
+      <!-- Extra Tools -->
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row">
+          <button class="tool-btn" id="btn-batch-lqip" title="Generate lazy-load placeholders (tiny blurred)">LQIP</button><input type="number" id="batch-lqip-size" class="input-field" value="20" min="10" max="100" style="width:48px;" title="Placeholder width (px). 20=tiny, 60=medium">
+          <button class="tool-btn" id="btn-batch-social" title="Generate social media sizes for all images">Social</button>
+          <button class="tool-btn" id="btn-batch-report" title="Generate processing report">Report</button>
+        </div>
+        <div class="ribbon-row">
+          <select id="batch-ratio-enforce" class="select-field" style="width:72px;" title="Enforce aspect ratio"><option value="none">No crop</option><option value="1:1">1:1</option><option value="4:3">4:3</option><option value="16:9">16:9</option><option value="3:2">3:2</option><option value="2:3">2:3 Port</option></select>
+          <label class="toggle-chip"><input type="checkbox" id="batch-normalize">Normalize</label>
+          <button class="tool-btn" id="btn-batch-dupes" title="Detect duplicate/similar images">Dupes</button>
+        </div>
+      </div><div class="ribbon-label">Tools</div></div>
+      <div class="ribbon-sep-v"></div>
+      <!-- Crop + Presets -->
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row">
+          <span class="ribbon-mini-label">Crop</span>
+          <input type="number" id="batch-crop-t" class="input-field" value="0" min="0" style="width:40px;" title="Crop top (px)">
+          <input type="number" id="batch-crop-r" class="input-field" value="0" min="0" style="width:40px;" title="Crop right (px)">
+          <input type="number" id="batch-crop-b" class="input-field" value="0" min="0" style="width:40px;" title="Crop bottom (px)">
+          <input type="number" id="batch-crop-l" class="input-field" value="0" min="0" style="width:40px;" title="Crop left (px)">
+        </div>
+        <div class="ribbon-row">
+          <button class="tool-btn" id="btn-batch-save-preset" title="Save current settings as preset">Save Preset</button>
+          <select id="batch-preset-list" class="select-field" style="width:82px;" title="Load saved preset"><option value="">Presets...</option></select>
+          <button class="tool-btn" id="btn-batch-del-preset" title="Delete selected preset" style="color:#ef4444;">Del</button>
+        </div>
+      </div><div class="ribbon-label">Crop / Presets</div></div>
+    </div></div>
+    <div class="tool-content">
+      <div id="batch-drop" class="dropzone" style="max-width:500px;width:100%;"><p class="drop-title">Drop multiple images for batch processing</p><p class="drop-sub">Resize, filter, watermark, convert — applied to all at once</p><input type="file" id="batch-files" accept="image/*" multiple style="display:none;"></div>
+      <div id="batch-queue" style="display:none;width:100%;max-width:700px;">
+        <div id="batch-progress" style="display:none;margin-bottom:0.75rem;">
+          <div style="background:var(--slate-800);border-radius:4px;height:6px;overflow:hidden;"><div id="batch-progress-bar" style="height:100%;background:var(--saffron-400);width:0%;transition:width 0.2s;"></div></div>
+          <div id="batch-progress-text" style="color:var(--slate-500);margin-top:0.25rem;text-align:center;"></div>
+        </div>
+        <div id="batch-items" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;"></div>
+        <div id="batch-preview-area" style="display:none;margin-top:12px;width:100%;text-align:center;position:relative;">
+          <div style="color:var(--slate-400);margin-bottom:8px;"><span id="batch-preview-title">Preview</span> <span style="color:var(--slate-500);">(click any thumbnail to preview it)</span> <span id="batch-preview-close" style="cursor:pointer;color:var(--slate-300);margin-left:8px;font-size:1rem;" title="Close preview">&times;</span></div>
+          <div style="display:flex;gap:12px;justify-content:center;align-items:flex-start;flex-wrap:wrap;">
+            <div style="flex:1;max-width:45%;"><div style="color:var(--slate-400);margin-bottom:4px;">Original</div><canvas id="batch-preview-original" style="width:100%;height:auto;max-height:200px;object-fit:contain;border-radius:4px;border:1px solid var(--slate-700);"></canvas></div>
+            <div style="flex:1;max-width:45%;"><div style="color:var(--slate-400);margin-bottom:4px;">Result</div><canvas id="batch-preview-result" style="width:100%;height:auto;max-height:200px;object-fit:contain;border-radius:4px;border:1px solid var(--slate-700);"></canvas></div>
+          </div>
+          <div id="batch-preview-info" style="color:var(--slate-400);margin-top:8px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODE: Social Media -->
+  <!-- ============================================================ -->
+  <div class="mode-view" id="mode-social" style="flex-direction:column;">
+    <div class="tool-ribbon">
+      <div class="ribbon-bar">
+        <!-- Platform preset group -->
+        <div class="ribbon-group">
+          <div class="ribbon-tools">
+            <div class="ribbon-row">
+              <select id="social-platform" class="select-field" style="width:130px;">
+                <option value="">Select Platform</option>
+                <optgroup label="Twitter / X">
+                  <option value="tw-header">Header (1500x500)</option>
+                  <option value="tw-post">Post (1200x675)</option>
+                  <option value="tw-profile">Profile (400x400)</option>
+                </optgroup>
+                <optgroup label="Instagram">
+                  <option value="ig-post">Post (1080x1080)</option>
+                  <option value="ig-story">Story (1080x1920)</option>
+                  <option value="ig-landscape">Landscape (1080x566)</option>
+                  <option value="ig-profile">Profile (320x320)</option>
+                </optgroup>
+                <optgroup label="Facebook">
+                  <option value="fb-cover">Cover (820x312)</option>
+                  <option value="fb-post">Post (1200x630)</option>
+                  <option value="fb-profile">Profile (180x180)</option>
+                  <option value="fb-event">Event (1920x1005)</option>
+                </optgroup>
+                <optgroup label="LinkedIn">
+                  <option value="li-banner">Banner (1584x396)</option>
+                  <option value="li-post">Post (1200x627)</option>
+                  <option value="li-profile">Profile (400x400)</option>
+                </optgroup>
+                <optgroup label="YouTube">
+                  <option value="yt-thumb">Thumbnail (1280x720)</option>
+                  <option value="yt-banner">Channel Art (2560x1440)</option>
+                </optgroup>
+                <optgroup label="Pinterest">
+                  <option value="pin-standard">Standard (1000x1500)</option>
+                  <option value="pin-square">Square (1000x1000)</option>
+                </optgroup>
+                <optgroup label="TikTok">
+                  <option value="tt-post">Post (1080x1920)</option>
+                </optgroup>
+                <optgroup label="Discord">
+                  <option value="dc-avatar">Avatar (128x128)</option>
+                  <option value="dc-banner">Banner (960x540)</option>
+                </optgroup>
+              </select>
+            </div>
+          </div>
+          <div class="ribbon-label">Platform</div>
+        </div>
+        <div class="ribbon-sep-v"></div>
+
+        <!-- Fit mode -->
+        <div class="ribbon-group">
+          <div class="ribbon-tools">
+            <div class="ribbon-row">
+              <select id="social-fit" class="select-field" style="width:90px;">
+                <option value="cover">Cover (fill)</option>
+                <option value="contain">Contain (fit)</option>
+                <option value="stretch">Stretch</option>
+              </select>
+            </div>
+            <div class="ribbon-row">
+              <label style="color:var(--slate-400);">BG</label>
+              <input type="color" id="social-bg-color" value="#000000" style="width:28px;height:22px;border:none;cursor:pointer;">
+            </div>
+          </div>
+          <div class="ribbon-label">Fit</div>
+        </div>
+        <div class="ribbon-sep-v"></div>
+
+        <!-- Text overlay -->
+        <div class="ribbon-group collapsed">
+          <div class="ribbon-tools">
+            <div class="ribbon-row">
+              <input type="text" id="social-text" class="input-field" placeholder="Add text..." style="width:120px;">
+            </div>
+            <div class="ribbon-row">
+              <input type="color" id="social-text-color" value="#ffffff" style="width:28px;height:22px;border:none;cursor:pointer;">
+              <select id="social-text-pos" class="select-field" style="width:80px;">
+                <option value="center">Center</option>
+                <option value="top">Top</option>
+                <option value="bottom">Bottom</option>
+              </select>
+            </div>
+          </div>
+          <div class="ribbon-label">Text</div>
+        </div>
+        <div class="ribbon-sep-v"></div>
+
+        <!-- Preview & Export -->
+        <div class="ribbon-group">
+          <div class="ribbon-tools">
+            <div class="ribbon-row">
+              <button class="btn-primary" id="btn-social-generate">Generate</button>
+            </div>
+            <div class="ribbon-row">
+              <button class="tool-btn" id="btn-social-download">Download</button>
+              <button class="tool-btn" id="btn-social-copy">Copy</button>
+              <button class="tool-btn" id="btn-social-save-lib" title="Save to Library"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+            </div>
+          </div>
+          <div class="ribbon-label">Export</div>
+        </div>
+        <div class="ribbon-sep-v"></div>
+
+        <!-- Source -->
+        <div class="ribbon-group">
+          <div class="ribbon-tools">
+            <div class="ribbon-row">
+              <button class="tool-btn" id="btn-social-from-lib" title="Load image from Library">Library</button>
+            </div>
+            <div class="ribbon-row">
+              <span id="social-dims" style="color:var(--slate-400);">Select a platform</span>
+            </div>
+          </div>
+          <div class="ribbon-label">Source</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Drop zone + Canvas -->
+    <div class="work-area">
+      <div id="social-dropzone" class="dropzone" style="max-width:500px;">
+        <div class="drop-title">Drop image for social media resize</div>
+        <div class="drop-sub">Or click to browse</div>
+        <input type="file" id="social-file" accept="image/*" style="display:none;">
+      </div>
+      <canvas id="social-canvas" style="display:none;max-width:90%;max-height:80vh;border-radius:8px;"></canvas>
+    </div>
+
+    <div class="tool-footer">Social Media Image Creator &mdash; Pixeroo</div>
   </div>
 
   <!-- ============================================================ -->
   <!-- MODE: Compare (split layout, no sidebar) -->
   <!-- ============================================================ -->
-  <div class="mode-view" id="mode-compare">
-    <div class="compare-container">
-      <div class="compare-slot"><div class="compare-label">Image A</div><div id="compare-drop-a" class="dropzone" style="margin:0;padding:1.5rem;flex:1;display:flex;align-items:center;justify-content:center;width:100%;"><div><p style="color:var(--slate-500);font-size:0.75rem;">Drop image A</p><input type="file" id="compare-file-a" accept="image/*" style="display:none;"></div></div><canvas id="compare-canvas-a" style="display:none;"></canvas><div id="compare-info-a" class="compare-info"></div></div>
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;padding:0 0.5rem;"><button id="btn-compare-diff" class="tool-btn" style="font-size:0.625rem;padding:6px;">Diff</button><button id="btn-compare-swap" class="tool-btn" style="font-size:0.625rem;padding:6px;">Swap</button></div>
-      <div class="compare-slot"><div class="compare-label">Image B</div><div id="compare-drop-b" class="dropzone" style="margin:0;padding:1.5rem;flex:1;display:flex;align-items:center;justify-content:center;width:100%;"><div><p style="color:var(--slate-500);font-size:0.75rem;">Drop image B</p><input type="file" id="compare-file-b" accept="image/*" style="display:none;"></div></div><canvas id="compare-canvas-b" style="display:none;"></canvas><div id="compare-info-b" class="compare-info"></div></div>
+  <div class="mode-view" id="mode-compare" style="flex-direction:column;">
+    <div class="tool-ribbon">
+      <span class="ribbon-title">Compare</span>
+      <div class="ribbon-sep"></div>
+      <button id="btn-compare-diff" class="btn-primary" style="padding:4px 12px;">Diff</button>
+      <button id="btn-compare-slider" class="tool-btn" style="">Slider</button>
+      <button id="btn-compare-swap" class="tool-btn" style="">Swap</button>
+      <button id="btn-compare-ssim" class="tool-btn" style="">SSIM</button>
+      <div class="ribbon-sep"></div>
+      <button class="tool-btn" id="btn-compare-lib-a" title="Load Image A from Library">Lib A</button>
+      <button class="tool-btn" id="btn-compare-lib-b" title="Load Image B from Library">Lib B</button>
+      <div class="ribbon-sep"></div>
+      <button class="tool-btn" id="btn-compare-guides" title="Toggle center guides" style=""><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg></button>
+      <div class="ribbon-sep"></div>
+      <span id="compare-result" style="color:var(--slate-500);"></span>
     </div>
+    <div class="compare-container" id="compare-container">
+      <div class="compare-slot"><div class="compare-label">Image A</div><div id="compare-drop-a" class="dropzone" style="margin:0;padding:1.5rem;flex:1;display:flex;align-items:center;justify-content:center;width:100%;"><div><p style="color:var(--slate-500);">Drop image A</p><input type="file" id="compare-file-a" accept="image/*" style="display:none;"></div></div><canvas id="compare-canvas-a" style="display:none;"></canvas><div id="compare-info-a" class="compare-info"></div></div>
+      <div class="compare-slot"><div class="compare-label">Image B</div><div id="compare-drop-b" class="dropzone" style="margin:0;padding:1.5rem;flex:1;display:flex;align-items:center;justify-content:center;width:100%;"><div><p style="color:var(--slate-500);">Drop image B</p><input type="file" id="compare-file-b" accept="image/*" style="display:none;"></div></div><canvas id="compare-canvas-b" style="display:none;"></canvas><div id="compare-info-b" class="compare-info"></div></div>
+    </div>
+    <!-- Before/After Slider View -->
+    <div id="compare-slider-view" style="display:none;flex:1;position:relative;overflow:hidden;cursor:col-resize;background:var(--slate-900);">
+      <canvas id="compare-slider-a" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);max-width:90%;max-height:90%;"></canvas>
+      <canvas id="compare-slider-b" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);max-width:90%;max-height:90%;clip-path:inset(0 0 0 50%);"></canvas>
+      <div id="compare-slider-line" style="position:absolute;top:0;bottom:0;left:50%;width:2px;background:var(--saffron-400);pointer-events:none;z-index:2;"></div>
+      <div id="compare-slider-handle" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:32px;height:32px;border-radius:50%;background:var(--saffron-400);border:2px solid #fff;z-index:3;display:flex;align-items:center;justify-content:center;pointer-events:none;box-shadow:0 2px 8px rgba(0,0,0,0.4);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1e293b" stroke-width="2.5"><polyline points="9 18 3 12 9 6"/><polyline points="15 6 21 12 15 18"/></svg>
+      </div>
+      <div style="position:absolute;top:8px;left:12px;color:var(--slate-400);z-index:2;pointer-events:none;">A (Before)</div>
+      <div style="position:absolute;top:8px;right:12px;color:var(--slate-400);z-index:2;pointer-events:none;">B (After)</div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODE: Watermark -->
+  <!-- ============================================================ -->
+  <div id="mode-watermark" class="mode-view" style="flex-direction:column;">
+    <div class="tool-ribbon">
+      <div class="ribbon-bar">
+        <!-- Images group -->
+        <div class="ribbon-group">
+          <div class="ribbon-tools">
+            <div class="ribbon-row">
+              <span id="wm-count" style="color:var(--slate-400);">0 images loaded</span>
+            </div>
+            <div class="ribbon-row">
+              <button class="tool-btn" id="btn-wm-add" title="Add images from your computer">Add Images</button>
+              <button class="tool-btn" id="btn-wm-from-lib" title="Add images from your saved library">Library</button>
+              <button class="tool-btn" id="btn-wm-clear" title="Remove all loaded images">Clear</button>
+              <input type="file" id="wm-files" accept="image/*" multiple style="display:none;">
+            </div>
+          </div>
+          <div class="ribbon-label">Images</div>
+        </div>
+        <div class="ribbon-sep-v"></div>
+
+        <!-- Type group -->
+        <div class="ribbon-group">
+          <div class="ribbon-tools">
+            <div class="ribbon-row">
+              <button class="tool-btn active" id="wm-type-text" title="Use text as watermark">Text</button>
+              <button class="tool-btn" id="wm-type-logo" title="Use a logo image as watermark">Logo</button>
+            </div>
+            <div class="ribbon-row" id="wm-logo-row" style="display:none;">
+              <button class="tool-btn" id="btn-wm-logo-upload" title="Upload a logo or icon image to use as watermark">Upload Logo</button>
+              <span id="wm-logo-name" style="color:var(--slate-500);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+              <input type="file" id="wm-logo-file" accept="image/*" style="display:none;">
+            </div>
+          </div>
+          <div class="ribbon-label">Type</div>
+        </div>
+        <div class="ribbon-sep-v"></div>
+
+        <!-- Text Settings group -->
+        <div class="ribbon-group" id="wm-text-group">
+          <div class="ribbon-tools">
+            <div class="ribbon-row">
+              <input type="text" id="wm-text" class="input-field" placeholder="Watermark text..." style="width:140px;" title="Enter the text to display as watermark">
+              <select id="wm-font" class="select-field" style="width:110px;" title="Font family for text watermark">
+                <option value="Arial">Arial</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Courier New">Courier New</option>
+                <option value="Impact">Impact</option>
+                <option value="Comic Sans MS">Comic Sans MS</option>
+                <option value="Verdana">Verdana</option>
+                <option value="Times New Roman">Times New Roman</option>
+              </select>
+            </div>
+            <div class="ribbon-row">
+              <label style="color:var(--slate-400);">Color</label>
+              <input type="color" id="wm-text-color" value="#ffffff" style="width:28px;height:22px;border:none;cursor:pointer;" title="Watermark text color">
+              <label class="toggle-chip" style="margin-left:6px;" title="Add drop shadow behind text for readability"><input type="checkbox" id="wm-shadow">Shadow</label>
+              <input type="color" id="wm-shadow-color" value="#000000" style="width:28px;height:22px;border:none;cursor:pointer;" title="Shadow color">
+            </div>
+          </div>
+          <div class="ribbon-label">Text</div>
+        </div>
+        <div class="ribbon-sep-v"></div>
+
+        <!-- Position group (only for Single mode) -->
+        <div class="ribbon-group" id="wm-position-group">
+          <div class="ribbon-tools">
+            <div id="wm-pos-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;">
+              <button class="tool-btn wm-pos-btn" data-pos="tl" style="width:24px;height:24px;padding:0;display:flex;align-items:center;justify-content:center;" title="Top Left"><span style="width:6px;height:6px;border-radius:50%;background:var(--slate-500);display:block;"></span></button>
+              <button class="tool-btn wm-pos-btn" data-pos="tc" style="width:24px;height:24px;padding:0;display:flex;align-items:center;justify-content:center;" title="Top Center"><span style="width:6px;height:6px;border-radius:50%;background:var(--slate-500);display:block;"></span></button>
+              <button class="tool-btn wm-pos-btn" data-pos="tr" style="width:24px;height:24px;padding:0;display:flex;align-items:center;justify-content:center;" title="Top Right"><span style="width:6px;height:6px;border-radius:50%;background:var(--slate-500);display:block;"></span></button>
+              <button class="tool-btn wm-pos-btn" data-pos="cl" style="width:24px;height:24px;padding:0;display:flex;align-items:center;justify-content:center;" title="Center Left"><span style="width:6px;height:6px;border-radius:50%;background:var(--slate-500);display:block;"></span></button>
+              <button class="tool-btn wm-pos-btn" data-pos="cc" style="width:24px;height:24px;padding:0;display:flex;align-items:center;justify-content:center;" title="Center"><span style="width:6px;height:6px;border-radius:50%;background:var(--slate-500);display:block;"></span></button>
+              <button class="tool-btn wm-pos-btn" data-pos="cr" style="width:24px;height:24px;padding:0;display:flex;align-items:center;justify-content:center;" title="Center Right"><span style="width:6px;height:6px;border-radius:50%;background:var(--slate-500);display:block;"></span></button>
+              <button class="tool-btn wm-pos-btn" data-pos="bl" style="width:24px;height:24px;padding:0;display:flex;align-items:center;justify-content:center;" title="Bottom Left"><span style="width:6px;height:6px;border-radius:50%;background:var(--slate-500);display:block;"></span></button>
+              <button class="tool-btn wm-pos-btn" data-pos="bc" style="width:24px;height:24px;padding:0;display:flex;align-items:center;justify-content:center;" title="Bottom Center"><span style="width:6px;height:6px;border-radius:50%;background:var(--slate-500);display:block;"></span></button>
+              <button class="tool-btn wm-pos-btn active" data-pos="br" style="width:24px;height:24px;padding:0;display:flex;align-items:center;justify-content:center;" title="Bottom Right"><span style="width:6px;height:6px;border-radius:50%;background:var(--saffron-400);display:block;"></span></button>
+            </div>
+          </div>
+          <div class="ribbon-label">Position</div>
+        </div>
+        <div class="ribbon-sep-v"></div>
+
+        <!-- Style group -->
+        <div class="ribbon-group">
+          <div class="ribbon-tools">
+            <div class="ribbon-row">
+              <span class="ribbon-mini-label" title="Opacity — how transparent the watermark is (lower = more subtle)">Op</span>
+              <input type="range" id="wm-opacity" class="range-input" min="10" max="100" value="30" style="width:70px;" title="Opacity: 10 (barely visible) to 100 (fully opaque)">
+              <span class="range-value" id="wm-opacity-val">30</span>
+            </div>
+            <div class="ribbon-row">
+              <span class="ribbon-mini-label" title="Size — watermark size as percentage of image width">Sz</span>
+              <input type="range" id="wm-size" class="range-input" min="10" max="200" value="20" style="width:70px;" title="Size: percentage of image width (20 = 20% of image width)">
+              <span class="range-value" id="wm-size-val">20</span>
+            </div>
+            <div class="ribbon-row">
+              <span class="ribbon-mini-label" title="Rotation — angle of the watermark in degrees">Rt</span>
+              <input type="range" id="wm-rotation" class="range-input" min="-180" max="180" value="0" style="width:70px;" title="Rotation: -45 for diagonal, 0 for horizontal">
+              <span class="range-value" id="wm-rotation-val">0</span>
+            </div>
+            <div class="ribbon-row">
+              <span class="ribbon-mini-label" title="Margin — distance from image edges in pixels">Mg</span>
+              <input type="range" id="wm-margin" class="range-input" min="0" max="100" value="20" style="width:70px;" title="Margin: padding from image edges (0 = no margin)">
+              <span class="range-value" id="wm-margin-val">20</span>
+            </div>
+          </div>
+          <div class="ribbon-label">Style</div>
+        </div>
+        <div class="ribbon-sep-v"></div>
+
+        <!-- Mode group -->
+        <div class="ribbon-group">
+          <div class="ribbon-tools">
+            <div class="ribbon-row">
+              <select id="wm-mode" class="select-field" style="width:100px;" title="Single: one watermark at chosen position. Tile: repeat in a grid. Diagonal: angled repeating text across image.">
+                <option value="single">Single</option>
+                <option value="tile">Tile</option>
+                <option value="diagonal">Diagonal</option>
+              </select>
+            </div>
+            <div class="ribbon-row" id="wm-tile-row" style="display:none;">
+              <label style="color:var(--slate-400);">Gap</label>
+              <div class="num-spin">
+                <input type="number" id="wm-tile-gap" value="100" min="20" max="500">
+                <div class="num-spin-btns">
+                  <button class="num-spin-btn" data-dir="up">&#9650;</button>
+                  <button class="num-spin-btn" data-dir="down">&#9660;</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ribbon-label">Mode</div>
+        </div>
+        <div class="ribbon-sep-v"></div>
+
+        <!-- Export group -->
+        <div class="ribbon-group">
+          <div class="ribbon-tools">
+            <div class="ribbon-row">
+              <button class="tool-btn" id="btn-wm-preview" title="Preview watermark on the selected thumbnail">Preview</button>
+              <button class="btn-primary" id="btn-wm-apply" title="Apply watermark to all loaded images">Apply All</button>
+            </div>
+            <div class="ribbon-row">
+              <button class="tool-btn" id="btn-wm-download" title="Download all watermarked images as a ZIP file">Download ZIP</button>
+              <button class="tool-btn" id="btn-wm-save-lib" title="Save to Library"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+              <select id="wm-format" class="select-field" style="width:75px;" title="Output format for watermarked images">
+                <option value="png">PNG</option>
+                <option value="jpeg">JPEG</option>
+                <option value="webp">WebP</option>
+              </select>
+            </div>
+          </div>
+          <div class="ribbon-label">Export</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Work area -->
+    <div class="work-area" id="wm-work-area">
+      <div id="wm-dropzone" class="dropzone" style="max-width:500px;">
+        <div class="drop-title">Drop images to watermark</div>
+        <div class="drop-sub">Or click to browse &mdash; supports multiple files</div>
+      </div>
+      <canvas id="wm-canvas" style="display:none;max-width:90%;max-height:80vh;border-radius:8px;"></canvas>
+    </div>
+
+    <!-- Thumbnail strip -->
+    <div id="wm-thumbs" style="display:none;flex-shrink:0;gap:4px;padding:8px;overflow-x:auto;background:var(--slate-900);border-top:1px solid var(--slate-800);min-height:0;"></div>
+
+    <div class="tool-footer">Watermark Tool &mdash; Pixeroo</div>
+  </div>
+
+  <!-- Global footer -->
+  <div class="tool-footer" id="global-footer">
+    <span>Pixeroo</span>
+    <span style="color:var(--slate-700);">|</span>
+    <span>100% Offline</span>
+    <span style="color:var(--slate-700);">|</span>
+    <span>No data leaves your device</span>
+    <span style="color:var(--slate-700);">|</span>
+    <span id="footer-status"></span>
   </div>
 
   <script src="../shared/theme.js"></script>
   <script src="../shared/dialog.js"></script>
+  <script src="../shared/library.js"></script>
+  <script src="../lib/qrcode-gen.js"></script>
   <script src="../popup/qr.js"></script>
   <script src="../lib/smartcrop.min.js"></script>
+  <script src="tour.js"></script>
+  <script src="zipwriter.js"></script>
+  <script src="guides.js"></script>
+  <script src="tracer.js"></script>
   <script src="pipeline.js"></script>
   <script src="objects.js"></script>
   <script src="tools.js"></script>
   <script src="tools2.js"></script>
   <script src="editor.js"></script>
+
+  <!-- Library Picker Modal -->
+  <div id="lib-picker-backdrop" style="display:none;position:fixed;inset:0;background:rgba(2,6,23,0.8);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:var(--slate-900);border:1px solid var(--slate-700);border-radius:12px;width:90%;max-width:500px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0.75rem 1rem;border-bottom:1px solid var(--slate-800);">
+        <span style="font-weight:700;color:var(--slate-200);">Add from Library</span>
+        <button id="lib-picker-close" class="tool-btn" style="padding:4px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;padding:0.5rem 1rem;border-bottom:1px solid var(--slate-800);">
+        <button id="lib-picker-select-all" class="tool-btn" style="padding:3px 8px;border:1px solid var(--slate-700);border-radius:4px;">Select All</button>
+        <span id="lib-picker-count" style="color:var(--slate-500);margin-left:auto;">0 items</span>
+      </div>
+      <div id="lib-picker-grid" style="flex:1;overflow-y:auto;padding:0.75rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:6px;align-content:start;">
+        <!-- populated by JS -->
+      </div>
+      <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:0.75rem 1rem;border-top:1px solid var(--slate-800);">
+        <span id="lib-picker-selected" style="color:var(--saffron-400);margin-right:auto;">0 selected</span>
+        <button id="lib-picker-cancel" class="tool-btn" style="padding:4px 12px;border:1px solid var(--slate-700);border-radius:6px;">Cancel</button>
+        <button id="lib-picker-add" class="btn-primary" style="padding:4px 16px;">Add</button>
+      </div>
+    </div>
+  </div>
+  <!-- Save to Library modal -->
+  <div id="stl-overlay" style="position:fixed;inset:0;z-index:2147483646;background:rgba(2,6,23,0.7);display:none;align-items:center;justify-content:center;">
+    <div style="background:var(--slate-900);border:1px solid var(--slate-700);border-radius:12px;padding:1.25rem;min-width:300px;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.5);font-family:Inter,system-ui,sans-serif;">
+      <div style="font-size:0.875rem;font-weight:600;color:var(--slate-200);margin-bottom:0.75rem;">Save to Library</div>
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        <img id="stl-thumb" src="" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--slate-700);background:var(--slate-800);">
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+          <input type="text" id="stl-name" class="input-field" placeholder="Name" style="width:100%;">
+          <select id="stl-collection" class="select-field" style="width:100%;"></select>
+          <input type="text" id="stl-new-collection" class="input-field" placeholder="Collection name..." style="width:100%;display:none;">
+        </div>
+      </div>
+      <div style="display:flex;gap:0.5rem;justify-content:flex-end;margin-top:1rem;">
+        <button id="stl-cancel" style="background:var(--slate-800);color:var(--slate-300);border:1px solid var(--slate-700);border-radius:6px;padding:6px 16px;font-size:0.75rem;font-weight:500;cursor:pointer;">Cancel</button>
+        <button id="stl-save" style="background:#F4C430;color:#2A1E05;border:none;border-radius:6px;padding:6px 20px;font-size:0.75rem;font-weight:600;cursor:pointer;">Save</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

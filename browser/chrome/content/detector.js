@@ -4,11 +4,39 @@
 (() => {
   'use strict';
 
+  // --- Watch for lazy-loaded images ---
+  let _observerActive = false;
+  let _lastImageCount = 0;
+  let _debounceTimer = null;
+
+  function startImageObserver() {
+    if (_observerActive) return;
+    _observerActive = true;
+    _lastImageCount = document.querySelectorAll('img').length;
+
+    const observer = new MutationObserver(() => {
+      try { chrome.runtime; } catch { observer.disconnect(); return; }
+      const currentCount = document.querySelectorAll('img').length;
+      if (currentCount > _lastImageCount) {
+        _lastImageCount = currentCount;
+        clearTimeout(_debounceTimer);
+        _debounceTimer = setTimeout(() => {
+          try {
+            chrome.runtime.sendMessage({ action: 'imagesUpdated' }).catch(() => {});
+          } catch { observer.disconnect(); }
+        }, 800);
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
   // --- Message Listener ---
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     switch (message.action) {
       case 'getPageImages':
         sendResponse({ images: collectPageImages() });
+        startImageObserver();
         break;
 
       case 'showImageInfo':
@@ -49,6 +77,10 @@
         sendResponse({ success: true });
         break;
 
+      case 'extractPageColors':
+        sendResponse({ colors: extractCSSColors() });
+        break;
+
       default:
         sendResponse({ error: 'Unknown action' });
     }
@@ -63,7 +95,7 @@
     // <img> elements
     document.querySelectorAll('img').forEach(img => {
       const src = img.currentSrc || img.src;
-      if (!src || seen.has(src) || src.startsWith('data:image/svg+xml')) return;
+      if (!src || seen.has(src)) return;
       seen.add(src);
       images.push({
         src,
@@ -345,6 +377,43 @@
   function extractColorsFromImage(src) {
     // TODO: Implement k-means color extraction via WASM
     showToast('Color extraction loading... (WASM required)');
+  }
+
+  // --- Extract CSS Colors from Page ---
+  function extractCSSColors() {
+    const colorMap = new Map(); // hex -> count
+    const props = ['color', 'backgroundColor', 'borderColor', 'outlineColor'];
+
+    function rgbStringToHex(str) {
+      if (!str || str === 'transparent') return null;
+      const m = str.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+))?\s*\)/);
+      if (!m) return null;
+      const a = m[4] !== undefined ? parseFloat(m[4]) : 1;
+      if (a === 0) return null;
+      const r = parseInt(m[1]), g = parseInt(m[2]), b = parseInt(m[3]);
+      return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+    }
+
+    const elements = document.querySelectorAll('*');
+    elements.forEach(el => {
+      try {
+        const cs = getComputedStyle(el);
+        for (const prop of props) {
+          const hex = rgbStringToHex(cs[prop]);
+          if (hex) {
+            colorMap.set(hex, (colorMap.get(hex) || 0) + 1);
+          }
+        }
+      } catch {}
+    });
+
+    // Sort by frequency descending, limit to 50
+    const sorted = [...colorMap.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 50)
+      .map(([hex, count]) => ({ hex, count }));
+
+    return sorted;
   }
 
   // --- Accessibility Audit (placeholder) ---

@@ -328,6 +328,135 @@ function generatePlaceholder(width, height, bgColor, textColor, text) {
   return canvas;
 }
 
+// Social media banner presets { name, w, h }
+const socialBannerPresets = [
+  { name: 'YouTube Thumbnail', w: 1280, h: 720 },
+  { name: 'Facebook Cover', w: 820, h: 312 },
+  { name: 'Twitter Header', w: 1500, h: 500 },
+  { name: 'LinkedIn Banner', w: 1584, h: 396 },
+  { name: 'Instagram Post', w: 1080, h: 1080 },
+  { name: 'Instagram Story', w: 1080, h: 1920 },
+  { name: 'Pinterest Pin', w: 1000, h: 1500 },
+  { name: 'Business Card', w: 1050, h: 600 },
+  { name: 'A4 Canvas', w: 2480, h: 3508 },
+  { name: 'HD Wallpaper', w: 1920, h: 1080 },
+];
+
+function generateSocialBanner(preset, bgColor, bgColor2, gradType, text, textColor) {
+  const c = document.createElement('canvas');
+  c.width = preset.w; c.height = preset.h;
+  const ctx = c.getContext('2d');
+  if (gradType && gradType !== 'solid') {
+    const grad = gradType === 'radial'
+      ? ctx.createRadialGradient(c.width/2, c.height/2, 0, c.width/2, c.height/2, Math.max(c.width,c.height)/2)
+      : ctx.createLinearGradient(0, 0, c.width, c.height);
+    grad.addColorStop(0, bgColor || '#1e293b');
+    grad.addColorStop(1, bgColor2 || '#0f172a');
+    ctx.fillStyle = grad;
+  } else {
+    ctx.fillStyle = bgColor || '#1e293b';
+  }
+  ctx.fillRect(0, 0, c.width, c.height);
+  if (text) {
+    const fs = Math.max(16, Math.min(c.width / text.length * 1.2, c.height / 3));
+    ctx.fillStyle = textColor || '#ffffff';
+    ctx.font = `bold ${fs}px Inter, system-ui, sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(text, c.width / 2, c.height / 2);
+  }
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  ctx.font = '12px Inter, system-ui, sans-serif';
+  ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+  ctx.fillText(preset.name + ' \u2014 ' + c.width + 'x' + c.height, c.width - 8, c.height - 6);
+  return c;
+}
+
+function generateAvatar(size, initials, bgColor, textColor) {
+  const c = document.createElement('canvas');
+  c.width = size; c.height = size;
+  const ctx = c.getContext('2d');
+  ctx.beginPath(); ctx.arc(size/2, size/2, size/2, 0, Math.PI*2); ctx.closePath();
+  ctx.fillStyle = bgColor || '#6366f1'; ctx.fill();
+  const t = (initials || 'AB').substring(0, 2).toUpperCase();
+  ctx.fillStyle = textColor || '#ffffff';
+  ctx.font = `bold ${size*0.42}px Inter, system-ui, sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(t, size/2, size/2 * 1.05);
+  return c;
+}
+
+function generateColorSwatch(colors, swatchW, swatchH) {
+  swatchW = swatchW || 120; swatchH = swatchH || 120;
+  const cols = Math.min(colors.length, 6);
+  const rows = Math.ceil(colors.length / cols);
+  const gap = 8, pad = 16;
+  const totalW = cols * swatchW + (cols - 1) * gap + pad * 2;
+  const totalH = rows * (swatchH + 20) + (rows - 1) * gap + pad * 2;
+  const c = document.createElement('canvas');
+  c.width = totalW; c.height = totalH;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, totalW, totalH);
+  colors.forEach((color, i) => {
+    const col = i % cols, row = Math.floor(i / cols);
+    const x = pad + col * (swatchW + gap), y = pad + row * (swatchH + 20 + gap);
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.roundRect(x, y, swatchW, swatchH, 6); ctx.fill();
+    ctx.fillStyle = '#334155'; ctx.font = '11px monospace';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText(color.toUpperCase(), x + swatchW / 2, y + swatchH + 4);
+  });
+  return c;
+}
+
+function generateNoise(width, height, type, intensity) {
+  const c = document.createElement('canvas');
+  c.width = width; c.height = height;
+  const ctx = c.getContext('2d');
+  const imgData = ctx.createImageData(width, height);
+  const d = imgData.data;
+  intensity = intensity || 1;
+  for (let i = 0; i < d.length; i += 4) {
+    if (type === 'perlin') {
+      const px = (i/4) % width, py = Math.floor(i/4/width);
+      const v = Math.floor((_simpleNoise(px*0.02, py*0.02)*0.5+0.5)*255*intensity);
+      d[i] = d[i+1] = d[i+2] = v; d[i+3] = 255;
+    } else if (type === 'color') {
+      d[i] = Math.floor(Math.random()*255*intensity);
+      d[i+1] = Math.floor(Math.random()*255*intensity);
+      d[i+2] = Math.floor(Math.random()*255*intensity);
+      d[i+3] = 255;
+    } else {
+      const v = Math.floor(Math.random()*255*intensity);
+      d[i] = d[i+1] = d[i+2] = v; d[i+3] = 255;
+    }
+  }
+  ctx.putImageData(imgData, 0, 0);
+  return c;
+}
+function _simpleNoise(x, y) {
+  const n = Math.sin(x*127.1+y*311.7)*43758.5453;
+  const n2 = Math.sin(x*269.5+y*183.3)*43758.5453;
+  return (n - Math.floor(n))*0.5 + (n2 - Math.floor(n2))*0.5 - 0.5;
+}
+
+function generateLetterFavicon(letter, size, bgColor, textColor, rounded) {
+  const c = document.createElement('canvas');
+  c.width = size; c.height = size;
+  const ctx = c.getContext('2d');
+  if (rounded) {
+    ctx.beginPath(); ctx.arc(size/2, size/2, size/2, 0, Math.PI*2); ctx.closePath();
+    ctx.fillStyle = bgColor || '#F4C430'; ctx.fill();
+  } else {
+    ctx.fillStyle = bgColor || '#F4C430';
+    ctx.beginPath(); ctx.roundRect(0, 0, size, size, size*0.15); ctx.fill();
+  }
+  ctx.fillStyle = textColor || '#1e293b';
+  ctx.font = `bold ${size*0.6}px Inter, system-ui, sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText((letter || 'P').substring(0, 2), size/2, size/2 * 1.05);
+  return c;
+}
+
 // ============================================================
 // CATEGORY: Social Media Presets
 // ============================================================
@@ -491,43 +620,246 @@ function imageToAscii(canvas, cols = 80) {
 // CATEGORY: Collage
 // ============================================================
 
-// #23 Collage Maker (grid layout)
-function createCollage(canvases, cols, spacing, bgColor) {
+// #23 Collage Maker (multi-layout with effects)
+function createCollage(canvases, opts) {
+  // Support legacy call signature: createCollage(canvases, cols, spacing, bgColor)
+  if (typeof opts === 'number') opts = { cols: opts, spacing: arguments[2], bgColor: arguments[3] };
+  opts = opts || {};
+
   if (canvases.length === 0) return null;
 
-  const rows = Math.ceil(canvases.length / cols);
-  // Find max cell size
-  let maxW = 0, maxH = 0;
-  canvases.forEach(c => { maxW = Math.max(maxW, c.width); maxH = Math.max(maxH, c.height); });
+  const layout = opts.layout || 'grid';
+  const cols = opts.cols || 2;
+  const borderPad = (!!opts.border) ? (opts.borderWidth || 6) : (opts.filter === 'polaroid' ? 10 : 0);
+  const spacing = (opts.spacing ?? 10) + borderPad * 2; // extra spacing for border frame
+  const fit = opts.fit || 'cover';
+  const bgColor = opts.bgColor || '#ffffff';
+  const bgColor2 = opts.bgColor2 || '#e2e8f0';
+  const bgType = opts.bgType || 'solid';
+  const radius = opts.radius || 0;
+  const shadow = !!opts.shadow;
+  const border = !!opts.border;
+  const filter = opts.filter || 'none';
+  const blendMode = opts.blendMode || 'source-over';
+  const cellOpacity = opts.opacity !== undefined ? opts.opacity : 1;
+  const targetW = opts.width || 1200;
+  const polaroid = filter === 'polaroid';
 
-  const cellW = maxW;
-  const cellH = maxH;
-  const totalW = cols * cellW + (cols + 1) * spacing;
-  const totalH = rows * cellH + (rows + 1) * spacing;
+  let cellW, cellH, totalW, totalH, positions = [];
+
+  if (layout === 'strip-h') {
+    const stripH = 400;
+    let x = spacing;
+    canvases.forEach(c => {
+      const scale = stripH / c.height;
+      const w = Math.round(c.width * scale);
+      positions.push({ x, y: spacing, w, h: stripH });
+      x += w + spacing;
+    });
+    totalW = x; totalH = stripH + spacing * 2;
+  } else if (layout === 'strip-v') {
+    const stripW = targetW - spacing * 2;
+    let y = spacing;
+    canvases.forEach(c => {
+      const scale = stripW / c.width;
+      const h = Math.round(c.height * scale);
+      positions.push({ x: spacing, y, w: stripW, h });
+      y += h + spacing;
+    });
+    totalW = targetW; totalH = y;
+  } else if (layout === 'hero') {
+    const heroH = Math.round(targetW * 0.5);
+    positions.push({ x: spacing, y: spacing, w: targetW - spacing * 2, h: heroH });
+    const gridCols = Math.max(2, cols);
+    const remaining = canvases.length - 1;
+    const gridRows = Math.ceil(remaining / gridCols);
+    cellW = Math.floor((targetW - (gridCols + 1) * spacing) / gridCols);
+    cellH = Math.round(cellW * 0.75);
+    for (let i = 0; i < remaining; i++) {
+      const col = i % gridCols;
+      const row = Math.floor(i / gridCols);
+      positions.push({
+        x: spacing + col * (cellW + spacing),
+        y: heroH + spacing * 2 + row * (cellH + spacing),
+        w: cellW, h: cellH
+      });
+    }
+    totalW = targetW;
+    totalH = heroH + spacing * 2 + gridRows * (cellH + spacing) + spacing;
+  } else if (layout === 'masonry') {
+    cellW = Math.floor((targetW - (cols + 1) * spacing) / cols);
+    const colHeights = new Array(cols).fill(spacing);
+    canvases.forEach(c => {
+      let minCol = 0;
+      for (let j = 1; j < cols; j++) { if (colHeights[j] < colHeights[minCol]) minCol = j; }
+      const scale = cellW / c.width;
+      const h = Math.round(c.height * scale);
+      positions.push({ x: spacing + minCol * (cellW + spacing), y: colHeights[minCol], w: cellW, h });
+      colHeights[minCol] += h + spacing;
+    });
+    totalW = targetW; totalH = Math.max(...colHeights) + spacing;
+  } else {
+    // Grid — aspect-ratio preserving layout
+    const actualCols = Math.min(cols, canvases.length);
+    const scales = opts.scales || []; // per-image scale factors (1 = default)
+
+    if (actualCols >= canvases.length) {
+      // Single row (landscape): normalize to same height, each image keeps its aspect ratio
+      // Find the target row height: use a reasonable base height
+      const baseH = 400;
+      let x = spacing;
+      canvases.forEach((c, i) => {
+        const s = scales[i] || 1;
+        const imgH = baseH * s;
+        const imgW = Math.round((c.width / c.height) * imgH);
+        positions.push({ x, y: spacing, w: imgW, h: Math.round(imgH) });
+        x += imgW + spacing;
+      });
+      totalW = x;
+      const maxH = Math.max(...positions.map(p => p.h));
+      // Center shorter images vertically
+      positions.forEach(p => { p.y = spacing + Math.round((maxH - p.h) / 2); });
+      totalH = maxH + spacing * 2;
+    } else if (actualCols === 1) {
+      // Single column (portrait): normalize to same width, each image keeps its aspect ratio
+      const baseW = targetW - spacing * 2;
+      let y = spacing;
+      canvases.forEach((c, i) => {
+        const s = scales[i] || 1;
+        const imgW = Math.round(baseW * s);
+        const imgH = Math.round((c.height / c.width) * imgW);
+        positions.push({ x: spacing + Math.round((baseW - imgW) / 2), y, w: imgW, h: imgH });
+        y += imgH + spacing;
+      });
+      totalW = targetW;
+      totalH = y;
+    } else {
+      // Multi-row grid: fixed cell size, wraps at actualCols
+      cellW = Math.floor((targetW - (actualCols + 1) * spacing) / actualCols);
+      const rowHeights = [];
+      canvases.forEach((c, i) => {
+        const s = scales[i] || 1;
+        const row = Math.floor(i / actualCols);
+        const imgH = Math.round((c.height / c.width) * cellW * s);
+        if (!rowHeights[row] || imgH > rowHeights[row]) rowHeights[row] = imgH;
+      });
+      let y = spacing;
+      canvases.forEach((c, i) => {
+        const col = i % actualCols;
+        const row = Math.floor(i / actualCols);
+        const s = scales[i] || 1;
+        const imgW = Math.round(cellW * s);
+        const imgH = Math.round((c.height / c.width) * cellW * s);
+        if (col === 0 && row > 0) y += rowHeights[row - 1] + spacing;
+        const rowH = rowHeights[row];
+        positions.push({ x: spacing + col * (cellW + spacing), y: y + Math.round((rowH - imgH) / 2), w: imgW, h: imgH });
+      });
+      totalW = targetW;
+      totalH = y + (rowHeights[rowHeights.length - 1] || 0) + spacing;
+    }
+  }
+
+  // Only override height for fixed-size layouts, not when content determines height
+  if (opts.height && layout !== 'strip-v' && cols > 1) totalH = Math.max(totalH, opts.height);
 
   const result = document.createElement('canvas');
   result.width = totalW; result.height = totalH;
   const ctx = result.getContext('2d');
 
-  ctx.fillStyle = bgColor || '#ffffff';
-  ctx.fillRect(0, 0, totalW, totalH);
+  // Background
+  if (bgType === 'gradient') {
+    const grad = ctx.createLinearGradient(0, 0, 0, totalH);
+    grad.addColorStop(0, bgColor); grad.addColorStop(1, bgColor2);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, totalW, totalH);
+  } else if (bgType === 'blur' && canvases[0]) {
+    ctx.filter = 'blur(30px) brightness(70%)';
+    ctx.drawImage(canvases[0], -40, -40, totalW + 80, totalH + 80);
+    ctx.filter = 'none';
+  } else {
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, totalW, totalH);
+  }
+
+  const filterCSS = { none:'', grayscale:'grayscale(100%)', sepia:'sepia(100%)', brightness:'brightness(130%)', contrast:'contrast(140%)', polaroid:'' };
+
+  // Draw images onto a separate layer (for blend mode support)
+  const useBlend = blendMode !== 'source-over';
+  const imgLayer = useBlend ? document.createElement('canvas') : null;
+  if (imgLayer) { imgLayer.width = totalW; imgLayer.height = totalH; }
+  const drawCtx = useBlend ? imgLayer.getContext('2d') : ctx;
 
   canvases.forEach((c, i) => {
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    const x = spacing + col * (cellW + spacing);
-    const y = spacing + row * (cellH + spacing);
+    if (!positions[i]) return;
+    const { x, y, w, h } = positions[i];
+    const borderW = opts.borderWidth || 6;
+    const pad = polaroid ? Math.round(Math.min(w, h) * 0.06) : (border ? borderW : 0);
+    const padBot = polaroid ? Math.round(Math.min(w, h) * 0.15) : pad;
 
-    // Center image in cell
-    const scale = Math.min(cellW / c.width, cellH / c.height);
-    const dw = c.width * scale, dh = c.height * scale;
-    const dx = x + (cellW - dw) / 2;
-    const dy = y + (cellH - dh) / 2;
+    // Shadow (always on result canvas, not layer)
+    if (shadow) {
+      ctx.save();
+      const sColor = opts.shadowColor || '#000000';
+      const sBlur = opts.shadowBlur ?? 12;
+      const sDir = opts.shadowDir || 'br';
+      const sOff = Math.max(2, Math.round(sBlur * 0.3));
+      const sdx = sDir === 'center' ? 0 : (sDir.includes('r') ? sOff : -sOff);
+      const sdy = sDir === 'center' ? 0 : (sDir.includes('b') ? sOff : -sOff);
+      // Parse hex to rgba with 0.4 opacity
+      const sr = parseInt(sColor.slice(1,3),16), sg = parseInt(sColor.slice(3,5),16), sb = parseInt(sColor.slice(5,7),16);
+      ctx.shadowColor = `rgba(${sr},${sg},${sb},0.4)`;
+      ctx.shadowBlur = sBlur; ctx.shadowOffsetX = sdx; ctx.shadowOffsetY = sdy;
+      ctx.fillStyle = opts.borderColor || '#fff';
+      _collageRoundRect(ctx, x - pad, y - pad, w + pad * 2, h + pad + padBot, radius); ctx.fill();
+      ctx.restore();
+    }
 
-    ctx.drawImage(c, dx, dy, dw, dh);
+    // Frame (always on result canvas)
+    if (pad > 0) {
+      ctx.fillStyle = opts.borderColor || '#ffffff';
+      _collageRoundRect(ctx, x - pad, y - pad, w + pad * 2, h + pad + padBot, radius); ctx.fill();
+    }
+
+    // Clip + draw image
+    drawCtx.save();
+    if (radius > 0) {
+      _collageRoundRect(drawCtx, x, y, w, h, Math.max(1, radius - pad)); drawCtx.clip();
+    } else {
+      drawCtx.beginPath(); drawCtx.rect(x, y, w, h); drawCtx.clip();
+    }
+
+    if (filterCSS[filter]) drawCtx.filter = filterCSS[filter];
+    if (cellOpacity < 1) drawCtx.globalAlpha = cellOpacity;
+
+    // Draw image
+    const scale = fit === 'cover' ? Math.max(w / c.width, h / c.height) : Math.min(w / c.width, h / c.height);
+    const sw = c.width * scale, sh = c.height * scale;
+    drawCtx.drawImage(c, x + (w - sw) / 2, y + (h - sh) / 2, sw, sh);
+
+    drawCtx.filter = 'none';
+    drawCtx.globalAlpha = 1;
+    drawCtx.restore();
   });
 
+  // Composite image layer onto result with blend mode
+  if (useBlend) {
+    ctx.globalCompositeOperation = blendMode;
+    ctx.drawImage(imgLayer, 0, 0);
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
   return result;
+}
+
+function _collageRoundRect(ctx, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r); ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h); ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r); ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
 }
 
 // #19 Favicon Extractor - REMOVED

@@ -10,7 +10,7 @@
 
 class DrawObject {
   constructor(type, x, y, w, h) {
-    this.type = type; // 'text', 'rect', 'arrow', 'redact'
+    this.type = type; // 'text', 'rect', 'arrow', 'redact', 'pen', 'highlighter', 'image'
     this.x = x;
     this.y = y;
     this.w = w;
@@ -24,19 +24,39 @@ class DrawObject {
     this.opacity = 1;
     this.selected = false;
     this.editing = false;
-    this.redactMode = 'pixelate'; // 'pixelate' or 'solid'
-    this.redactStrength = 3; // 1=light, 2=medium, 3=heavy
-    this.filter = null; // for mask filter: 'blur', 'brightness', etc.
+    this.filled = false; // for rect: filled vs stroke-only
+    this.redactMode = 'pixelate';
+    this.redactStrength = 3;
+    this.filter = null;
     this.filterValue = null;
     // For arrow
     this.x2 = x + w;
     this.y2 = y + h;
+    // For pen/highlighter
+    this.points = [];
+    // For image objects (collage)
+    this.imgSource = null;  // HTMLCanvasElement or HTMLImageElement
+    this.imgFilter = 'none'; // CSS filter name
+    this.borderWidth = 0;
+    this.borderColor = '#ffffff';
+    this.shadowEnabled = false;
+    this.shadowColor = '#000000';
+    this.shadowBlur = 12;
+    this.shadowDir = 'br';
+    this.cornerRadius = 0;
   }
 
   containsPoint(px, py) {
     if (this.type === 'arrow') {
-      // Distance from point to line segment
       return this._distToSegment(px, py, this.x, this.y, this.x2, this.y2) < 8;
+    }
+    if (this.type === 'pen' || this.type === 'highlighter') {
+      // Check distance to any segment of the stroke
+      const threshold = Math.max(this.lineWidth, 8);
+      for (let i = 1; i < this.points.length; i++) {
+        if (this._distToSegment(px, py, this.points[i - 1].x, this.points[i - 1].y, this.points[i].x, this.points[i].y) < threshold) return true;
+      }
+      return false;
     }
     return px >= this.x && px <= this.x + this.w && py >= this.y && py <= this.y + this.h;
   }
@@ -55,6 +75,9 @@ class DrawObject {
     if (this.type === 'arrow') {
       return [['start', this.x, this.y], ['end', this.x2, this.y2]];
     }
+    if (this.type === 'pen' || this.type === 'highlighter') {
+      return [];
+    }
     return [
       ['tl', this.x, this.y], ['tr', this.x + this.w, this.y],
       ['bl', this.x, this.y + this.h], ['br', this.x + this.w, this.y + this.h],
@@ -68,9 +91,16 @@ class DrawObject {
     ctx.globalAlpha = this.opacity;
 
     if (this.type === 'rect') {
-      ctx.strokeStyle = this.color;
-      ctx.lineWidth = this.lineWidth;
-      ctx.strokeRect(this.x, this.y, this.w, this.h);
+      if (this.filled) {
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x, this.y, this.w, this.h);
+      } else {
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = this.lineWidth;
+        ctx.strokeRect(this.x, this.y, this.w, this.h);
+      }
+    } else if (this.type === 'pen' || this.type === 'highlighter') {
+      this._drawStroke(ctx);
     } else if (this.type === 'arrow') {
       this._drawArrow(ctx);
     } else if (this.type === 'text') {
@@ -105,6 +135,8 @@ class DrawObject {
       ctx.font = '11px Inter, system-ui, sans-serif';
       ctx.textBaseline = 'top';
       ctx.fillText(this.filter || 'mask', this.x + 4, this.y + 4);
+    } else if (this.type === 'image' && this.imgSource) {
+      this._drawImage(ctx);
     }
 
     ctx.restore();
@@ -122,6 +154,10 @@ class DrawObject {
       ctx.moveTo(this.x, this.y);
       ctx.lineTo(this.x2, this.y2);
       ctx.stroke();
+    } else if (this.type === 'pen' || this.type === 'highlighter') {
+      // Draw bounding box around stroke
+      const bb = this._strokeBounds();
+      ctx.strokeRect(bb.x - 4, bb.y - 4, bb.w + 8, bb.h + 8);
     } else {
       ctx.strokeRect(this.x - 2, this.y - 2, this.w + 4, this.h + 4);
     }
@@ -169,6 +205,77 @@ class DrawObject {
     ctx.lineTo(this.x2 - headLen * Math.cos(angle + Math.PI / 6), this.y2 - headLen * Math.sin(angle + Math.PI / 6));
     ctx.closePath();
     ctx.fill();
+  }
+
+  _strokeBounds() {
+    if (!this.points.length) return { x: this.x, y: this.y, w: 0, h: 0 };
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const p of this.points) {
+      if (p.x < minX) minX = p.x; if (p.y < minY) minY = p.y;
+      if (p.x > maxX) maxX = p.x; if (p.y > maxY) maxY = p.y;
+    }
+    return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+  }
+
+  _drawImage(ctx) {
+    const { x, y, w, h } = this;
+    const bw = this.borderWidth || 0;
+    const r = this.cornerRadius || 0;
+
+    // Shadow
+    if (this.shadowEnabled) {
+      const sr = parseInt(this.shadowColor.slice(1,3),16)||0, sg = parseInt(this.shadowColor.slice(3,5),16)||0, sb = parseInt(this.shadowColor.slice(5,7),16)||0;
+      const sOff = Math.max(2, Math.round(this.shadowBlur * 0.3));
+      const dir = this.shadowDir || 'br';
+      ctx.shadowColor = `rgba(${sr},${sg},${sb},0.4)`;
+      ctx.shadowBlur = this.shadowBlur;
+      ctx.shadowOffsetX = dir === 'center' ? 0 : (dir.includes('r') ? sOff : -sOff);
+      ctx.shadowOffsetY = dir === 'center' ? 0 : (dir.includes('b') ? sOff : -sOff);
+      ctx.fillStyle = this.borderColor || '#fff';
+      if (r > 0) { _imgRoundRect(ctx, x - bw, y - bw, w + bw*2, h + bw*2, r); ctx.fill(); }
+      else ctx.fillRect(x - bw, y - bw, w + bw*2, h + bw*2);
+      ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0;
+    }
+
+    // Border frame
+    if (bw > 0) {
+      ctx.fillStyle = this.borderColor || '#ffffff';
+      if (r > 0) { _imgRoundRect(ctx, x - bw, y - bw, w + bw*2, h + bw*2, r); ctx.fill(); }
+      else ctx.fillRect(x - bw, y - bw, w + bw*2, h + bw*2);
+    }
+
+    // Clip for rounded corners
+    ctx.save();
+    if (r > 0) { _imgRoundRect(ctx, x, y, w, h, Math.max(1, r - bw)); ctx.clip(); }
+
+    // Filter
+    const filterCSS = { none:'', grayscale:'grayscale(100%)', sepia:'sepia(100%)', brightness:'brightness(130%)', contrast:'contrast(140%)', blur:'blur(2px)', invert:'invert(100%)' };
+    if (this.imgFilter && filterCSS[this.imgFilter]) ctx.filter = filterCSS[this.imgFilter];
+
+    // Draw image (cover: fill the cell completely)
+    const src = this.imgSource;
+    const scale = Math.max(w / src.width, h / src.height);
+    const sw = src.width * scale, sh = src.height * scale;
+    ctx.drawImage(src, x + (w - sw) / 2, y + (h - sh) / 2, sw, sh);
+
+    ctx.filter = 'none';
+    ctx.restore();
+  }
+
+  _drawStroke(ctx) {
+    if (this.points.length < 2) return;
+    ctx.strokeStyle = this.color;
+    ctx.lineWidth = this.type === 'highlighter' ? Math.max(this.lineWidth * 4, 16) : this.lineWidth;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    if (this.type === 'highlighter') ctx.globalAlpha = 0.4;
+    ctx.beginPath();
+    ctx.moveTo(this.points[0].x, this.points[0].y);
+    for (let i = 1; i < this.points.length; i++) {
+      ctx.lineTo(this.points[i].x, this.points[i].y);
+    }
+    ctx.stroke();
+    if (this.type === 'highlighter') ctx.globalAlpha = this.opacity;
   }
 
   _wrapText(ctx, text, maxWidth) {
@@ -228,6 +335,7 @@ class ObjectLayer {
     this.color = '#ef4444';
     this.lineWidth = 3;
     this.fontSize = 24;
+    this._penObj = null; // active pen/highlighter stroke being drawn
   }
 
   attach(parentEl) {
@@ -288,6 +396,7 @@ class ObjectLayer {
     const obj = new DrawObject('rect', x, y, w, h);
     obj.color = this.color;
     obj.lineWidth = this.lineWidth;
+    obj.filled = this.filled || false;
     this.objects.push(obj);
     this.select(obj);
     return obj;
@@ -332,6 +441,52 @@ class ObjectLayer {
     return obj;
   }
 
+  addImage(imgSource, x, y, w, h) {
+    const obj = new DrawObject('image', x, y, w, h);
+    obj.imgSource = imgSource;
+    obj.opacity = 1;
+    this.objects.push(obj);
+    this.select(obj);
+    return obj;
+  }
+
+  // Layer ordering
+  bringForward() {
+    if (!this.selected) return;
+    const i = this.objects.indexOf(this.selected);
+    if (i < this.objects.length - 1) {
+      this.objects.splice(i, 1);
+      this.objects.splice(i + 1, 0, this.selected);
+      this.render();
+    }
+  }
+
+  sendBackward() {
+    if (!this.selected) return;
+    const i = this.objects.indexOf(this.selected);
+    if (i > 0) {
+      this.objects.splice(i, 1);
+      this.objects.splice(i - 1, 0, this.selected);
+      this.render();
+    }
+  }
+
+  bringToFront() {
+    if (!this.selected) return;
+    this.objects = this.objects.filter(o => o !== this.selected);
+    this.objects.push(this.selected);
+    this.render();
+  }
+
+  sendToBack() {
+    if (!this.selected) return;
+    this.objects = this.objects.filter(o => o !== this.selected);
+    this.objects.unshift(this.selected);
+    this.render();
+  }
+
+  // --- Pen/Highlighter are created directly in _handleDown, no addPen needed ---
+
   // --- Selection ---
   select(obj) {
     this.deselectAll();
@@ -367,6 +522,20 @@ class ObjectLayer {
         obj.editing = true;
         this.stopTool();
         this.render();
+        return;
+      }
+
+      // Freehand pen/highlighter — start collecting points immediately
+      if (this.creating === 'pen' || this.creating === 'highlighter') {
+        const obj = new DrawObject(this.creating, x, y, 0, 0);
+        obj.color = this.creating === 'highlighter' ? '#facc15' : this.color;
+        obj.lineWidth = this.lineWidth;
+        obj.opacity = 1;
+        obj.points = [{ x, y }];
+        this.objects.push(obj);
+        this._penObj = obj;
+        this.dragging = true;
+        this.dragHandle = 'pen';
         return;
       }
 
@@ -434,6 +603,13 @@ class ObjectLayer {
     const dx = x - this.dragStartX;
     const dy = y - this.dragStartY;
 
+    // Freehand stroke in progress
+    if (this.dragHandle === 'pen' && this._penObj) {
+      this._penObj.points.push({ x, y });
+      this.render();
+      return;
+    }
+
     if (this.dragHandle === 'create') {
       // Live preview of object being created
       this.render();
@@ -464,6 +640,13 @@ class ObjectLayer {
         obj.y = this.origY + dy;
         obj.x2 = obj.x + adx;
         obj.y2 = obj.y + ady;
+      } else if ((obj.type === 'pen' || obj.type === 'highlighter') && obj.points.length) {
+        // Move all points by delta from last frame
+        const mx = (this.origX + dx) - obj.x;
+        const my = (this.origY + dy) - obj.y;
+        for (const p of obj.points) { p.x += mx; p.y += my; }
+        obj.x = this.origX + dx;
+        obj.y = this.origY + dy;
       } else {
         obj.x = this.origX + dx;
         obj.y = this.origY + dy;
@@ -485,6 +668,23 @@ class ObjectLayer {
   _handleUp(e) {
     if (!this.dragging) return;
     const { x, y } = this._toCanvasCoords(e);
+
+    // Finalize pen/highlighter stroke
+    if (this.dragHandle === 'pen' && this._penObj) {
+      if (this._penObj.points.length < 3) {
+        this.objects.pop();
+      } else {
+        const bb = this._penObj._strokeBounds();
+        this._penObj.x = bb.x; this._penObj.y = bb.y;
+        this._penObj.w = bb.w; this._penObj.h = bb.h;
+        this.select(this._penObj);
+      }
+      this._penObj = null;
+      this.dragging = false;
+      this.dragHandle = null;
+      this.render();
+      return;
+    }
 
     if (this.dragHandle === 'create') {
       const dx = x - this.dragStartX;
@@ -565,11 +765,16 @@ class ObjectLayer {
     }
   }
 
+  // Sync overlay pixel dimensions to match base canvas
+  _syncOverlay() {
+    this.overlay.width = this.base.width;
+    this.overlay.height = this.base.height;
+  }
+
   // --- Rendering ---
   render() {
     if (!this.active) return;
-    this.overlay.width = this.base.width;
-    this.overlay.height = this.base.height;
+    this._syncOverlay();
     const ctx = this.overlayCtx;
     ctx.clearRect(0, 0, this.overlay.width, this.overlay.height);
 
@@ -668,4 +873,63 @@ class ObjectLayer {
   hasObjects() {
     return this.objects.length > 0;
   }
+
+  // --- Export annotations as SVG string ---
+  exportAsSVG(width, height) {
+    const w = width || this.base.width;
+    const h = height || this.base.height;
+    let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">`;
+
+    for (const obj of this.objects) {
+      const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+      if (obj.type === 'rect') {
+        if (obj.filled) {
+          svg += `<rect x="${obj.x}" y="${obj.y}" width="${obj.w}" height="${obj.h}" fill="${obj.color}" opacity="${obj.opacity}"/>`;
+        } else {
+          svg += `<rect x="${obj.x}" y="${obj.y}" width="${obj.w}" height="${obj.h}" fill="none" stroke="${obj.color}" stroke-width="${obj.lineWidth}" opacity="${obj.opacity}"/>`;
+        }
+      } else if (obj.type === 'arrow') {
+        const headLen = 12;
+        const angle = Math.atan2(obj.y2 - obj.y, obj.x2 - obj.x);
+        const hx1 = obj.x2 - headLen * Math.cos(angle - Math.PI / 6);
+        const hy1 = obj.y2 - headLen * Math.sin(angle - Math.PI / 6);
+        const hx2 = obj.x2 - headLen * Math.cos(angle + Math.PI / 6);
+        const hy2 = obj.y2 - headLen * Math.sin(angle + Math.PI / 6);
+        svg += `<line x1="${obj.x}" y1="${obj.y}" x2="${obj.x2}" y2="${obj.y2}" stroke="${obj.color}" stroke-width="${obj.lineWidth}" opacity="${obj.opacity}"/>`;
+        svg += `<polygon points="${obj.x2},${obj.y2} ${hx1},${hy1} ${hx2},${hy2}" fill="${obj.color}" opacity="${obj.opacity}"/>`;
+      } else if (obj.type === 'text') {
+        const lines = (obj.text || '').split('\n');
+        const lineH = obj.fontSize * 1.3;
+        lines.forEach((line, i) => {
+          svg += `<text x="${obj.x + 4}" y="${obj.y + i * lineH + obj.fontSize}" fill="${obj.color}" font-size="${obj.fontSize}px" font-family="${esc(obj.fontFamily)}" font-weight="${obj.fontWeight}" opacity="${obj.opacity}">${esc(line)}</text>`;
+        });
+      } else if (obj.type === 'pen' || obj.type === 'highlighter') {
+        if (obj.points.length >= 2) {
+          let d = `M${obj.points[0].x},${obj.points[0].y}`;
+          for (let i = 1; i < obj.points.length; i++) d += `L${obj.points[i].x},${obj.points[i].y}`;
+          const sw = obj.type === 'highlighter' ? Math.max(obj.lineWidth * 4, 16) : obj.lineWidth;
+          const op = obj.type === 'highlighter' ? 0.4 : obj.opacity;
+          svg += `<path d="${d}" fill="none" stroke="${obj.color}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" opacity="${op}"/>`;
+        }
+      } else if (obj.type === 'redact') {
+        svg += `<rect x="${obj.x}" y="${obj.y}" width="${obj.w}" height="${obj.h}" fill="#000000"/>`;
+      }
+    }
+
+    svg += '</svg>';
+    return svg;
+  }
+}
+
+// Shared rounded rect helper for image objects
+function _imgRoundRect(ctx, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r); ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h); ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r); ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
 }

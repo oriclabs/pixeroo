@@ -12,9 +12,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.close();
   });
 
-  // Toolkit -> open in new tab
+  // Toolkit -> reuse existing editor tab or open new
   document.getElementById('btn-toolkit').addEventListener('click', () => {
-    chrome.tabs.create({ url: chrome.runtime.getURL('editor/editor.html') });
+    chrome.runtime.sendMessage({ action: 'openEditor' });
     window.close();
   });
 

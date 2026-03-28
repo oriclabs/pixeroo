@@ -1,4 +1,4 @@
-// Pixeroo - Shared Theme System
+// Pixeroo - Shared Theme & Font System
 // Include this script in every HTML page (popup, sidepanel, editor, settings, help)
 
 (function () {
@@ -30,6 +30,18 @@
     '--slate-950': '#020617',
   };
 
+  const FONT_PRESETS = {
+    'system':    "system-ui, -apple-system, 'Segoe UI', sans-serif",
+    'inter':     "'Inter', system-ui, sans-serif",
+    'roboto':    "'Roboto', 'Segoe UI', sans-serif",
+    'plex':      "'IBM Plex Sans', 'Segoe UI', sans-serif",
+    'source':    "'Source Sans 3', 'Source Sans Pro', sans-serif",
+    'noto':      "'Noto Sans', 'Segoe UI', sans-serif",
+    'ubuntu':    "'Ubuntu', 'Segoe UI', sans-serif",
+    'jetbrains': "'JetBrains Mono', 'Consolas', monospace",
+    'mono':      "'Cascadia Code', 'Consolas', 'Courier New', monospace",
+  };
+
   function applyTheme(theme) {
     const vars = theme === 'light' ? LIGHT_VARS : DARK_VARS;
     const root = document.documentElement;
@@ -38,43 +50,44 @@
       root.style.setProperty(key, value);
     }
 
-    // Toggle body class for pages using hardcoded colors
     document.body?.classList.toggle('theme-light', theme === 'light');
     document.body?.classList.toggle('theme-dark', theme === 'dark');
 
-    // Update hardcoded bg/text on body (for popup which uses inline styles)
     if (document.body) {
-      if (theme === 'light') {
-        document.body.style.backgroundColor = '#ffffff';
-        document.body.style.color = '#1e293b';
-      } else {
-        document.body.style.backgroundColor = '#020617';
-        document.body.style.color = '#f3f4f6';
-      }
+      document.body.style.backgroundColor = theme === 'light' ? '#ffffff' : '#020617';
+      document.body.style.color = theme === 'light' ? '#1e293b' : '#f3f4f6';
     }
   }
 
-  // Load and apply on page load
-  async function init() {
+  function applyFontFamily(key) {
+    const stack = FONT_PRESETS[key] || FONT_PRESETS['system'];
+    // Set on body directly — CSS var() misparses comma-separated font stacks
+    if (document.body) document.body.style.fontFamily = stack;
+    // Also set on html for elements outside body
+    document.documentElement.style.fontFamily = stack;
+  }
+
+  async function applyAll() {
     try {
-      const result = await chrome.storage.sync.get({ theme: 'dark' });
-      applyTheme(result.theme);
+      const r = await chrome.storage.sync.get({ theme: 'dark', fontFamily: 'jetbrains' });
+      applyTheme(r.theme);
+      applyFontFamily(r.fontFamily);
     } catch {
       applyTheme('dark');
     }
   }
 
-  // Listen for theme changes from settings page
+  // Listen for live changes from settings
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area === 'sync' && changes.theme) {
-      applyTheme(changes.theme.newValue);
-    }
+    if (area !== 'sync') return;
+    if (changes.theme) applyTheme(changes.theme.newValue);
+    if (changes.fontFamily) applyFontFamily(changes.fontFamily.newValue);
   });
 
-  // Apply as early as possible
+  // Apply on DOMContentLoaded (body exists) — if already loaded, apply now
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', applyAll);
   } else {
-    init();
+    applyAll();
   }
 })();

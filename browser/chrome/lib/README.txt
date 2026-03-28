@@ -13,3 +13,12 @@ smartcrop.min.js
   - License: MIT
   - Minified (not obfuscated)
   - 7KB
+
+editor/tracer.js (adapted, not in lib/)
+  - Raster image to SVG vectorizer
+  - Based on: https://github.com/jankovicsandras/imagetracerjs (v1.2.6)
+  - Original license: Unlicense / Public Domain
+  - Adapted for Pixeroo: stripped Node.js/CLI/AMD, refactored API to accept
+    canvas directly, added custom presets (logo, sketch, photo, minimal),
+    modernized to ES6. Core vectorization algorithm unchanged.
+  - Credit: Andras Jankovics (andras@jankovics.net)

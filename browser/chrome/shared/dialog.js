@@ -13,7 +13,7 @@ const pixDialog = {
     o.id = 'pix-dialog-overlay';
     o.style.cssText = 'position:fixed;inset:0;z-index:2147483646;background:rgba(2,6,23,0.7);display:none;align-items:center;justify-content:center;';
     o.innerHTML = `
-      <div id="pix-dialog" style="background:var(--slate-900,#0f172a);border:1px solid var(--slate-700,#334155);border-radius:12px;padding:1.25rem;min-width:280px;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.5);font-family:Inter,system-ui,sans-serif;">
+      <div id="pix-dialog" style="background:var(--slate-900,#0f172a);border:1px solid var(--slate-700,#334155);border-radius:12px;padding:1.25rem;min-width:280px;max-width:75vw;box-shadow:0 20px 60px rgba(0,0,0,0.5);font-family:Inter,system-ui,sans-serif;">
         <div id="pix-dialog-title" style="font-size:0.875rem;font-weight:600;color:var(--slate-200,#e2e8f0);margin-bottom:0.5rem;"></div>
         <div id="pix-dialog-body" style="font-size:0.8125rem;color:var(--slate-400,#94a3b8);line-height:1.5;margin-bottom:1rem;"></div>
         <input id="pix-dialog-input" type="text" style="display:none;width:100%;background:var(--slate-800,#1e293b);color:var(--slate-200,#e2e8f0);border:1px solid var(--slate-700,#334155);border-radius:6px;padding:6px 10px;font-size:0.8125rem;margin-bottom:0.75rem;outline:none;" />
@@ -31,7 +31,9 @@ const pixDialog = {
     this._create();
     const o = this._overlay;
     o.querySelector('#pix-dialog-title').textContent = title;
-    o.querySelector('#pix-dialog-body').textContent = body;
+    // Support HTML in body (tables, styled content)
+    const bodyEl = o.querySelector('#pix-dialog-body');
+    if (body.includes('<')) { bodyEl.innerHTML = body; } else { bodyEl.textContent = body; }
 
     const input = o.querySelector('#pix-dialog-input');
     const cancelBtn = o.querySelector('#pix-dialog-cancel');

@@ -88,15 +88,31 @@ class EditPipeline {
     const c = this.displayCanvas;
     const ctx = this.displayCtx;
 
-    // Start from original at export dimensions
-    c.width = this.exportWidth;
-    c.height = this.exportHeight;
-    ctx.drawImage(this.original, 0, 0, this.exportWidth, this.exportHeight);
+    // Start from original, apply resize if set, then operations
+    const resized = this.exportWidth !== this.originalWidth || this.exportHeight !== this.originalHeight;
+    if (resized) {
+      c.width = this.exportWidth; c.height = this.exportHeight;
+      if (typeof steppedResize === 'function' &&
+          (this.exportWidth < this.originalWidth / 2 || this.exportHeight < this.originalHeight / 2)) {
+        const tmp = document.createElement('canvas');
+        tmp.width = this.originalWidth; tmp.height = this.originalHeight;
+        tmp.getContext('2d').drawImage(this.original, 0, 0);
+        ctx.drawImage(steppedResize(tmp, this.exportWidth, this.exportHeight), 0, 0);
+      } else {
+        ctx.drawImage(this.original, 0, 0, this.exportWidth, this.exportHeight);
+      }
+    } else {
+      c.width = this.originalWidth; c.height = this.originalHeight;
+      ctx.drawImage(this.original, 0, 0);
+    }
 
-    // Apply each operation in order
+    // Apply each operation — ops may change canvas dimensions
     for (const op of this.operations) {
       this._applyOp(ctx, c, op);
     }
+    // Sync export dimensions to final canvas state
+    this.exportWidth = c.width;
+    this.exportHeight = c.height;
   }
 
   // Render at full resolution for export (may differ from display)
@@ -218,6 +234,61 @@ class EditPipeline {
 
       case 'watermark': {
         applyWatermark(canvas, ctx, op.text, op.options);
+        break;
+      }
+
+      case 'border': {
+        applyBorder(canvas, op.width || 10, op.color || '#000000');
+        this.exportWidth = canvas.width;
+        this.exportHeight = canvas.height;
+        break;
+      }
+
+      case 'padding': {
+        const p = op.top || 0, pr = op.right || 0, pb = op.bottom || 0, pl = op.left || 0;
+        const color = op.color || '#ffffff';
+        const nw = canvas.width + pl + pr, nh = canvas.height + p + pb;
+        const tmp = document.createElement('canvas'); tmp.width = nw; tmp.height = nh;
+        const tc = tmp.getContext('2d');
+        tc.fillStyle = color; tc.fillRect(0, 0, nw, nh);
+        tc.drawImage(canvas, pl, p);
+        canvas.width = nw; canvas.height = nh;
+        ctx.drawImage(tmp, 0, 0);
+        this.exportWidth = nw; this.exportHeight = nh;
+        break;
+      }
+
+      case 'tile': {
+        const tiled = createTiledImage(canvas, op.cols || 2, op.rows || 2);
+        canvas.width = tiled.width; canvas.height = tiled.height;
+        ctx.drawImage(tiled, 0, 0);
+        this.exportWidth = canvas.width;
+        this.exportHeight = canvas.height;
+        break;
+      }
+
+      case 'colorBlindness': {
+        simulateColorBlindness(canvas, op.mode);
+        break;
+      }
+
+      case 'cmyk': {
+        simulateCmyk(canvas);
+        break;
+      }
+
+      case 'channel': {
+        extractChannel(canvas, op.channel);
+        break;
+      }
+
+      case 'levels': {
+        adjustLevels(canvas, op.black, op.white, op.gamma);
+        break;
+      }
+
+      case 'lsbVisualize': {
+        visualizeLSB(canvas);
         break;
       }
     }
