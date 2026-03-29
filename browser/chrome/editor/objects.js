@@ -10,7 +10,7 @@
 
 class DrawObject {
   constructor(type, x, y, w, h) {
-    this.type = type; // 'text', 'rect', 'arrow', 'redact', 'pen', 'highlighter', 'image'
+    this.type = type; // 'text', 'rect', 'arrow', 'redact', 'pen', 'highlighter', 'image', 'callout'
     this.x = x;
     this.y = y;
     this.w = w;
@@ -25,6 +25,7 @@ class DrawObject {
     this.selected = false;
     this.editing = false;
     this.filled = false; // for rect: filled vs stroke-only
+    this.bgColor = null; // background color (null = transparent)
     this.redactMode = 'pixelate';
     this.redactStrength = 3;
     this.filter = null;
@@ -44,6 +45,13 @@ class DrawObject {
     this.shadowBlur = 12;
     this.shadowDir = 'br';
     this.cornerRadius = 0;
+    // Callout properties
+    this.calloutShape = 'rounded';   // rounded, bubble, cloud, banner, arrow-box
+    this.calloutTailDir = 'bottom';  // top, bottom, left, right, none
+    this.calloutTailOffset = 0.5;    // 0-1, position along edge
+    this.calloutRadius = 12;         // corner radius
+    this.calloutPadding = 12;        // inner padding
+    this.calloutIcon = '';           // 'info', 'warning', 'check', 'x', 'star', 'pin', 'bulb', '1'-'9'
   }
 
   containsPoint(px, py) {
@@ -99,30 +107,38 @@ class DrawObject {
     ctx.globalAlpha = this.opacity;
 
     if (this.type === 'rect') {
-      if (this.filled) {
-        ctx.fillStyle = this.color;
+      // Fill with BG color if set
+      if (this.bgColor) {
+        ctx.fillStyle = this.bgColor;
         ctx.fillRect(this.x, this.y, this.w, this.h);
-      } else {
-        ctx.strokeStyle = this.color;
-        ctx.lineWidth = this.lineWidth;
-        ctx.strokeRect(this.x, this.y, this.w, this.h);
       }
+      // Always draw border with main color
+      ctx.strokeStyle = this.color;
+      ctx.lineWidth = this.lineWidth;
+      ctx.strokeRect(this.x, this.y, this.w, this.h);
     } else if (this.type === 'pen' || this.type === 'highlighter') {
       this._drawStroke(ctx);
     } else if (this.type === 'arrow') {
       this._drawArrow(ctx);
     } else if (this.type === 'text') {
-      ctx.fillStyle = this.color;
       ctx.font = `${this.fontWeight} ${this.fontSize}px ${this.fontFamily}`;
       ctx.textBaseline = 'top';
       const lines = (this.text || '').split('\n');
       const lineH = this.fontSize * 1.3;
-      // Measure and auto-size bounding box
+      // Measure and auto-size bounding box (min width for empty/short text)
+      const minW = this.editing ? Math.max(this.fontSize * 6, 100) : 20;
       let maxW = 0;
       lines.forEach(line => { maxW = Math.max(maxW, ctx.measureText(line).width); });
-      this.w = Math.max(maxW + 8, 20);
-      this.h = Math.max(lines.length * lineH, lineH);
+      this.w = Math.max(maxW + 12, minW);
+      this.h = Math.max(lines.length * lineH + 4, lineH + 4);
+      // Draw background if set
+      if (this.bgColor) {
+        ctx.fillStyle = this.bgColor;
+        const pad = 4;
+        ctx.fillRect(this.x - pad, this.y - pad, this.w + pad * 2, this.h + pad * 2);
+      }
       // Draw text
+      ctx.fillStyle = this.color;
       lines.forEach((line, i) => {
         ctx.fillText(line, this.x + 4, this.y + i * lineH + 2);
       });
@@ -143,6 +159,8 @@ class DrawObject {
       ctx.font = '11px Inter, system-ui, sans-serif';
       ctx.textBaseline = 'top';
       ctx.fillText(this.filter || 'mask', this.x + 4, this.y + 4);
+    } else if (this.type === 'callout') {
+      this._drawCallout(ctx);
     } else if (this.type === 'image' && this.imgSource) {
       this._drawImage(ctx);
     }
@@ -179,7 +197,7 @@ class DrawObject {
     }
 
     // Text cursor when editing
-    if (this.type === 'text' && this.editing) {
+    if ((this.type === 'text' || this.type === 'callout') && this.editing) {
       ctx.font = `${this.fontWeight} ${this.fontSize}px ${this.fontFamily}`;
       const lines = (this.text || '').split('\n');
       const lastLine = lines[lines.length - 1] || '';
@@ -223,6 +241,176 @@ class DrawObject {
       if (p.x > maxX) maxX = p.x; if (p.y > maxY) maxY = p.y;
     }
     return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+  }
+
+  _drawCallout(ctx) {
+    const { x, y, w, h } = this;
+    const shape = this.calloutShape || 'rounded';
+    const tailDir = this.calloutTailDir || 'none';
+    const tailOffset = this.calloutTailOffset || 0.5;
+    const radius = Math.min(this.calloutRadius || 12, Math.min(w, h) / 2);
+    const pad = this.calloutPadding || 12;
+    const tailSize = 12;
+
+    // --- Draw shape path ---
+    ctx.beginPath();
+    if (shape === 'rounded' || shape === 'arrow-box') {
+      ctx.roundRect(x, y, w, h, radius);
+      // Arrow-box: small chevron arrows on left+right edges
+      if (shape === 'arrow-box') {
+        const midY = y + h / 2;
+        ctx.moveTo(x, midY - 8); ctx.lineTo(x - 6, midY); ctx.lineTo(x, midY + 8);
+        ctx.moveTo(x + w, midY - 8); ctx.lineTo(x + w + 6, midY); ctx.lineTo(x + w, midY + 8);
+      }
+    } else if (shape === 'bubble') {
+      ctx.roundRect(x, y, w, h, radius);
+    } else if (shape === 'cloud') {
+      // Bumpy cloud approximation
+      const cx = x + w / 2, cy = y + h / 2;
+      const rx = w / 2, ry = h / 2;
+      const bumps = 12;
+      for (let i = 0; i < bumps; i++) {
+        const a = (i / bumps) * Math.PI * 2;
+        const na = ((i + 1) / bumps) * Math.PI * 2;
+        const px1 = cx + rx * Math.cos(a), py1 = cy + ry * Math.sin(a);
+        const px2 = cx + rx * Math.cos(na), py2 = cy + ry * Math.sin(na);
+        const bx = cx + (rx + 8) * Math.cos((a + na) / 2);
+        const by = cy + (ry + 8) * Math.sin((a + na) / 2);
+        if (i === 0) ctx.moveTo(px1, py1);
+        ctx.quadraticCurveTo(bx, by, px2, py2);
+      }
+      ctx.closePath();
+    } else if (shape === 'banner') {
+      ctx.moveTo(x + 10, y);
+      ctx.lineTo(x + w - 10, y);
+      ctx.lineTo(x + w, y + h / 2);
+      ctx.lineTo(x + w - 10, y + h);
+      ctx.lineTo(x + 10, y + h);
+      ctx.lineTo(x, y + h / 2);
+      ctx.closePath();
+    }
+
+    // Fill background
+    if (this.bgColor) {
+      ctx.fillStyle = this.bgColor;
+      ctx.fill();
+    }
+
+    // Stroke border
+    if (this.borderColor) {
+      ctx.strokeStyle = this.borderColor;
+      ctx.lineWidth = this.lineWidth || 2;
+      ctx.stroke();
+    }
+
+    // --- Draw tail (separate path so it doesn't interfere with shape) ---
+    if (tailDir !== 'none' && shape !== 'banner') {
+      ctx.beginPath();
+      if (shape === 'bubble') {
+        // Curved speech-bubble tail
+        if (tailDir === 'bottom') {
+          const tx = x + w * tailOffset;
+          ctx.moveTo(tx - 8, y + h);
+          ctx.quadraticCurveTo(tx - 15, y + h + tailSize + 5, tx - 5, y + h + tailSize);
+          ctx.quadraticCurveTo(tx, y + h + 5, tx + 8, y + h);
+        } else if (tailDir === 'top') {
+          const tx = x + w * tailOffset;
+          ctx.moveTo(tx - 8, y);
+          ctx.quadraticCurveTo(tx - 15, y - tailSize - 5, tx - 5, y - tailSize);
+          ctx.quadraticCurveTo(tx, y - 5, tx + 8, y);
+        } else if (tailDir === 'left') {
+          const ty = y + h * tailOffset;
+          ctx.moveTo(x, ty - 8);
+          ctx.quadraticCurveTo(x - tailSize - 5, ty - 15, x - tailSize, ty - 5);
+          ctx.quadraticCurveTo(x - 5, ty, x, ty + 8);
+        } else if (tailDir === 'right') {
+          const ty = y + h * tailOffset;
+          ctx.moveTo(x + w, ty - 8);
+          ctx.quadraticCurveTo(x + w + tailSize + 5, ty - 15, x + w + tailSize, ty - 5);
+          ctx.quadraticCurveTo(x + w + 5, ty, x + w, ty + 8);
+        }
+      } else if (shape === 'cloud') {
+        // Thought-bubble tail: small circles
+        const tx = x + w * tailOffset, ty = y + h;
+        if (tailDir === 'bottom') {
+          ctx.arc(tx, ty + 6, 4, 0, Math.PI * 2);
+          ctx.moveTo(tx - 6 + 2, ty + 14);
+          ctx.arc(tx - 6, ty + 14, 2, 0, Math.PI * 2);
+        } else if (tailDir === 'top') {
+          ctx.arc(tx, y - 6, 4, 0, Math.PI * 2);
+          ctx.moveTo(tx - 6 + 2, y - 14);
+          ctx.arc(tx - 6, y - 14, 2, 0, Math.PI * 2);
+        } else if (tailDir === 'left') {
+          const tty = y + h * tailOffset;
+          ctx.arc(x - 6, tty, 4, 0, Math.PI * 2);
+          ctx.moveTo(x - 14 + 2, tty - 6);
+          ctx.arc(x - 14, tty - 6, 2, 0, Math.PI * 2);
+        } else if (tailDir === 'right') {
+          const tty = y + h * tailOffset;
+          ctx.arc(x + w + 6, tty, 4, 0, Math.PI * 2);
+          ctx.moveTo(x + w + 14 + 2, tty - 6);
+          ctx.arc(x + w + 14, tty - 6, 2, 0, Math.PI * 2);
+        }
+      } else {
+        // Triangle tail for rounded / arrow-box
+        let tx, ty2;
+        if (tailDir === 'bottom') {
+          tx = x + w * tailOffset;
+          ctx.moveTo(tx - tailSize, y + h); ctx.lineTo(tx, y + h + tailSize); ctx.lineTo(tx + tailSize, y + h);
+        } else if (tailDir === 'top') {
+          tx = x + w * tailOffset;
+          ctx.moveTo(tx - tailSize, y); ctx.lineTo(tx, y - tailSize); ctx.lineTo(tx + tailSize, y);
+        } else if (tailDir === 'left') {
+          ty2 = y + h * tailOffset;
+          ctx.moveTo(x, ty2 - tailSize); ctx.lineTo(x - tailSize, ty2); ctx.lineTo(x, ty2 + tailSize);
+        } else if (tailDir === 'right') {
+          ty2 = y + h * tailOffset;
+          ctx.moveTo(x + w, ty2 - tailSize); ctx.lineTo(x + w + tailSize, ty2); ctx.lineTo(x + w, ty2 + tailSize);
+        }
+      }
+      if (this.bgColor) { ctx.fillStyle = this.bgColor; ctx.fill(); }
+      if (this.borderColor) { ctx.strokeStyle = this.borderColor; ctx.lineWidth = this.lineWidth || 2; ctx.stroke(); }
+    }
+
+    // --- Draw icon ---
+    let textOffsetX = 0;
+    if (this.calloutIcon) {
+      const iconSize = (this.fontSize || 16) + 2;
+      const iconX = x + pad;
+      const iconY = y + h / 2;
+      this._drawCalloutIcon(ctx, this.calloutIcon, iconX, iconY, iconSize, this.color || '#fff');
+      textOffsetX = iconSize + 4;
+    }
+
+    // --- Draw wrapped text ---
+    if (this.text) {
+      ctx.font = `${this.fontWeight || 'normal'} ${this.fontSize || 16}px ${this.fontFamily || 'Inter, system-ui, sans-serif'}`;
+      ctx.fillStyle = this.color || '#ffffff';
+      ctx.textBaseline = 'top';
+      const maxTextW = w - pad * 2 - textOffsetX;
+      const lines = this._wrapText(ctx, this.text, Math.max(maxTextW, 20));
+      const lineH = (this.fontSize || 16) * 1.3;
+      const totalH = lines.length * lineH;
+      const startY = y + (h - totalH) / 2;
+      for (let i = 0; i < lines.length; i++) {
+        ctx.fillText(lines[i], x + pad + textOffsetX, startY + i * lineH);
+      }
+    }
+  }
+
+  _drawCalloutIcon(ctx, icon, ix, iy, size, color) {
+    ctx.save();
+    ctx.font = `bold ${size}px sans-serif`;
+    ctx.fillStyle = color;
+    ctx.textBaseline = 'middle';
+    const icons = {
+      'info': '\u2139', 'warning': '\u26A0', 'check': '\u2713', 'x': '\u2715',
+      'star': '\u2605', 'pin': '\uD83D\uDCCC', 'bulb': '\uD83D\uDCA1',
+      '1':'\u2460','2':'\u2461','3':'\u2462','4':'\u2463','5':'\u2464',
+      '6':'\u2465','7':'\u2466','8':'\u2467','9':'\u2468'
+    };
+    ctx.fillText(icons[icon] || icon, ix, iy);
+    ctx.restore();
   }
 
   _drawImage(ctx) {
@@ -344,6 +532,7 @@ class ObjectLayer {
     this.lineWidth = 3;
     this.fontSize = 24;
     this._penObj = null; // active pen/highlighter stroke being drawn
+    this._clipboard = null; // for copy/paste of draw objects
   }
 
   attach(parentEl) {
@@ -409,6 +598,8 @@ class ObjectLayer {
     obj.color = this.color;
     obj.lineWidth = this.lineWidth;
     obj.filled = this.filled || false;
+    const bgToggle = document.getElementById('ann-bg-toggle');
+    if (bgToggle?.checked) obj.bgColor = document.getElementById('ann-bg-color')?.value || '#ffffff';
     this.objects.push(obj);
     this.select(obj);
     return obj;
@@ -431,6 +622,9 @@ class ObjectLayer {
     obj.color = this.color;
     obj.fontSize = this.fontSize;
     obj.fontFamily = this.fontFamily || 'Inter, system-ui, sans-serif';
+    // Apply background if toggle is on
+    const bgToggle = document.getElementById('ann-bg-toggle');
+    if (bgToggle?.checked) obj.bgColor = document.getElementById('ann-bg-color')?.value || '#ffffff';
     obj.editing = true;
     this.objects.push(obj);
     this.select(obj);
@@ -448,6 +642,27 @@ class ObjectLayer {
     const obj = new DrawObject('mask', x, y, w, h);
     obj.filter = filter || 'blur';
     obj.filterValue = filterValue;
+    this.objects.push(obj);
+    this.select(obj);
+    return obj;
+  }
+
+  addCallout(x, y, w, h, opts = {}) {
+    const obj = new DrawObject('callout', x, y, w || 200, h || 80);
+    obj.text = opts.text || 'Type here...';
+    obj.color = opts.textColor || this.color;
+    obj.bgColor = opts.bgColor || '#1e293b';
+    obj.borderColor = opts.borderColor || '#F4C430';
+    obj.calloutShape = opts.shape || 'rounded';
+    obj.calloutTailDir = opts.tailDir || 'bottom';
+    obj.calloutTailOffset = opts.tailOffset || 0.5;
+    obj.calloutRadius = opts.radius || 12;
+    obj.calloutPadding = opts.padding || 12;
+    obj.calloutIcon = opts.icon || '';
+    obj.fontSize = opts.fontSize || this.fontSize || 16;
+    obj.fontFamily = this.fontFamily || 'Inter, system-ui, sans-serif';
+    obj.lineWidth = opts.borderWidth || 2;
+    obj.editing = true;
     this.objects.push(obj);
     this.select(obj);
     return obj;
@@ -497,13 +712,89 @@ class ObjectLayer {
     this.render();
   }
 
+  // --- Copy / Paste / Duplicate ---
+  copySelected() {
+    if (!this.selected) return;
+    // Deep clone the object properties
+    this._clipboard = JSON.parse(JSON.stringify({
+      type: this.selected.type,
+      x: this.selected.x + 20, // offset so paste is visible
+      y: this.selected.y + 20,
+      w: this.selected.w,
+      h: this.selected.h,
+      x2: this.selected.x2,
+      y2: this.selected.y2,
+      text: this.selected.text,
+      color: this.selected.color,
+      bgColor: this.selected.bgColor,
+      lineWidth: this.selected.lineWidth,
+      fontSize: this.selected.fontSize,
+      fontFamily: this.selected.fontFamily,
+      fontWeight: this.selected.fontWeight,
+      filled: this.selected.filled,
+      opacity: this.selected.opacity,
+      calloutShape: this.selected.calloutShape,
+      calloutTailDir: this.selected.calloutTailDir,
+      calloutIcon: this.selected.calloutIcon,
+      calloutRadius: this.selected.calloutRadius,
+      calloutPadding: this.selected.calloutPadding,
+      borderColor: this.selected.borderColor,
+      points: this.selected.points ? [...this.selected.points.map(p => ({...p}))] : [],
+    }));
+  }
+
+  pasteFromClipboard() {
+    if (!this._clipboard) return;
+    const data = this._clipboard;
+    const obj = new DrawObject(data.type, data.x, data.y, data.w, data.h);
+    Object.assign(obj, data);
+    // Offset next paste
+    this._clipboard.x += 20;
+    this._clipboard.y += 20;
+    this.objects.push(obj);
+    this.select(obj);
+    this.render();
+  }
+
+  duplicateSelected() {
+    if (!this.selected) return;
+    this.copySelected();
+    this.pasteFromClipboard();
+  }
+
   // --- Pen/Highlighter are created directly in _handleDown, no addPen needed ---
 
   // --- Selection ---
+  selectedObjects = [];
+
   select(obj) {
     this.deselectAll();
     obj.selected = true;
     this.selected = obj;
+    this.selectedObjects = [obj];
+    this.render();
+    if (this.onSelect) this.onSelect(obj);
+  }
+
+  toggleSelect(obj) {
+    // Shift+click: add/remove from multi-selection
+    if (obj.selected) {
+      obj.selected = false;
+      this.selectedObjects = this.selectedObjects.filter(o => o !== obj);
+      this.selected = this.selectedObjects.length ? this.selectedObjects[this.selectedObjects.length - 1] : null;
+    } else {
+      obj.selected = true;
+      this.selectedObjects.push(obj);
+      this.selected = obj;
+    }
+    this.render();
+    if (this.selected && this.onSelect) this.onSelect(this.selected);
+  }
+
+  selectAll() {
+    this.objects.forEach(o => o.selected = true);
+    this.selectedObjects = [...this.objects];
+    this.selected = this.objects.length ? this.objects[this.objects.length - 1] : null;
     this.render();
   }
 
@@ -511,12 +802,14 @@ class ObjectLayer {
     if (this.selected?.editing) this.selected.editing = false;
     this.objects.forEach(o => o.selected = false);
     this.selected = null;
+    this.selectedObjects = [];
   }
 
   deleteSelected() {
-    if (!this.selected) return;
-    this.objects = this.objects.filter(o => o !== this.selected);
+    if (!this.selectedObjects.length) return;
+    this.objects = this.objects.filter(o => !o.selected);
     this.selected = null;
+    this.selectedObjects = [];
     this.render();
   }
 
@@ -575,13 +868,20 @@ class ObjectLayer {
     // Check if clicking on any object
     for (let i = this.objects.length - 1; i >= 0; i--) {
       if (this.objects[i].containsPoint(x, y)) {
-        this.select(this.objects[i]);
+        if (e.shiftKey) {
+          // Shift+click: toggle multi-select
+          this.toggleSelect(this.objects[i]);
+        } else {
+          this.select(this.objects[i]);
+        }
         this.dragging = true;
         this.dragHandle = 'move';
         this.dragStartX = x;
         this.dragStartY = y;
-        this.origX = this.selected.x;
-        this.origY = this.selected.y;
+        this.origX = this.selected?.x || 0;
+        this.origY = this.selected?.y || 0;
+        // Save original positions of all selected for group move
+        this._groupOrigPositions = this.selectedObjects.map(o => ({ obj: o, x: o.x, y: o.y, x2: o.x2, y2: o.y2 }));
         return;
       }
     }
@@ -645,23 +945,27 @@ class ObjectLayer {
     const obj = this.selected;
 
     if (this.dragHandle === 'move') {
-      if (obj.type === 'arrow') {
-        const adx = obj.x2 - obj.x;
-        const ady = obj.y2 - obj.y;
-        obj.x = this.origX + dx;
-        obj.y = this.origY + dy;
-        obj.x2 = obj.x + adx;
-        obj.y2 = obj.y + ady;
-      } else if ((obj.type === 'pen' || obj.type === 'highlighter') && obj.points.length) {
-        // Move all points by delta from last frame
-        const mx = (this.origX + dx) - obj.x;
-        const my = (this.origY + dy) - obj.y;
-        for (const p of obj.points) { p.x += mx; p.y += my; }
-        obj.x = this.origX + dx;
-        obj.y = this.origY + dy;
-      } else {
-        obj.x = this.origX + dx;
-        obj.y = this.origY + dy;
+      // Group move: move all selected objects
+      const origins = this._groupOrigPositions || [{ obj, x: this.origX, y: this.origY, x2: obj.x2, y2: obj.y2 }];
+      for (const orig of origins) {
+        const o = orig.obj;
+        if (o.type === 'arrow') {
+          const adx = (orig.x2 || 0) - orig.x;
+          const ady = (orig.y2 || 0) - orig.y;
+          o.x = orig.x + dx;
+          o.y = orig.y + dy;
+          o.x2 = o.x + adx;
+          o.y2 = o.y + ady;
+        } else if ((o.type === 'pen' || o.type === 'highlighter') && o.points?.length) {
+          const mx = (orig.x + dx) - o.x;
+          const my = (orig.y + dy) - o.y;
+          for (const p of o.points) { p.x += mx; p.y += my; }
+          o.x = orig.x + dx;
+          o.y = orig.y + dy;
+        } else {
+          o.x = orig.x + dx;
+          o.y = orig.y + dy;
+        }
       }
     } else if (obj.type === 'arrow') {
       if (this.dragHandle === 'start') { obj.x = x; obj.y = y; }
@@ -730,7 +1034,7 @@ class ObjectLayer {
   _handleDblClick(e) {
     const { x, y } = this._toCanvasCoords(e);
     for (let i = this.objects.length - 1; i >= 0; i--) {
-      if (this.objects[i].type === 'text' && this.objects[i].containsPoint(x, y)) {
+      if ((this.objects[i].type === 'text' || this.objects[i].type === 'callout') && this.objects[i].containsPoint(x, y)) {
         this.select(this.objects[i]);
         this.objects[i].editing = true;
         this.render();
@@ -741,7 +1045,7 @@ class ObjectLayer {
 
   _handleKey(e) {
     // Text editing
-    if (this.selected?.editing && this.selected.type === 'text') {
+    if (this.selected?.editing && (this.selected.type === 'text' || this.selected.type === 'callout')) {
       if (e.key === 'Escape') {
         this.selected.editing = false;
         if (!this.selected.text) this.deleteSelected();

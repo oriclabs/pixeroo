@@ -216,6 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initCollage();
   initSocial();
   initWatermark();
+  initCallout();
 
   // Drop-to-replace on all single-image tool work areas
   // (Edit mode has its own in initEdit, Collage/Batch handle multi-image differently)
@@ -595,7 +596,7 @@ function openMode(mode) {
 
   document.getElementById('btn-back').classList.add('visible');
   document.body.classList.add('tool-active');
-  const labels = { edit:'Edit', convert:'Convert', store:'Store Assets', info:'Info', qr:'QR Code', colors:'Colors', svg:'SVG Tools', compare:'Compare', generate:'Generate', collage:'Collage', batch:'Batch Edit', social:'Social Media', watermark:'Watermark' };
+  const labels = { edit:'Edit', convert:'Convert', store:'Store Assets', info:'Info', qr:'QR Code', colors:'Colors', svg:'SVG Tools', compare:'Compare', generate:'Generate', collage:'Collage', batch:'Batch Edit', social:'Social Media', watermark:'Watermark', callout:'Callout' };
   document.getElementById('mode-label').textContent = labels[mode] || '';
 
   // Undo/Redo/Reset now live in ribbon Size group, always visible in edit mode

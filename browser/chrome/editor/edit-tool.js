@@ -14,6 +14,7 @@ function initEdit() {
     pipeline.loadImage(img);
     editCanvas.style.display = 'block'; document.getElementById('edit-ribbon')?.classList.remove('disabled');
     document.getElementById('edit-dropzone').style.display = 'none';
+    removeSliceOverlay();
     updResize(); originalW = 0; originalH = 0; saveEdit();
     // Init guides overlay
     _initEditGuides();
@@ -31,6 +32,7 @@ function initEdit() {
     editCanvas.style.display = 'block';
     document.getElementById('edit-ribbon')?.classList.remove('disabled');
     document.getElementById('edit-dropzone').style.display = 'none';
+    removeSliceOverlay();
     updResize(); originalW = 0; originalH = 0; saveEdit();
     resetAdjustmentSliders();
     _initEditGuides();
@@ -66,21 +68,42 @@ function initEdit() {
     document.getElementById('val-hue').textContent = '0';
   }
 
-  document.addEventListener('paste', (e) => {
+  document.addEventListener('paste', async (e) => {
     if (currentMode !== 'edit') return;
-    for (const item of (e.clipboardData?.items || [])) {
+    // Object paste takes priority if there's a clipboard object AND the object layer is active
+    if (objLayer._clipboard && objLayer.active) {
+      e.preventDefault();
+      objLayer.pasteFromClipboard();
+      return;
+    }
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of items) {
       if (item.type.startsWith('image/')) {
-        loadImg(item.getAsFile()).then(img => {
-          if (!img) return;
-          editOriginal = img; editFilename = 'pasted';
-          document.getElementById('file-label').textContent = 'Pasted image';
-          pipeline.setDisplayCanvas(editCanvas);
-          pipeline.loadImage(img);
-          editCanvas.style.display = 'block'; document.getElementById('edit-ribbon')?.classList.remove('disabled');
-          document.getElementById('edit-dropzone').style.display = 'none';
-          updResize(); originalW = 0; originalH = 0; saveEdit();
-          _initEditGuides();
-        }); break;
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (!file) continue;
+        const img = await loadImg(file);
+        if (!img) continue;
+
+        if (editOriginal) {
+          // Image already loaded — ask to replace
+          const ok = await pixDialog.confirm('Paste Image', 'Replace current image with pasted image?', { okText: 'Replace' });
+          if (!ok) return;
+        }
+
+        editOriginal = img;
+        editFilename = 'pasted-image';
+        document.getElementById('file-label').textContent = 'Pasted Image';
+        pipeline.setDisplayCanvas(editCanvas);
+        pipeline.loadImage(img);
+        editCanvas.style.display = 'block';
+        document.getElementById('edit-ribbon')?.classList.remove('disabled');
+        document.getElementById('edit-dropzone').style.display = 'none';
+        removeSliceOverlay();
+        updResize(); originalW = 0; originalH = 0; saveEdit();
+        _initEditGuides();
+        return;
       }
     }
 
@@ -164,7 +187,7 @@ function initEdit() {
   Object.entries(cropRatios).forEach(([id, ratio]) => {
     document.getElementById(id)?.addEventListener('click', () => {
       if (!editCanvas.width) return;
-      Crop.start(document.getElementById('edit-work'), ratio);
+      Crop.start(document.getElementById('edit-canvas-wrap'), ratio);
       document.getElementById('btn-crop-apply').style.display = '';
       document.getElementById('btn-crop-cancel').style.display = '';
     });
@@ -208,6 +231,48 @@ function initEdit() {
   // Object-based Drawing (replaces stamp-based Annotate)
   const objLayer = new ObjectLayer(editCanvas, saveEdit);
 
+  // Sync ribbon UI when an object is selected
+  objLayer.onSelect = (obj) => {
+    // Color
+    const colorEl = document.getElementById('ann-color');
+    if (colorEl && obj.color) colorEl.value = obj.color;
+    // Highlight matching preset
+    document.querySelectorAll('.ann-preset-color').forEach(s => {
+      s.style.outline = s.dataset.color === obj.color ? '2px solid var(--saffron-400)' : '';
+      if (s.dataset.color === obj.color) s.style.outlineOffset = '1px';
+    });
+    // Line width
+    const widthEl = document.getElementById('ann-width');
+    if (widthEl && obj.lineWidth) widthEl.value = obj.lineWidth;
+    // Background/Fill
+    const bgToggle = document.getElementById('ann-bg-toggle');
+    const bgColorEl = document.getElementById('ann-bg-color');
+    if (bgToggle) {
+      bgToggle.checked = !!obj.bgColor;
+      if (bgColorEl) {
+        bgColorEl.style.display = obj.bgColor ? '' : 'none';
+        if (obj.bgColor) bgColorEl.value = obj.bgColor;
+      }
+    }
+    // Font (text/callout)
+    if (obj.type === 'text' || obj.type === 'callout') {
+      const fontEl = document.getElementById('ann-font');
+      if (fontEl && obj.fontFamily) fontEl.value = obj.fontFamily;
+      const sizeEl = document.getElementById('ann-fontsize');
+      if (sizeEl && obj.fontSize) sizeEl.value = obj.fontSize;
+    }
+    // Callout shape/tail
+    if (obj.type === 'callout') {
+      const shapeEl = document.getElementById('ann-callout-shape');
+      if (shapeEl && obj.calloutShape) shapeEl.value = obj.calloutShape;
+      const tailEl = document.getElementById('ann-callout-tail');
+      if (tailEl && obj.calloutTailDir) tailEl.value = obj.calloutTailDir;
+    }
+    // Opacity
+    const opEl = document.getElementById('ann-opacity');
+    if (opEl) opEl.value = Math.round((obj.opacity || 1) * 100);
+  };
+
   // Attach object layer when image loads (called from image load handlers)
   window._pixerooObjLayer = objLayer;
 
@@ -233,11 +298,71 @@ function initEdit() {
     });
   });
 
+  // Callout button in Draw ribbon
+  document.getElementById('btn-ann-callout')?.addEventListener('click', () => {
+    if (!editCanvas.width) return;
+    if (!objLayer.active) objLayer.attach(document.getElementById('edit-canvas-wrap'));
+    const shape = document.getElementById('ann-callout-shape')?.value || 'rounded';
+    const tailDir = document.getElementById('ann-callout-tail')?.value || 'bottom';
+    const bgColor = document.getElementById('ann-bg-toggle')?.checked ? document.getElementById('ann-bg-color')?.value : '#1e293b';
+    objLayer.addCallout(editCanvas.width / 2 - 100, editCanvas.height / 2 - 40, 200, 80, {
+      shape, tailDir, bgColor, textColor: '#ffffff', borderColor: '#F4C430'
+    });
+    setActiveAnnTool('btn-ann-select');
+  });
+
+  // Callout shape/tail changes update selected callout
+  document.getElementById('ann-callout-shape')?.addEventListener('change', (e) => {
+    if (objLayer.selected?.type === 'callout') {
+      objLayer.selected.calloutShape = e.target.value;
+      objLayer.render();
+    }
+  });
+  document.getElementById('ann-callout-tail')?.addEventListener('change', (e) => {
+    if (objLayer.selected?.type === 'callout') {
+      objLayer.selected.calloutTailDir = e.target.value;
+      objLayer.render();
+    }
+  });
+
+  // Font/size changes update selected text/callout
+  document.getElementById('ann-font')?.addEventListener('change', (e) => {
+    objLayer.fontFamily = e.target.value;
+    if (objLayer.selected?.type === 'text' || objLayer.selected?.type === 'callout') {
+      objLayer.selected.fontFamily = e.target.value;
+      objLayer.render();
+    }
+  });
+  document.getElementById('ann-fontsize')?.addEventListener('input', (e) => {
+    objLayer.fontSize = +e.target.value;
+    if (objLayer.selected?.type === 'text' || objLayer.selected?.type === 'callout') {
+      objLayer.selected.fontSize = +e.target.value;
+      objLayer.render();
+    }
+  });
+
   // Escape key also switches back to pointer
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && objLayer.active && objLayer.creating) {
       objLayer.stopTool();
       setActiveAnnTool('btn-ann-select');
+    }
+    // Copy/Paste/Duplicate draw objects
+    if (e.ctrlKey && e.key === 'c' && objLayer.selected) {
+      e.preventDefault();
+      objLayer.copySelected();
+    }
+    if (e.ctrlKey && e.key === 'v' && objLayer._clipboard && objLayer.active) {
+      e.preventDefault();
+      objLayer.pasteFromClipboard();
+    }
+    if (e.ctrlKey && e.key === 'd' && objLayer.selected) {
+      e.preventDefault();
+      objLayer.duplicateSelected();
+    }
+    if (e.ctrlKey && e.key === 'a' && objLayer.active && objLayer.objects.length) {
+      e.preventDefault();
+      objLayer.selectAll();
     }
   });
 
@@ -265,7 +390,24 @@ function initEdit() {
     objLayer.lineWidth = +e.target.value;
     if (objLayer.selected) { objLayer.selected.lineWidth = +e.target.value; objLayer.render(); }
   });
-  document.getElementById('ann-fill')?.addEventListener('change', (e) => { objLayer.filled = e.target.checked; });
+  // Opacity slider for draw objects
+  document.getElementById('ann-opacity')?.addEventListener('input', (e) => {
+    const val = +e.target.value / 100;
+    if (objLayer.selected) { objLayer.selected.opacity = val; objLayer.render(); }
+  });
+  // ann-fill removed — BG toggle handles fill now
+
+  // Background color toggle
+  const bgToggle = document.getElementById('ann-bg-toggle');
+  const bgColorPicker = document.getElementById('ann-bg-color');
+  bgToggle?.addEventListener('change', (e) => {
+    bgColorPicker.style.display = e.target.checked ? '' : 'none';
+    const bgColor = e.target.checked ? bgColorPicker.value : null;
+    if (objLayer.selected) { objLayer.selected.bgColor = bgColor; objLayer.render(); }
+  });
+  bgColorPicker?.addEventListener('input', (e) => {
+    if (objLayer.selected) { objLayer.selected.bgColor = e.target.value; objLayer.render(); }
+  });
   document.getElementById('ann-font')?.addEventListener('change', (e) => {
     objLayer.fontFamily = e.target.value;
     // Apply to currently selected text object
@@ -326,7 +468,7 @@ function initEdit() {
       opacity: +(document.getElementById('watermark-opacity')?.value || 30) / 100,
       fontSize: +(document.getElementById('watermark-fontsize')?.value || 48),
       angle: +(document.getElementById('watermark-angle')?.value || -30),
-      color: document.getElementById('ann-color')?.value || '#ffffff',
+      color: document.getElementById('watermark-color')?.value || '#ffffff',
     }});
     saveEdit();
   });
@@ -369,22 +511,308 @@ function initEdit() {
     } catch {}
   }
 
-  // Sprite slicer
+  // --- Sprite Slicer with Visual Preview ---
+  let sliceOverlay = null;
+  let sliceActive = false;
+  let sliceLines = { vertical: [], horizontal: [] };
+  let sliceDragging = null;
+
+  function showSlicePreview() {
+    if (!editCanvas.width) return;
+
+    sliceActive = !sliceActive;
+    document.getElementById('btn-slice-preview')?.classList.toggle('active', sliceActive);
+
+    if (!sliceActive) {
+      removeSliceOverlay();
+      return;
+    }
+
+    updateSliceLines();
+    renderSliceOverlay();
+  }
+
+  function updateSliceLines() {
+    const isCustom = document.getElementById('slice-custom')?.checked;
+    const cw = editCanvas.width;
+    const ch = editCanvas.height;
+
+    if (isCustom) {
+      const wStr = document.getElementById('slice-custom-w')?.value || '';
+      const hStr = document.getElementById('slice-custom-h')?.value || '';
+      sliceLines.vertical = parseCustomPositions(wStr, cw);
+      sliceLines.horizontal = parseCustomPositions(hStr, ch);
+    } else {
+      const cols = +document.getElementById('sprite-cols')?.value || 4;
+      const rows = +document.getElementById('sprite-rows')?.value || 4;
+      sliceLines.vertical = [];
+      sliceLines.horizontal = [];
+      for (let i = 1; i < cols; i++) sliceLines.vertical.push(Math.round(cw * i / cols));
+      for (let i = 1; i < rows; i++) sliceLines.horizontal.push(Math.round(ch * i / rows));
+    }
+  }
+
+  function parseCustomPositions(str, totalSize) {
+    if (!str.trim()) return [];
+    const sizes = str.split(',').map(s => +s.trim()).filter(n => n > 0);
+    const positions = [];
+    let pos = 0;
+    for (const size of sizes) {
+      pos += size;
+      if (pos < totalSize) positions.push(Math.round(pos));
+    }
+    return positions;
+  }
+
+  function renderSliceOverlay() {
+    if (!sliceActive || !editCanvas.width) return;
+
+    if (!sliceOverlay) {
+      sliceOverlay = document.createElement('canvas');
+      sliceOverlay.style.cssText = 'position:absolute;top:0;left:0;pointer-events:auto;cursor:default;z-index:4;';
+      document.getElementById('edit-canvas-wrap')?.appendChild(sliceOverlay);
+
+      sliceOverlay.addEventListener('mousedown', onSliceMouseDown);
+      window.addEventListener('mousemove', onSliceMouseMove);
+      window.addEventListener('mouseup', onSliceMouseUp);
+    }
+
+    const baseRect = editCanvas.getBoundingClientRect();
+    sliceOverlay.width = editCanvas.width;
+    sliceOverlay.height = editCanvas.height;
+    sliceOverlay.style.width = baseRect.width + 'px';
+    sliceOverlay.style.height = baseRect.height + 'px';
+
+    const ctx = sliceOverlay.getContext('2d');
+    ctx.clearRect(0, 0, sliceOverlay.width, sliceOverlay.height);
+
+    // Draw vertical lines
+    ctx.setLineDash([6, 4]);
+    ctx.lineWidth = 1.5;
+    sliceLines.vertical.forEach((x) => {
+      ctx.strokeStyle = '#F4C430';
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, editCanvas.height);
+      ctx.stroke();
+      // Diamond drag handle
+      ctx.fillStyle = '#F4C430';
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(x, 8); ctx.lineTo(x + 6, 14); ctx.lineTo(x, 20); ctx.lineTo(x - 6, 14);
+      ctx.fill();
+      ctx.setLineDash([6, 4]);
+      // Label
+      ctx.fillStyle = 'rgba(244,196,48,0.8)';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(x + 'px', x, editCanvas.height - 5);
+    });
+
+    // Draw horizontal lines
+    sliceLines.horizontal.forEach((y) => {
+      ctx.strokeStyle = '#3b82f6';
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(editCanvas.width, y);
+      ctx.stroke();
+      // Diamond drag handle
+      ctx.fillStyle = '#3b82f6';
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(8, y); ctx.lineTo(14, y + 6); ctx.lineTo(20, y); ctx.lineTo(14, y - 6);
+      ctx.fill();
+      ctx.setLineDash([6, 4]);
+      // Label
+      ctx.fillStyle = 'rgba(59,130,246,0.8)';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(y + 'px', editCanvas.width - 40, y - 4);
+    });
+
+    ctx.setLineDash([]);
+
+    // Tile count badge
+    const tileCount = (sliceLines.vertical.length + 1) * (sliceLines.horizontal.length + 1);
+    ctx.fillStyle = 'rgba(15,23,42,0.7)';
+    ctx.fillRect(2, 2, 70, 18);
+    ctx.fillStyle = '#F4C430';
+    ctx.font = 'bold 11px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(`${tileCount} tiles`, 6, 14);
+  }
+
+  function toSliceCoords(e) {
+    const rect = sliceOverlay.getBoundingClientRect();
+    const sx = editCanvas.width / rect.width;
+    const sy = editCanvas.height / rect.height;
+    return { x: (e.clientX - rect.left) * sx, y: (e.clientY - rect.top) * sy };
+  }
+
+  function onSliceMouseDown(e) {
+    const { x, y } = toSliceCoords(e);
+    const threshold = 8;
+
+    for (let i = 0; i < sliceLines.vertical.length; i++) {
+      if (Math.abs(x - sliceLines.vertical[i]) < threshold) {
+        sliceDragging = { type: 'v', index: i, startPos: sliceLines.vertical[i] };
+        sliceOverlay.style.cursor = 'col-resize';
+        return;
+      }
+    }
+
+    for (let i = 0; i < sliceLines.horizontal.length; i++) {
+      if (Math.abs(y - sliceLines.horizontal[i]) < threshold) {
+        sliceDragging = { type: 'h', index: i, startPos: sliceLines.horizontal[i] };
+        sliceOverlay.style.cursor = 'row-resize';
+        return;
+      }
+    }
+  }
+
+  function onSliceMouseMove(e) {
+    if (!sliceOverlay || !sliceActive) return;
+
+    if (sliceDragging) {
+      const { x, y } = toSliceCoords(e);
+      if (sliceDragging.type === 'v') {
+        sliceLines.vertical[sliceDragging.index] = Math.max(10, Math.min(editCanvas.width - 10, Math.round(x)));
+      } else {
+        sliceLines.horizontal[sliceDragging.index] = Math.max(10, Math.min(editCanvas.height - 10, Math.round(y)));
+      }
+      sliceLines.vertical.sort((a, b) => a - b);
+      sliceLines.horizontal.sort((a, b) => a - b);
+      syncSliceInputs();
+      renderSliceOverlay();
+      // Auto-switch to custom mode when user drags
+      document.getElementById('slice-custom').checked = true;
+      document.getElementById('slice-custom-row').style.display = '';
+      document.getElementById('slice-custom-row-h').style.display = '';
+      return;
+    }
+
+    // Update cursor when hovering near lines
+    const { x, y } = toSliceCoords(e);
+    let cursor = 'default';
+    for (const vx of sliceLines.vertical) {
+      if (Math.abs(x - vx) < 8) { cursor = 'col-resize'; break; }
+    }
+    if (cursor === 'default') {
+      for (const hy of sliceLines.horizontal) {
+        if (Math.abs(y - hy) < 8) { cursor = 'row-resize'; break; }
+      }
+    }
+    sliceOverlay.style.cursor = cursor;
+  }
+
+  function onSliceMouseUp() {
+    sliceDragging = null;
+    if (sliceOverlay) sliceOverlay.style.cursor = 'default';
+  }
+
+  function syncSliceInputs() {
+    const cw = editCanvas.width;
+    const ch = editCanvas.height;
+
+    const vPositions = [0, ...sliceLines.vertical, cw];
+    const widths = [];
+    for (let i = 1; i < vPositions.length; i++) widths.push(vPositions[i] - vPositions[i - 1]);
+    document.getElementById('slice-custom-w').value = widths.join(',');
+
+    const hPositions = [0, ...sliceLines.horizontal, ch];
+    const heights = [];
+    for (let i = 1; i < hPositions.length; i++) heights.push(hPositions[i] - hPositions[i - 1]);
+    document.getElementById('slice-custom-h').value = heights.join(',');
+  }
+
+  function removeSliceOverlay() {
+    if (sliceOverlay) {
+      sliceOverlay.remove();
+      window.removeEventListener('mousemove', onSliceMouseMove);
+      window.removeEventListener('mouseup', onSliceMouseUp);
+      sliceOverlay = null;
+    }
+    sliceActive = false;
+    document.getElementById('btn-slice-preview')?.classList.remove('active');
+  }
+
+  function sliceAtPositions(canvas, verticalLines, horizontalLines) {
+    const vPos = [0, ...verticalLines.sort((a, b) => a - b), canvas.width];
+    const hPos = [0, ...horizontalLines.sort((a, b) => a - b), canvas.height];
+    const tiles = [];
+
+    for (let row = 0; row < hPos.length - 1; row++) {
+      for (let col = 0; col < vPos.length - 1; col++) {
+        const x = vPos[col];
+        const y = hPos[row];
+        const w = vPos[col + 1] - x;
+        const h = hPos[row + 1] - y;
+        if (w <= 0 || h <= 0) continue;
+
+        const tile = document.createElement('canvas');
+        tile.width = w;
+        tile.height = h;
+        tile.getContext('2d').drawImage(canvas, x, y, w, h, 0, 0, w, h);
+        tiles.push({ canvas: tile, row, col });
+      }
+    }
+    return tiles;
+  }
+
+  // Slice preview toggle
+  document.getElementById('btn-slice-preview')?.addEventListener('click', showSlicePreview);
+
+  // Custom toggle shows/hides custom inputs
+  document.getElementById('slice-custom')?.addEventListener('change', (e) => {
+    document.getElementById('slice-custom-row').style.display = e.target.checked ? '' : 'none';
+    document.getElementById('slice-custom-row-h').style.display = e.target.checked ? '' : 'none';
+    if (sliceActive) { updateSliceLines(); renderSliceOverlay(); }
+  });
+
+  // Cols/rows inputs update preview
+  ['sprite-cols', 'sprite-rows'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', () => {
+      if (sliceActive && !document.getElementById('slice-custom')?.checked) {
+        updateSliceLines();
+        renderSliceOverlay();
+      }
+    });
+  });
+
+  // Custom width/height inputs update preview
+  ['slice-custom-w', 'slice-custom-h'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', () => {
+      if (sliceActive) { updateSliceLines(); renderSliceOverlay(); }
+    });
+  });
+
+  // Slice download
   document.getElementById('btn-slice-sprite')?.addEventListener('click', async () => {
     if (!editCanvas.width) return;
-    const cols = +document.getElementById('sprite-cols').value || 4;
-    const rows = +document.getElementById('sprite-rows').value || 4;
-    const tiles = sliceSpriteSheet(editCanvas, cols, rows);
+
+    removeSliceOverlay();
+
+    const isCustom = document.getElementById('slice-custom')?.checked;
+    let tiles;
+
+    if (isCustom && (sliceLines.vertical.length || sliceLines.horizontal.length)) {
+      tiles = sliceAtPositions(editCanvas, sliceLines.vertical, sliceLines.horizontal);
+    } else {
+      const cols = +document.getElementById('sprite-cols').value || 4;
+      const rows = +document.getElementById('sprite-rows').value || 4;
+      tiles = sliceSpriteSheet(editCanvas, cols, rows);
+    }
+
     if (!tiles.length) return;
     const zip = new ZipWriter();
-    for (const tile of tiles) {
-      const blob = await new Promise(r => tile.canvas.toBlob(r, 'image/png'));
-      await zip.addBlob(`sprite-${tile.row}-${tile.col}.png`, blob);
+    for (let i = 0; i < tiles.length; i++) {
+      const blob = await new Promise(r => tiles[i].canvas.toBlob(r, 'image/png'));
+      await zip.addBlob(`slice-${tiles[i].row}-${tiles[i].col}.png`, blob);
     }
     const zipBlob = await zip.toBlob();
     const url = URL.createObjectURL(zipBlob);
     const a = document.createElement('a');
-    a.href = url; a.download = `pixeroo-sprites-${cols}x${rows}.zip`; a.click();
+    a.href = url; a.download = 'pixeroo-slices.zip'; a.click();
     URL.revokeObjectURL(url);
   });
 
@@ -708,6 +1136,55 @@ function initEdit() {
     }, 50);
   });
 
+  // --- Before/After toggle (hold Space) ---
+  let showingOriginal = false;
+
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && currentMode === 'edit' && editOriginal && !e.target.matches('input,textarea,select,[contenteditable]')) {
+      e.preventDefault();
+      if (!showingOriginal) {
+        showingOriginal = true;
+        // Save current canvas, show original
+        editCanvas._savedData = editCtx.getImageData(0, 0, editCanvas.width, editCanvas.height);
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = editOriginal.naturalWidth || editOriginal.width;
+        tempCanvas.height = editOriginal.naturalHeight || editOriginal.height;
+        tempCanvas.getContext('2d').drawImage(editOriginal, 0, 0);
+        editCanvas.width = tempCanvas.width;
+        editCanvas.height = tempCanvas.height;
+        editCtx.drawImage(tempCanvas, 0, 0);
+        // Show "Original" badge
+        const badge = document.getElementById('dimension-badge');
+        if (badge) { badge.textContent = 'ORIGINAL'; badge.style.display = 'block'; }
+      }
+    }
+  });
+
+  document.addEventListener('keyup', (e) => {
+    if (e.code === 'Space' && showingOriginal) {
+      showingOriginal = false;
+      // Restore edited version
+      if (editCanvas._savedData) {
+        editCanvas.width = editCanvas._savedData.width;
+        editCanvas.height = editCanvas._savedData.height;
+        editCtx.putImageData(editCanvas._savedData, 0, 0);
+        editCanvas._savedData = null;
+      } else {
+        pipeline.render();
+      }
+      document.getElementById('dimension-badge').style.display = 'none';
+    }
+  });
+
+  // --- Canvas background color (for transparent PNGs) ---
+  // Default checkerboard for transparency
+  const canvasWrap = document.getElementById('edit-canvas-wrap');
+  if (canvasWrap) canvasWrap.style.background = 'repeating-conic-gradient(#808080 0% 25%, #a0a0a0 0% 50%) 50% / 16px 16px';
+  document.getElementById('canvas-bg-color')?.addEventListener('input', (e) => {
+    document.getElementById('edit-canvas-wrap').style.backgroundColor = e.target.value;
+    document.getElementById('edit-canvas-wrap').style.backgroundImage = 'none';
+  });
+
   // --- Persistent Info Bar ---
   initInfoBar();
 }
@@ -947,11 +1424,67 @@ function initInfoBar() {
   barW?.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyBarResize(); });
   barH?.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyBarResize(); });
 
-  // Fit / 1:1 buttons
+  // --- Zoom / Pan ---
+  let zoomLevel = 1;
+  let panX = 0, panY = 0;
+  let isPanning = false, panStartX = 0, panStartY = 0;
+
+  function updateZoom() {
+    const wrap = document.getElementById('edit-canvas-wrap');
+    if (!wrap) return;
+    wrap.style.transform = `scale(${zoomLevel}) translate(${panX}px, ${panY}px)`;
+    wrap.style.transformOrigin = 'center center';
+    const zoomEl = document.getElementById('bar-zoom');
+    if (zoomEl) zoomEl.textContent = Math.round(zoomLevel * 100) + '%';
+  }
+
+  // Mousewheel zoom
+  document.getElementById('edit-work')?.addEventListener('wheel', (e) => {
+    if (!editCanvas.width) return;
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    zoomLevel = Math.max(0.1, Math.min(10, zoomLevel * delta));
+    updateZoom();
+  }, { passive: false });
+
+  // Shift+drag to pan (avoids conflicting with draw tools)
+  document.getElementById('edit-work')?.addEventListener('mousedown', (e) => {
+    if (e.button === 1 || (e.button === 0 && e.shiftKey)) {
+      e.preventDefault();
+      isPanning = true;
+      panStartX = e.clientX - panX * zoomLevel;
+      panStartY = e.clientY - panY * zoomLevel;
+      document.getElementById('edit-work').style.cursor = 'grabbing';
+    }
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isPanning) return;
+    panX = (e.clientX - panStartX) / zoomLevel;
+    panY = (e.clientY - panStartY) / zoomLevel;
+    updateZoom();
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (isPanning) {
+      isPanning = false;
+      document.getElementById('edit-work').style.cursor = '';
+    }
+  });
+
+  // Fit button — reset zoom
   document.getElementById('bar-fit')?.addEventListener('click', () => {
+    zoomLevel = 1; panX = 0; panY = 0;
+    updateZoom();
     if (editCanvas) editCanvas.style.maxWidth = '90%';
   });
+
+  // 1:1 button — actual pixels
   document.getElementById('bar-actual')?.addEventListener('click', () => {
+    const workRect = document.getElementById('edit-work').getBoundingClientRect();
+    zoomLevel = editCanvas.width / workRect.width;
+    panX = 0; panY = 0;
+    updateZoom();
     if (editCanvas) editCanvas.style.maxWidth = 'none';
   });
 

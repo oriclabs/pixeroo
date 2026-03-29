@@ -251,6 +251,11 @@ const tourSteps = {
     { target: '#wm-mode', title: 'Tiling Mode', text: 'Single places one watermark. Tile repeats in a grid. Diagonal creates angled repeating text.' },
     { target: '#btn-wm-apply', title: 'Apply & Export', text: 'Preview first, then Apply All to batch process. Download as ZIP.' },
   ],
+  callout: [
+    { target: '.callout-tpl', title: 'Templates', text: 'Quick presets: speech bubbles, info boxes, warnings, numbered steps.' },
+    { target: '#co-shape', title: 'Customize', text: 'Choose shape, tail direction, icon, colors, and font.' },
+    { target: '#btn-co-add', title: 'Add & Export', text: 'Add callout to canvas. Export or save to library when done.' },
+  ],
 };
 
 // Start tour for current mode
