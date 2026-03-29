@@ -39,6 +39,11 @@
         startImageObserver();
         break;
 
+      case 'cancelEyedropper':
+        document.getElementById('pixeroo-eyedropper')?.remove();
+        sendResponse({ success: true });
+        break;
+
       case 'showImageInfo':
         showImageInfoOverlay(message.src);
         sendResponse({ success: true });

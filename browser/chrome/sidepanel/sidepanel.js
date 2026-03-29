@@ -119,9 +119,12 @@ function initFilters() {
   const typeCbs = document.querySelectorAll('.tf-type');
   const label = document.getElementById('type-filter-label');
 
+  // Toggle dropdown
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
-    dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+    const opening = dd.style.display === 'none';
+    dd.style.display = opening ? 'block' : 'none';
+    if (opening) updateTypeCounts();
   });
 
   document.addEventListener('click', (e) => {
@@ -130,41 +133,52 @@ function initFilters() {
     }
   });
 
-  function updateTypeFilter() {
+  // Show count per type in the dropdown labels
+  function updateTypeCounts() {
+    typeCbs.forEach(cb => {
+      const type = cb.value;
+      const count = allImages.filter(img => img.type === type).length;
+      const lbl = cb.parentElement?.querySelector('label');
+      if (lbl) lbl.textContent = count ? `${type} (${count})` : type;
+    });
+  }
+
+  function syncUI() {
     const checked = [...typeCbs].filter(cb => cb.checked);
-    if (checked.length === typeCbs.length || checked.length === 0) {
+    const allChecked = checked.length === typeCbs.length;
+
+    allCb.checked = allChecked;
+
+    if (allChecked) {
       typeFilterSet = null;
-      allCb.checked = true;
-      typeCbs.forEach(cb => { cb.checked = true; });
       label.textContent = 'All types';
+    } else if (checked.length === 0) {
+      typeFilterSet = new Set(); // empty = show nothing
+      label.textContent = 'None';
+    } else if (checked.length === 1) {
+      typeFilterSet = new Set(checked.map(cb => cb.value));
+      label.textContent = checked[0].value;
     } else {
       typeFilterSet = new Set(checked.map(cb => cb.value));
-      allCb.checked = false;
-      if (checked.length === 1) {
-        label.textContent = checked[0].value;
-      } else {
-        label.textContent = `${checked.length} types`;
-      }
+      label.textContent = `${checked.length} types`;
     }
-    // Keep old currentFilter in sync for session save
+
     currentFilter = typeFilterSet ? [...typeFilterSet].join(',') : 'all';
     renderGallery();
     updateToggleIcon();
     saveSession();
   }
 
+  // "All" checkbox: toggle all on/off
   allCb.addEventListener('change', () => {
-    typeCbs.forEach(cb => { cb.checked = true; });
-    typeFilterSet = null;
-    label.textContent = 'All types';
-    currentFilter = 'all';
-    renderGallery();
-    updateToggleIcon();
-    saveSession();
+    const newState = allCb.checked;
+    typeCbs.forEach(cb => { cb.checked = newState; });
+    syncUI();
   });
 
+  // Individual type checkboxes
   typeCbs.forEach(cb => {
-    cb.addEventListener('change', updateTypeFilter);
+    cb.addEventListener('change', syncUI);
   });
 }
 
@@ -270,8 +284,15 @@ function toggleSelection(src) {
 
 function updateSelectionCount() {
   const count = selectedSet.size;
+  const total = allImages.length;
   document.getElementById('sel-count-num').textContent = count;
   document.getElementById('btn-dl-selected').disabled = count === 0;
+
+  // Update button labels with counts
+  const selLabel = document.getElementById('dl-sel-label');
+  const allLabel = document.getElementById('dl-all-label');
+  if (selLabel) selLabel.textContent = count ? `Selected (${count})` : 'Selected';
+  if (allLabel) allLabel.textContent = total ? `All (${total})` : 'All';
 
   document.querySelectorAll('.img-card').forEach(card => {
     const src = card.dataset.src;
@@ -543,6 +564,9 @@ async function renderGallery() {
 
     gallery.appendChild(card);
   });
+
+  // Update footer button counts
+  updateSelectionCount();
 }
 
 // ============================================================
@@ -1026,13 +1050,30 @@ let eyedropperActive = false;
 
 function initEyedropper() {
   document.getElementById('btn-eyedropper').addEventListener('click', startEyedropper);
+  // Escape in side panel cancels eyedropper
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && eyedropperActive) {
+      startEyedropper(); // toggles off
+    }
+  });
 }
 
 async function startEyedropper() {
-  if (eyedropperActive) return;
-  eyedropperActive = true;
-
   const btn = document.getElementById('btn-eyedropper');
+
+  // Toggle off — cancel active eyedropper
+  if (eyedropperActive) {
+    eyedropperActive = false;
+    btn.style.color = '';
+    // Tell content script to close the overlay
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab?.id) chrome.tabs.sendMessage(tab.id, { action: 'cancelEyedropper' }).catch(() => {});
+    } catch {}
+    return;
+  }
+
+  eyedropperActive = true;
   btn.style.color = '#F4C430';
 
   try {
@@ -1285,7 +1326,11 @@ function createColorSwatch(hex, opts = {}) {
     heart.innerHTML = `<svg width="8" height="8" viewBox="0 0 24 24" fill="${isFav ? '#ef4444' : 'none'}" stroke="${isFav ? '#ef4444' : '#94a3b8'}" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
     heart.addEventListener('click', (e) => {
       e.stopPropagation();
-      addFavoriteColor(hex);
+      if (favColors.includes(hex)) {
+        removeFavoriteColor(hex);
+      } else {
+        addFavoriteColor(hex);
+      }
       // Re-render to update heart state
       renderPickedColors();
       renderPagePalette();
@@ -1301,10 +1346,57 @@ function createColorSwatch(hex, opts = {}) {
     swatch.appendChild(badge);
   }
 
-  // Click to show detail popover
+  // Click: assign to contrast checker if active, otherwise show detail popover
   swatch.addEventListener('click', (e) => {
     e.stopPropagation();
+    if (contrastTarget) {
+      if (contrastTarget === 'fg') {
+        contrastFg = hex;
+        document.getElementById('contrast-fg').style.background = hex;
+        document.getElementById('contrast-fg').textContent = '';
+      } else {
+        contrastBg = hex;
+        document.getElementById('contrast-bg').style.background = hex;
+        document.getElementById('contrast-bg').textContent = '';
+      }
+      contrastTarget = null;
+      document.getElementById('contrast-fg').classList.remove('active');
+      document.getElementById('contrast-bg').classList.remove('active');
+      const hint = document.getElementById('contrast-hint');
+      if (hint) hint.textContent = '';
+      updateContrastResult();
+      return;
+    }
     showColorDetail(hex, swatch);
+  });
+
+  // Right-click context menu on all swatches
+  swatch.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const rgb = hexToRgb(hex);
+    const hsl = rgbToHslObj(rgb.r, rgb.g, rgb.b);
+    const rgbStr = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+    const hslStr = `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
+    const isFav = favColors.includes(hex);
+    const items = [
+      { label: 'Copy HEX', icon: _ctxIcons.copy, action: () => navigator.clipboard.writeText(hex) },
+      { label: 'Copy RGB', icon: _ctxIcons.copy, action: () => navigator.clipboard.writeText(rgbStr) },
+      { label: 'Copy HSL', icon: _ctxIcons.copy, action: () => navigator.clipboard.writeText(hslStr) },
+      'sep',
+      isFav
+        ? { label: 'Remove from Favorites', icon: _ctxIcons.trash, action: () => { removeFavoriteColor(hex); renderPickedColors(); renderPagePalette(); } }
+        : { label: 'Add to Favorites', icon: _ctxIcons.bookmark, action: () => { addFavoriteColor(hex); renderPickedColors(); renderPagePalette(); } },
+      'sep',
+      { label: 'Save to Library', icon: _ctxIcons.bookmark, action: async () => {
+        const collection = await pickCollectionDialog('Save color to:');
+        if (collection) saveColorToLibrary(hex, rgbStr, hslStr, collection);
+      }},
+      'sep',
+      { label: 'Set as Contrast FG', action: () => { contrastFg = hex; document.getElementById('contrast-fg').style.background = hex; document.getElementById('contrast-fg').textContent = ''; updateContrastResult(); }},
+      { label: 'Set as Contrast BG', action: () => { contrastBg = hex; document.getElementById('contrast-bg').style.background = hex; document.getElementById('contrast-bg').textContent = ''; updateContrastResult(); }},
+    ];
+    _showCtxMenu(e.clientX, e.clientY, items);
   });
 
   return swatch;
@@ -1472,11 +1564,14 @@ function renderFavoritesFull() {
 
   favColors.forEach(hex => {
     const swatch = createColorSwatch(hex, { tooltip: hex, showHeart: false });
-    // Add remove-on-right-click for favorites
-    swatch.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      removeFavoriteColor(hex);
-    });
+    // Delete button (×) on hover
+    const del = document.createElement('span');
+    del.textContent = '\u00d7';
+    del.style.cssText = 'position:absolute;top:-4px;right:-4px;width:14px;height:14px;background:var(--slate-800);color:#ef4444;border:1px solid var(--slate-700);border-radius:50%;font-size:10px;line-height:12px;text-align:center;cursor:pointer;display:none;z-index:2;';
+    del.addEventListener('click', (e) => { e.stopPropagation(); removeFavoriteColor(hex); });
+    swatch.appendChild(del);
+    swatch.addEventListener('mouseenter', () => { del.style.display = 'block'; });
+    swatch.addEventListener('mouseleave', () => { del.style.display = 'none'; });
     list.appendChild(swatch);
   });
 
@@ -1490,17 +1585,17 @@ function initContrastChecker() {
   const bgEl = document.getElementById('contrast-bg');
   if (!fgEl || !bgEl) return;
 
-  fgEl.addEventListener('click', () => {
-    contrastTarget = contrastTarget === 'fg' ? null : 'fg';
+  function setContrastTarget(target) {
+    contrastTarget = contrastTarget === target ? null : target;
     fgEl.classList.toggle('active', contrastTarget === 'fg');
-    bgEl.classList.remove('active');
-  });
-
-  bgEl.addEventListener('click', () => {
-    contrastTarget = contrastTarget === 'bg' ? null : 'bg';
     bgEl.classList.toggle('active', contrastTarget === 'bg');
-    fgEl.classList.remove('active');
-  });
+    // Show instruction
+    const hint = document.getElementById('contrast-hint');
+    if (hint) hint.textContent = contrastTarget ? `Click any color swatch to set ${contrastTarget === 'fg' ? 'foreground' : 'background'}` : '';
+  }
+
+  fgEl.addEventListener('click', () => setContrastTarget('fg'));
+  bgEl.addEventListener('click', () => setContrastTarget('bg'));
 
   updateContrastResult();
 }
@@ -1546,8 +1641,19 @@ async function restoreSession() {
 
     // Apply restored view
     document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === currentView));
-    document.getElementById('filter-type').value = currentFilter;
     document.getElementById('sort-by').value = currentSort;
+
+    // Restore type filter (multi-select checkboxes)
+    if (currentFilter && currentFilter !== 'all') {
+      const types = currentFilter.split(',');
+      typeFilterSet = new Set(types);
+      const allCb = document.getElementById('tf-all');
+      const typeCbs = document.querySelectorAll('.tf-type');
+      if (allCb) allCb.checked = false;
+      typeCbs.forEach(cb => { cb.checked = types.includes(cb.value); });
+      const label = document.getElementById('type-filter-label');
+      if (label) label.textContent = types.length === 1 ? types[0] : `${types.length} types`;
+    }
   } catch {
     // session storage not available (Firefox MV2 fallback)
   }
@@ -1712,15 +1818,24 @@ function updateLibDeleteBtn() {
   if (!btn) return;
   const n = libSelectedIds.size;
   btn.disabled = n === 0;
-  btn.textContent = n ? `Delete (${n})` : 'Delete';
   btn.style.borderColor = n ? '#ef4444' : 'var(--slate-700)';
+  btn.style.color = n ? '#ef4444' : 'var(--slate-500)';
 
-  // Update library footer selection count and export button
+  // Update library footer selection count and export buttons with counts
   const libSelCount = document.getElementById('lib-sel-count');
   if (libSelCount) libSelCount.textContent = n;
   const btnExportSel = document.getElementById('btn-lib-export-selected');
   if (btnExportSel) btnExportSel.disabled = n === 0;
-  btn.style.color = n ? '#ef4444' : 'var(--slate-500)';
+
+  const selLabel = document.getElementById('lib-export-sel-label');
+  if (selLabel) selLabel.textContent = n ? `Selected (${n})` : 'Selected';
+
+  // Get total library item count for All button
+  const totalEl = document.getElementById('lib-usage');
+  const totalMatch = totalEl?.textContent?.match(/^(\d+)/);
+  const total = totalMatch ? parseInt(totalMatch[1]) : 0;
+  const allLabel = document.getElementById('lib-export-all-label');
+  if (allLabel) allLabel.textContent = total ? `All (${total})` : 'All';
 }
 
 // Library filter buttons
@@ -2659,5 +2774,156 @@ _attachColorCtxMenu(document.getElementById('fav-colors-list-full'), (item) => {
   const hexEl = item.querySelector('.color-item-hex');
   if (!hexEl) return null;
   return { hex: hexEl.textContent.trim(), canSaveToLib: false };
+});
+
+/* ──────────────────────────────────────────────────
+   Guided Tour — Side Panel
+   ────────────────────────────────────────────────── */
+
+const SP_TOUR_STEPS = [
+  // General
+  { target: '.main-tabs', title: 'Navigation', text: 'Switch between Page (images from current webpage), Page Colors (color picker & palette), and My Library (saved images).' },
+
+  // Page tab
+  { target: '#btn-refresh', title: 'Refresh', text: 'Rescan the current page for images. Auto-refreshes when you switch tabs or scroll (lazy-loaded images detected).' },
+  { target: '[data-view="tiles"]', title: 'View Modes', text: '5 view modes: Tiles, Medium, Large, Details, Names. Pick your preferred layout.' },
+  { target: '#btn-type-filter', title: 'Type Filter', text: 'Filter by image type \u2014 select multiple formats like PNG + SVG together.' },
+  { target: '#btn-toggle-select', title: 'Select & Save', text: 'Select All/None, Save to Library (with collection picker), or Remove from Library. Works on selected or all images.' },
+  { target: '#btn-screenshot', title: 'Screenshots', text: 'Capture the viewport or drag to select a region. Screenshots save to My Library automatically.' },
+  { target: '#page-bottom-bar', title: 'Download', text: 'Download selected or all images as a ZIP file. Right-click any image for individual download or format conversion.' },
+
+  // Colors tab
+  { target: '[data-main-tab="colors"]', title: 'Page Colors', text: 'Pick colors from any webpage, extract the page CSS palette, save favorites, and check WCAG contrast ratios.', switchTab: 'colors' },
+  { target: '#btn-eyedropper', title: 'Color Picker', text: 'Click to activate, then click any pixel on the page. Press Escape or click again to cancel.' },
+  { target: '.contrast-checker', title: 'Contrast Check', text: 'Click FG, pick a color. Click BG, pick another. Shows WCAG accessibility rating (AAA/AA/Fail).' },
+
+  // Library tab
+  { target: '[data-main-tab="library"]', title: 'My Library', text: 'All saved images, screenshots, and colors. Organized by collections. Persistent across sessions.', switchTab: 'library' },
+  { target: '[data-lib-filter="all"]', title: 'Filter & Collections', text: 'Filter by type (Images/Screenshots/Colors) and collection. Select items with checkboxes.' },
+  { target: '#lib-bottom-bar', title: 'Library Actions', text: 'Select All, export selected/all as ZIP. Send images to Edit, Collage, or Batch tools in the Toolkit.' },
+
+  // Settings
+  { target: '#btn-sp-settings', title: 'Quick Settings', text: 'Change theme (dark/light), font family, font size, and toggle hover tooltips.' },
+];
+
+let spTourStep = -1;
+let spTourOverlay = null;
+
+function startSPTour() {
+  spTourStep = 0;
+  showSPTourStep();
+}
+
+function showSPTourStep() {
+  // Remove existing overlay
+  document.querySelector('.sp-tour-overlay')?.remove();
+
+  if (spTourStep < 0 || spTourStep >= SP_TOUR_STEPS.length) {
+    endSPTour();
+    return;
+  }
+
+  const step = SP_TOUR_STEPS[spTourStep];
+
+  // Switch tab if needed
+  if (step.switchTab) {
+    const tabBtn = document.querySelector(`[data-main-tab="${step.switchTab}"]`);
+    if (tabBtn) tabBtn.click();
+  }
+
+  // Create overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'sp-tour-overlay';
+
+  // Highlight target element
+  const targetEl = document.querySelector(step.target);
+  if (targetEl) {
+    const rect = targetEl.getBoundingClientRect();
+    const highlight = document.createElement('div');
+    highlight.className = 'sp-tour-highlight';
+    highlight.style.top = (rect.top - 4) + 'px';
+    highlight.style.left = (rect.left - 4) + 'px';
+    highlight.style.width = (rect.width + 8) + 'px';
+    highlight.style.height = (rect.height + 8) + 'px';
+    overlay.appendChild(highlight);
+
+    // Scroll into view if needed
+    targetEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // Banner at bottom
+  const banner = document.createElement('div');
+  banner.className = 'sp-tour-banner';
+
+  // Progress dots
+  const dots = SP_TOUR_STEPS.map((_, i) =>
+    `<div class="sp-tour-dot${i === spTourStep ? ' active' : ''}"></div>`
+  ).join('');
+
+  banner.innerHTML = `
+    <div class="sp-tour-title">${step.title}</div>
+    <div class="sp-tour-text">${step.text}</div>
+    <div class="sp-tour-nav">
+      <div class="sp-tour-dots">${dots}</div>
+      <div class="sp-tour-btns">
+        <button class="tool-btn sp-tour-skip" style="padding:3px 10px;border:1px solid var(--slate-700);border-radius:4px;">Skip</button>
+        ${spTourStep > 0 ? '<button class="tool-btn sp-tour-prev" style="padding:3px 10px;border:1px solid var(--slate-700);border-radius:4px;">Prev</button>' : ''}
+        <button class="btn-primary sp-tour-next" style="padding:3px 12px;">${spTourStep === SP_TOUR_STEPS.length - 1 ? 'Done' : 'Next'}</button>
+      </div>
+    </div>
+  `;
+
+  overlay.appendChild(banner);
+  document.body.appendChild(overlay);
+  spTourOverlay = overlay;
+
+  // Wire buttons
+  banner.querySelector('.sp-tour-skip')?.addEventListener('click', endSPTour);
+  banner.querySelector('.sp-tour-prev')?.addEventListener('click', () => { spTourStep--; showSPTourStep(); });
+  banner.querySelector('.sp-tour-next')?.addEventListener('click', () => { spTourStep++; showSPTourStep(); });
+}
+
+function endSPTour() {
+  document.querySelector('.sp-tour-overlay')?.remove();
+  spTourOverlay = null;
+  spTourStep = -1;
+  // Switch back to Page tab
+  document.querySelector('[data-main-tab="images"]')?.click();
+}
+
+// Keyboard navigation during tour
+document.addEventListener('keydown', (e) => {
+  if (spTourStep < 0) return;
+  if (e.key === 'Escape') endSPTour();
+  if (e.key === 'ArrowRight' || e.key === 'Enter') { spTourStep++; showSPTourStep(); }
+  if (e.key === 'ArrowLeft') { spTourStep--; showSPTourStep(); }
+});
+
+// Wire tour button
+document.getElementById('btn-sp-tour')?.addEventListener('click', startSPTour);
+
+// Show tour hint on first use — points to the ? button
+chrome.storage.sync.get({ spTourSeen: false }, (r) => {
+  if (!r.spTourSeen) {
+    setTimeout(() => {
+      const btn = document.getElementById('btn-sp-tour');
+      if (!btn) return;
+      const hint = document.createElement('div');
+      hint.style.cssText = 'position:fixed;z-index:2000;background:var(--saffron-400);color:#1e293b;font-weight:600;padding:6px 12px;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.3);cursor:pointer;white-space:nowrap;';
+      const rect = btn.getBoundingClientRect();
+      hint.style.top = (rect.bottom + 8) + 'px';
+      hint.style.right = '12px';
+      hint.innerHTML = 'New here? Click <b>?</b> for a quick tour &rarr;';
+      // Arrow
+      const arrow = document.createElement('div');
+      arrow.style.cssText = 'position:absolute;top:-6px;right:14px;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:6px solid var(--saffron-400);';
+      hint.appendChild(arrow);
+      hint.addEventListener('click', () => { hint.remove(); startSPTour(); });
+      // Auto-dismiss after 8 seconds
+      setTimeout(() => hint.remove(), 8000);
+      document.body.appendChild(hint);
+      chrome.storage.sync.set({ spTourSeen: true });
+    }, 1500);
+  }
 });
 

@@ -146,21 +146,38 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.action === 'openEditor') {
-    const mode = message.mode || '';
-    const fromLib = message.fromLib || false;
-    const editorUrl = chrome.runtime.getURL('editor/editor.html');
-    const url = mode ? `${editorUrl}?mode=${mode}${fromLib ? '&fromLib=1' : ''}` : editorUrl;
+    (async () => {
+      const mode = message.mode || '';
+      const fromLib = message.fromLib || false;
+      const editorUrl = chrome.runtime.getURL('editor/editor.html');
+      const url = mode ? `${editorUrl}?mode=${mode}${fromLib ? '&fromLib=1' : ''}` : editorUrl;
 
-    if (editorTabIds.size > 0) {
-      // Reuse existing editor tab — navigate it to the new URL (triggers fresh page load)
-      const existingId = [...editorTabIds][0];
-      chrome.tabs.update(existingId, { url, active: true }).catch(() => {
+      // Find existing editor tab — from tracked IDs or by searching all tabs
+      let existingId = editorTabIds.size > 0 ? [...editorTabIds][0] : null;
+
+      if (!existingId) {
+        try {
+          const tabs = await chrome.tabs.query({});
+          const editorTab = tabs.find(t => t.url?.includes('editor/editor.html'));
+          if (editorTab) {
+            existingId = editorTab.id;
+            editorTabIds.add(existingId);
+          }
+        } catch {}
+      }
+
+      if (existingId) {
+        try {
+          await chrome.tabs.update(existingId, { url, active: true });
+        } catch {
+          chrome.tabs.create({ url });
+        }
+      } else {
         chrome.tabs.create({ url });
-      });
-    } else {
-      chrome.tabs.create({ url });
-    }
-    sendResponse({ success: true });
+      }
+      sendResponse({ success: true });
+    })();
+    return true; // async sendResponse
   }
 
   if (message.action === 'captureTab') {

@@ -270,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Collapse non-essential groups by default (Edit mode)
-  const collapseByDefault = ['Watermark', 'Social', 'More', 'View'];
+  const collapseByDefault = ['View'];
   document.querySelectorAll('.ribbon-group .ribbon-label').forEach(label => {
     if (collapseByDefault.includes(label.textContent.trim())) {
       label.closest('.ribbon-group')?.classList.add('collapsed');
@@ -2866,17 +2866,54 @@ function initEdit() {
   window._pixerooObjLayer = objLayer;
 
   const annTools = { 'btn-ann-rect': 'rect', 'btn-ann-arrow': 'arrow', 'btn-ann-text': 'text', 'btn-ann-pen': 'pen', 'btn-ann-highlighter': 'highlighter', 'btn-ann-redact': 'redact' };
+  const allAnnBtns = ['btn-ann-select', ...Object.keys(annTools)];
+
+  function setActiveAnnTool(activeId) {
+    allAnnBtns.forEach(id => document.getElementById(id)?.classList.toggle('active', id === activeId));
+  }
+
+  // Pointer / Select tool — deactivates drawing, switches to select mode
+  document.getElementById('btn-ann-select')?.addEventListener('click', () => {
+    if (objLayer.active) objLayer.stopTool();
+    setActiveAnnTool('btn-ann-select');
+  });
+
   Object.entries(annTools).forEach(([id, tool]) => {
     document.getElementById(id)?.addEventListener('click', () => {
       if (!editCanvas.width) return;
-      if (!objLayer.active) objLayer.attach(document.getElementById('edit-work'));
+      if (!objLayer.active) objLayer.attach(document.getElementById('edit-canvas-wrap'));
       objLayer.startTool(tool);
+      setActiveAnnTool(id);
     });
+  });
+
+  // Escape key also switches back to pointer
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && objLayer.active && objLayer.creating) {
+      objLayer.stopTool();
+      setActiveAnnTool('btn-ann-select');
+    }
   });
 
   document.getElementById('ann-color')?.addEventListener('input', (e) => {
     objLayer.color = e.target.value;
     if (objLayer.selected) { objLayer.selected.color = e.target.value; objLayer.render(); }
+    // Highlight active preset (or none if custom)
+    document.querySelectorAll('.ann-preset-color').forEach(s => s.style.outline = '');
+  });
+
+  // Preset color palette clicks
+  document.querySelectorAll('.ann-preset-color').forEach(swatch => {
+    swatch.addEventListener('click', () => {
+      const color = swatch.dataset.color;
+      document.getElementById('ann-color').value = color;
+      objLayer.color = color;
+      if (objLayer.selected) { objLayer.selected.color = color; objLayer.render(); }
+      // Highlight active preset
+      document.querySelectorAll('.ann-preset-color').forEach(s => s.style.outline = '');
+      swatch.style.outline = '2px solid var(--saffron-400)';
+      swatch.style.outlineOffset = '1px';
+    });
   });
   document.getElementById('ann-width')?.addEventListener('input', (e) => {
     objLayer.lineWidth = +e.target.value;
@@ -2896,7 +2933,7 @@ function initEdit() {
   // Mask filter tool
   document.getElementById('btn-mask-filter')?.addEventListener('click', () => {
     if (!editCanvas.width) return;
-    if (!objLayer.active) objLayer.attach(document.getElementById('edit-work'));
+    if (!objLayer.active) objLayer.attach(document.getElementById('edit-canvas-wrap'));
     objLayer.maskFilter = 'blur'; // default mask filter
     objLayer.startTool('mask');
   });
@@ -2992,17 +3029,24 @@ function initEdit() {
     const cols = +document.getElementById('sprite-cols').value || 4;
     const rows = +document.getElementById('sprite-rows').value || 4;
     const tiles = sliceSpriteSheet(editCanvas, cols, rows);
+    if (!tiles.length) return;
+    const zip = new ZipWriter();
     for (const tile of tiles) {
       const blob = await new Promise(r => tile.canvas.toBlob(r, 'image/png'));
-      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `pixeroo/sprite-${tile.row}-${tile.col}.png`, saveAs: false });
+      await zip.addBlob(`sprite-${tile.row}-${tile.col}.png`, blob);
     }
+    const zipBlob = await zip.toBlob();
+    const url = URL.createObjectURL(zipBlob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `pixeroo-sprites-${cols}x${rows}.zip`; a.click();
+    URL.revokeObjectURL(url);
   });
 
   // Steganography
   document.getElementById('btn-steg-detect')?.addEventListener('click', () => {
     if (!editCanvas.width) return;
     const result = detectSteganography(editCanvas);
-    document.getElementById('steg-result').innerHTML = `<div>${esc(result.assessment)}</div><div>LSB ratio: ${result.lsbRatio}</div>`;
+    pixDialog.alert('Steganography Analysis', `<div><b>Assessment:</b> ${esc(result.assessment)}</div><div><b>LSB Ratio:</b> ${result.lsbRatio}</div>`);
   });
   document.getElementById('btn-steg-visualize')?.addEventListener('click', () => {
     if (!editOriginal) return;
@@ -3090,15 +3134,12 @@ function initEdit() {
   document.getElementById('btn-gen-favicons')?.addEventListener('click', () => {
     if (!editCanvas.width) return;
     const previews = generateFaviconPreviews(editCanvas);
-    const container = document.getElementById('favicon-previews');
-    container.innerHTML = '';
+    let html = '<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;">';
     previews.forEach(p => {
-      const img = document.createElement('img');
-      img.src = p.canvas.toDataURL();
-      img.style.cssText = `width:${Math.min(p.size, 48)}px;height:${Math.min(p.size, 48)}px;border-radius:3px;border:1px solid var(--slate-700);`;
-      img.title = `${p.size}x${p.size}`;
-      container.appendChild(img);
+      html += `<div style="text-align:center;"><img src="${p.canvas.toDataURL()}" style="width:${Math.min(p.size, 64)}px;height:${Math.min(p.size, 64)}px;border-radius:3px;border:1px solid var(--slate-700);display:block;margin:0 auto 4px;image-rendering:pixelated;"><span style="color:var(--slate-400);">${p.size}px</span></div>`;
     });
+    html += '</div>';
+    pixDialog.alert('Favicon Preview', html);
   });
 
   // ASCII art
@@ -3106,10 +3147,8 @@ function initEdit() {
     if (!editCanvas.width) return;
     const cols = +document.getElementById('ascii-cols').value || 80;
     const art = imageToAscii(editCanvas, cols);
-    const output = document.getElementById('ascii-output');
-    output.textContent = art;
-    output.style.display = 'block';
-    output.classList.add('copyable');
+    navigator.clipboard.writeText(art).catch(() => {});
+    pixDialog.alert('ASCII Art (copied to clipboard)', `<pre style="font-family:monospace;font-size:5px;line-height:6px;overflow:auto;max-height:400px;background:var(--slate-800);padding:8px;border-radius:6px;color:var(--slate-200);white-space:pre;">${esc(art)}</pre>`);
   });
 
   // Generators
@@ -3597,6 +3636,56 @@ function initInfoBar() {
     if (editCanvas) editCanvas.style.maxWidth = 'none';
   });
 
+  // "Original" — reset to original image dimensions (keeps other operations)
+  document.getElementById('bar-original')?.addEventListener('click', () => {
+    if (!editOriginal) return;
+    const origW = editOriginal.naturalWidth || editOriginal.width;
+    const origH = editOriginal.naturalHeight || editOriginal.height;
+    pipeline.setExportSize(origW, origH);
+    updResize(); saveEdit();
+  });
+
+  // Size presets
+  document.getElementById('bar-size-preset')?.addEventListener('change', (e) => {
+    if (!editOriginal || !e.target.value) return;
+    const origW = editOriginal.naturalWidth || editOriginal.width;
+    const origH = editOriginal.naturalHeight || editOriginal.height;
+    let newW, newH;
+
+    if (e.target.value === 'square') {
+      const side = Math.min(origW, origH);
+      newW = side; newH = side;
+    } else if (e.target.value === 'half') {
+      newW = Math.round(origW / 2); newH = Math.round(origH / 2);
+    } else if (e.target.value === 'double') {
+      newW = origW * 2; newH = origH * 2;
+    } else {
+      const parts = e.target.value.split(',');
+      newW = +parts[0]; newH = +parts[1];
+      // Maintain aspect ratio: fit within the preset dimensions
+      if (barLocked) {
+        const ratio = origW / origH;
+        if (ratio > newW / newH) {
+          newH = Math.round(newW / ratio);
+        } else {
+          newW = Math.round(newH * ratio);
+        }
+      }
+    }
+
+    if (newW && newH) {
+      if (barUnitPx) {
+        barW.value = newW; barH.value = newH;
+      } else {
+        barW.value = Math.round(newW / origW * 100);
+        barH.value = Math.round(newH / origH * 100);
+      }
+      pipeline.setExportSize(newW, newH);
+      updResize(); saveEdit();
+    }
+    e.target.value = ''; // reset to "Presets" label
+  });
+
   // Set defaults
   if (barW) barW.value = 800;
   if (barH) barH.value = 600;
@@ -4017,7 +4106,7 @@ function initInfo() {
         const sha = await computeImageHash(c, 'SHA-256');
         const phash = computePerceptualHash(c);
         hashEl.innerHTML = `
-          <div class="info-row"><span class="info-label">SHA-256</span><span class="info-value copyable" style="font-size:0.5625rem;">${sha.substring(0, 16)}...</span></div>
+          <div class="info-row"><span class="info-label">SHA-256</span><span class="info-value copyable" style="font-size:0.7rem;">${sha.substring(0, 16)}...</span></div>
           <div class="info-row"><span class="info-label">pHash</span><span class="info-value copyable">${phash}</span></div>
         `;
       } catch { hashEl.innerHTML = '<span style="color:var(--slate-500);">Hash failed</span>'; }
@@ -5012,7 +5101,7 @@ function initBatch() {
       del.addEventListener('click', (e) => { e.stopPropagation(); batchFiles.splice(i, 1); _updateBatchUI(); });
 
       const label = document.createElement('div');
-      label.style.cssText = 'padding:2px 4px;font-size:0.5rem;color:var(--slate-400);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+      label.style.cssText = 'padding:2px 4px;font-size:0.65rem;color:var(--slate-400);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
       label.textContent = bf.file.name;
       const badge = document.createElement('div');
       badge.style.cssText = 'padding:1px 4px;font-size:0.45rem;color:var(--slate-500);';

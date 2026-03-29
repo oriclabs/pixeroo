@@ -44,14 +44,14 @@
     .gallery.view-medium .img-card.selected { border: 2px solid var(--saffron-400); }
     .gallery.view-medium .img-card img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
     .gallery.view-medium .img-card .card-label { padding: 4px 6px; color: var(--slate-400); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: var(--slate-900); }
-    .gallery.view-medium .img-card .card-check { position: absolute; top: 4px; left: 4px; }
+    .gallery.view-medium .img-card .card-check { position: absolute; top: 4px; left: 4px; z-index: 2; }
     .gallery.view-large { display: flex; flex-direction: column; gap: 0.5rem; align-content: start; }
     .gallery.view-large .img-card { border-radius: 8px; overflow: hidden; border: 1px solid var(--slate-700); cursor: pointer; transition: border-color 0.12s; position: relative; }
     .gallery.view-large .img-card:hover { border-color: var(--slate-600); }
     .gallery.view-large .img-card.selected { border: 2px solid var(--saffron-400); }
     .gallery.view-large .img-card img { width: 100%; max-height: 200px; object-fit: contain; background: var(--slate-900); display: block; }
     .gallery.view-large .img-card .card-label { padding: 6px 8px; color: var(--slate-400); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: var(--slate-900); }
-    .gallery.view-large .img-card .card-check { position: absolute; top: 6px; left: 6px; }
+    .gallery.view-large .img-card .card-check { position: absolute; top: 6px; left: 6px; z-index: 2; }
     .gallery.view-details { display: flex; flex-direction: column; gap: 1px; align-content: start; }
     .gallery.view-details .img-card { display: flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.5rem; border-radius: 4px; cursor: pointer; border: 1px solid var(--slate-800); transition: all 0.12s; }
     .gallery.view-details .img-card:hover { background: var(--slate-900); border-color: var(--slate-600); }
@@ -133,7 +133,7 @@
     .color-swatch .swatch-heart { position: absolute; top: -4px; right: -4px; width: 14px; height: 14px; display: none; align-items: center; justify-content: center; background: var(--slate-900); border-radius: 50%; border: 1px solid var(--slate-700); cursor: pointer; z-index: 2; }
     .color-swatch:hover .swatch-heart { display: flex; }
     .color-swatch .swatch-count { position: absolute; bottom: 1px; right: 2px; font-size: 0.5rem; font-weight: 700; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.8); pointer-events: none; }
-    .color-section-title { font-weight: 600; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.05em; padding: 0.5rem 0.75rem 0.25rem; }
+    .color-section-title { font-weight: 700; color: var(--slate-300); letter-spacing: 0.02em; padding: 0.625rem 0.75rem 0.375rem; border-bottom: 1px solid var(--slate-800); margin-bottom: 0.25rem; display: flex; align-items: center; gap: 6px; }
     /* Color detail popover */
     .color-detail { position: fixed; z-index: 2000; width: 220px; background: var(--slate-900); border: 1px solid var(--slate-700); border-radius: 8px; box-shadow: 0 8px 30px rgba(0,0,0,0.5); padding: 0.5rem; }
     .color-detail-preview { width: 100%; height: 60px; border-radius: 6px; margin-bottom: 0.5rem; }
@@ -200,6 +200,18 @@
     .theme-light .overlay-tab.active { color: var(--saffron-600); border-bottom-color: var(--saffron-600); }
     .theme-light .action-btn:hover { border-color: var(--saffron-500); color: var(--saffron-600); }
     .theme-light .copyright-banner { background: rgba(220,38,38,0.06); border-color: rgba(220,38,38,0.15); color: #dc2626; }
+
+    /* Tour overlay */
+    .sp-tour-overlay { position: fixed; inset: 0; z-index: 3000; pointer-events: none; }
+    .sp-tour-highlight { position: absolute; box-shadow: 0 0 0 3000px rgba(2,6,23,0.75); border-radius: 6px; border: 2px solid var(--saffron-400); z-index: 3001; pointer-events: none; transition: all 0.3s ease; }
+    .sp-tour-banner { position: fixed; bottom: 0; left: 0; right: 0; z-index: 3002; background: var(--slate-900); border-top: 2px solid var(--saffron-400); padding: 0.75rem; pointer-events: all; }
+    .sp-tour-title { font-weight: 700; color: var(--saffron-400); margin-bottom: 0.25rem; }
+    .sp-tour-text { color: var(--slate-300); line-height: 1.5; margin-bottom: 0.5rem; }
+    .sp-tour-nav { display: flex; align-items: center; justify-content: space-between; }
+    .sp-tour-dots { display: flex; gap: 4px; }
+    .sp-tour-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--slate-700); }
+    .sp-tour-dot.active { background: var(--saffron-400); }
+    .sp-tour-btns { display: flex; gap: 6px; }
   </style>
 </head>
 <body class="bg-slate-950 text-gray-100 font-sans">
@@ -220,6 +232,9 @@
       <span id="image-count" class="text-xs text-gray-500 ml-1"></span>
     </div>
     <div style="display:flex;align-items:center;gap:2px;">
+      <button id="btn-sp-tour" class="tool-btn" title="Take a quick tour" style="padding:2px 6px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </button>
       <button id="btn-refresh" class="tool-btn" title="Rescan page">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
       </button>
@@ -294,11 +309,11 @@
     <!-- Images toolbar -->
     <div class="toolbar">
       <div class="toolbar-group">
-        <button class="tool-btn active" data-view="tiles" title="Tiles"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></button>
-        <button class="tool-btn" data-view="medium" title="Medium"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg></button>
-        <button class="tool-btn" data-view="large" title="Large"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="8" rx="1"/><rect x="3" y="13" width="18" height="8" rx="1"/></svg></button>
-        <button class="tool-btn" data-view="details" title="Details"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button>
-        <button class="tool-btn" data-view="names" title="Names"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="16" y2="17"/></svg></button>
+        <button class="tool-btn active" data-view="tiles" title="Small grid thumbnails"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></button>
+        <button class="tool-btn" data-view="medium" title="Medium grid with filenames"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg></button>
+        <button class="tool-btn" data-view="large" title="Large previews, one per row"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="8" rx="1"/><rect x="3" y="13" width="18" height="8" rx="1"/></svg></button>
+        <button class="tool-btn" data-view="details" title="List with thumbnail, name, size, type"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button>
+        <button class="tool-btn" data-view="names" title="Filenames only (monospace)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="16" y2="17"/></svg></button>
       </div>
       <div class="toolbar-sep"></div>
       <div style="position:relative;">
@@ -319,7 +334,15 @@
           <div class="source-opt"><input type="checkbox" class="tf-type" value="ICO" checked><label>ICO</label></div>
         </div>
       </div>
-      <select id="sort-by" class="filter-select"><option value="position">Order</option><option value="size-desc">Size L</option><option value="size-asc">Size S</option><option value="dims-desc">Dim L</option><option value="type">Type</option><option value="name">Name</option></select>
+      <select id="sort-by" class="filter-select" title="Sort images by">
+        <option value="position">Page Order</option>
+        <option value="size-desc">Size (large first)</option>
+        <option value="size-asc">Size (small first)</option>
+        <option value="dims-desc">Dimensions (large)</option>
+        <option value="dims-asc">Dimensions (small)</option>
+        <option value="type">Type (A-Z)</option>
+        <option value="name">Name (A-Z)</option>
+      </select>
       <div class="toolbar-sep"></div>
       <button id="btn-toggle-select" class="tool-btn" title="Select all / Deselect all">
         <svg id="icon-select" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
@@ -370,10 +393,10 @@
       <span class="sel-count"><span id="sel-count-num">0</span> selected</span>
       <div class="dl-btns">
         <button id="btn-dl-selected" class="dl-btn dl-btn-secondary" disabled>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Selected
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span id="dl-sel-label">Selected</span>
         </button>
         <button id="btn-dl-all" class="dl-btn dl-btn-primary">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline;vertical-align:middle;margin-right:2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>All
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline;vertical-align:middle;margin-right:2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span id="dl-all-label">All</span>
         </button>
       </div>
     </div>
@@ -383,7 +406,7 @@
   <!-- TAB: Library -->
   <!-- ============================================================ -->
   <div class="tab-content" id="tab-library">
-    <div class="toolbar" style="flex-direction:column;gap:5px;">
+    <div class="toolbar" style="flex-direction:column;gap:8px;padding:0.5rem 0.75rem 0.625rem;">
       <!-- Row 1: Filter tabs + usage -->
       <div style="display:flex;align-items:center;gap:3px;width:100%;flex-wrap:wrap;">
         <button class="filter-btn active" data-lib-filter="all" style="padding:2px 6px;">All</button>
@@ -427,10 +450,10 @@
       </div>
       <div class="dl-btns">
         <button id="btn-lib-export-selected" class="dl-btn dl-btn-secondary" disabled>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Selected
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span id="lib-export-sel-label">Selected</span>
         </button>
         <button id="btn-lib-export-all" class="dl-btn dl-btn-primary">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline;vertical-align:middle;margin-right:2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>All
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline;vertical-align:middle;margin-right:2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span id="lib-export-all-label">All</span>
         </button>
       </div>
     </div>
@@ -463,33 +486,48 @@
     <!-- Color sections -->
     <div style="flex:1;overflow-y:auto;">
       <!-- Picked colors (session) -->
-      <div class="color-section-title">Picked Colors</div>
+      <div class="color-section-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--saffron-400)" stroke-width="2"><path d="M2 22l1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="M14.5 5.5l4-4a1.41 1.41 0 0 1 2 2l-4 4"/></svg>
+        Picked Colors <span style="font-weight:400;color:var(--slate-500);margin-left:auto;">click any pixel</span>
+      </div>
       <div id="picked-colors-list" class="color-swatch-grid">
         <div style="grid-column:1/-1;padding:0.5rem;text-align:center;color:var(--slate-500);">Click "Pick Color" to start</div>
       </div>
 
       <!-- Page Palette (extracted from CSS) -->
-      <div class="color-section-title">Page Palette</div>
+      <div class="color-section-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--saffron-400)" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12" r="2.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.93 0 1.65-.75 1.65-1.69 0-.44-.18-.84-.44-1.13a1.64 1.64 0 0 1-.44-1.12c0-.93.75-1.69 1.69-1.69H16c3.05 0 5.56-2.5 5.56-5.56C21.96 6.01 17.46 2 12 2z"/></svg>
+        Page Palette <span style="font-weight:400;color:var(--slate-500);margin-left:auto;">from CSS</span>
+      </div>
       <div id="page-palette-list" class="color-swatch-grid">
         <div style="grid-column:1/-1;padding:0.5rem;text-align:center;color:var(--slate-500);">Click "Extract Palette" to scan page CSS</div>
       </div>
 
       <!-- Favorites (permanent) -->
-      <div class="color-section-title">Favorites</div>
+      <div class="color-section-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--saffron-400)" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        Favorites <span style="font-weight:400;color:var(--slate-500);margin-left:auto;">heart to save</span>
+      </div>
       <div id="fav-colors-list-full" class="color-swatch-grid">
         <div style="grid-column:1/-1;padding:0.5rem;text-align:center;color:var(--slate-500);">Add colors with the heart icon</div>
       </div>
 
       <!-- Contrast Checker -->
       <div class="contrast-checker">
-        <span class="color-section-title">Contrast Check</span>
+        <div class="color-section-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--saffron-400)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2v20"/><path d="M12 2a10 10 0 0 1 0 20"/></svg>
+          Contrast Check
+        </div>
+        <div style="color:var(--slate-500);padding:0.25rem 0.5rem;">Click FG or BG, then pick any color swatch above. WCAG ratio updates live.</div>
         <div style="display:flex;gap:6px;align-items:center;padding:0.5rem;">
-          <div class="contrast-swatch" id="contrast-fg" style="background:#fff;width:28px;height:28px;border-radius:4px;border:1px solid var(--slate-700);cursor:pointer;" title="Click a picked color to set foreground"></div>
+          <div class="contrast-swatch" id="contrast-fg" style="background:#fff;width:28px;height:28px;border-radius:4px;border:1px solid var(--slate-700);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--slate-500);font-weight:600;font-size:0.6rem;" title="Click to select foreground, then pick a color">FG</div>
           <span style="color:var(--slate-500);">on</span>
-          <div class="contrast-swatch" id="contrast-bg" style="background:#000;width:28px;height:28px;border-radius:4px;border:1px solid var(--slate-700);cursor:pointer;" title="Click a picked color to set background"></div>
+          <div class="contrast-swatch" id="contrast-bg" style="background:#000;width:28px;height:28px;border-radius:4px;border:1px solid var(--slate-700);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--slate-400);font-weight:600;font-size:0.6rem;" title="Click to select background, then pick a color">BG</div>
           <span id="contrast-ratio" style="font-weight:600;color:var(--slate-300);">21:1</span>
           <span id="contrast-wcag" style="font-weight:600;"></span>
         </div>
+        <div id="contrast-hint" style="color:var(--saffron-400);padding:0 0.5rem 0.5rem;"></div>
+        <div style="color:var(--slate-500);padding:0 0.5rem 0.5rem;font-size:0.65rem;">AAA (&ge;7:1) best &middot; AA (&ge;4.5:1) good &middot; AA Large (&ge;3:1) large text only &middot; Fail (&lt;3:1)</div>
       </div>
     </div>
   </div>

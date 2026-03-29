@@ -51,7 +51,10 @@ class DrawObject {
       return this._distToSegment(px, py, this.x, this.y, this.x2, this.y2) < 8;
     }
     if (this.type === 'pen' || this.type === 'highlighter') {
-      // Check distance to any segment of the stroke
+      // Check bounding box first (for move when selected)
+      const bb = this._strokeBounds();
+      if (px >= bb.x - 4 && px <= bb.x + bb.w + 4 && py >= bb.y - 4 && py <= bb.y + bb.h + 4) return true;
+      // Also check distance to any segment of the stroke
       const threshold = Math.max(this.lineWidth, 8);
       for (let i = 1; i < this.points.length; i++) {
         if (this._distToSegment(px, py, this.points[i - 1].x, this.points[i - 1].y, this.points[i].x, this.points[i].y) < threshold) return true;
@@ -76,7 +79,12 @@ class DrawObject {
       return [['start', this.x, this.y], ['end', this.x2, this.y2]];
     }
     if (this.type === 'pen' || this.type === 'highlighter') {
-      return [];
+      // Use bounding box corners for move handle
+      const bb = this._strokeBounds();
+      return [
+        ['tl', bb.x, bb.y], ['tr', bb.x + bb.w, bb.y],
+        ['bl', bb.x, bb.y + bb.h], ['br', bb.x + bb.w, bb.y + bb.h],
+      ];
     }
     return [
       ['tl', this.x, this.y], ['tr', this.x + this.w, this.y],
@@ -316,7 +324,7 @@ class ObjectLayer {
 
     // Overlay canvas for drawing objects + handles
     this.overlay = document.createElement('canvas');
-    this.overlay.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:auto;cursor:default;';
+    this.overlay.style.cssText = 'position:absolute;top:0;left:0;pointer-events:auto;cursor:default;';
     this.overlayCtx = this.overlay.getContext('2d');
 
     // Interaction state
@@ -341,6 +349,10 @@ class ObjectLayer {
   attach(parentEl) {
     this.overlay.width = this.base.width;
     this.overlay.height = this.base.height;
+    // Match visual size to base canvas (which may be CSS-scaled)
+    const baseRect = this.base.getBoundingClientRect();
+    this.overlay.style.width = baseRect.width + 'px';
+    this.overlay.style.height = baseRect.height + 'px';
     parentEl.style.position = 'relative';
     parentEl.appendChild(this.overlay);
     this.active = true;
@@ -680,6 +692,10 @@ class ObjectLayer {
         this.select(this._penObj);
       }
       this._penObj = null;
+      this.stopTool();
+      // Update pointer button in ribbon
+      document.getElementById('btn-ann-select')?.classList.add('active');
+      document.querySelectorAll('[id^="btn-ann-"]:not(#btn-ann-select)').forEach(b => b.classList.remove('active'));
       this.dragging = false;
       this.dragHandle = null;
       this.render();
@@ -701,6 +717,9 @@ class ObjectLayer {
         else if (this.creating === 'mask') this.addMask(rx, ry, rw, rh, this.maskFilter);
       }
       this.stopTool();
+      // Update pointer button in ribbon
+      document.getElementById('btn-ann-select')?.classList.add('active');
+      document.querySelectorAll('[id^="btn-ann-"]:not(#btn-ann-select)').forEach(b => b.classList.remove('active'));
     }
 
     this.dragging = false;

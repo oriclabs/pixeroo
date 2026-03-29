@@ -99,16 +99,18 @@
     .edit-ribbon.disabled .tool-btn,
     .edit-ribbon.disabled input,
     .edit-ribbon.disabled select { pointer-events: none; }
-    .ribbon-bar { display: flex; align-items: stretch; padding: 0.25rem 0; }
-    .ribbon-group { display: flex; flex-direction: column; padding: 0.5rem 0.75rem; min-width: fit-content; flex-shrink: 0; align-items: stretch; }
-    .ribbon-tools { display: flex; flex-direction: column; gap: 5px; flex: 1; justify-content: flex-start; align-items: stretch; }
+    .ribbon-bar { display: flex; align-items: stretch; padding: 0.25rem 0; overflow-x: auto; }
+    .ribbon-group { display: flex; flex-direction: column; padding: 0.5rem 0.625rem; min-width: 0; flex-shrink: 0; }
+    .ribbon-tools { display: flex; flex-direction: column; gap: 5px; flex: 1; justify-content: flex-start; }
     .ribbon-tools.ribbon-grid { display: grid; gap: 5px 6px; align-items: center; }
-    .ribbon-row { display: flex; align-items: center; gap: 6px; width: 100%; }
+    .ribbon-row { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
     .ribbon-label { font-weight: 600; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.05em; text-align: center; padding-top: 4px; border-top: 1px solid var(--slate-800); margin-top: auto; cursor: pointer; user-select: none; transition: color 0.12s; }
     .ribbon-label:hover { color: var(--saffron-400); }
     .ribbon-group.collapsed .ribbon-tools { display: none; }
-    .ribbon-group.collapsed .ribbon-label { border-top: none; padding-top: 0; color: var(--slate-500); }
-    .ribbon-group.collapsed { padding: 0.25rem 0.5rem; justify-content: center; }
+    .ribbon-group.collapsed .ribbon-label { border-top: none; padding-top: 0; color: var(--slate-400); }
+    .ribbon-group.collapsed .ribbon-label::before { content: '▸ '; font-size: 0.7em; }
+    .ribbon-group:not(.collapsed) .ribbon-label::after { content: ''; } /* no indicator when expanded */
+    .ribbon-group.collapsed { padding: 0.25rem 0.5rem; justify-content: center; background: var(--slate-900); border: 1px solid var(--slate-800); border-radius: 4px; }
     /* Alignment: consistent sizing within ribbon rows */
     .ribbon-row .range-value { min-width: 22px; text-align: right; font-variant-numeric: tabular-nums; }
     .ribbon-row .range-input { flex: 1; min-width: 50px; } /* sliders fill remaining space */
@@ -128,7 +130,7 @@
     .tool-content { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; align-items: center; justify-content: safe center; gap: 1rem; min-height: 0; }
 
     /* Sticky footer for all modes */
-    .tool-footer { flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 1rem; padding: 0.375rem 0.75rem; border-top: 1px solid var(--slate-800); background: var(--slate-900); font-size: 0.5625rem; color: var(--slate-500); }
+    .tool-footer { flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 1rem; padding: 0.375rem 0.75rem; border-top: 1px solid var(--slate-800); background: var(--slate-900); font-size: 0.7rem; color: var(--slate-500); }
     .tool-footer a { color: var(--slate-500); text-decoration: none; }
     .tool-footer a:hover { color: var(--saffron-400); }
     .tool-footer { display: none; } /* hidden on home screen */
@@ -138,7 +140,7 @@
     .ribbon-bar .tool-btn { padding: 4px 7px; border: 1px solid var(--slate-700); }
     .ribbon-bar .tool-btn svg { width: 15px; height: 15px; }
     .ribbon-bar .range-input { height: 16px; }
-    .ribbon-bar .range-value { font-size: 0.5625rem; color: var(--slate-300); min-width: 1.5rem; text-align: right; }
+    .ribbon-bar .range-value { font-size: 0.7rem; color: var(--slate-300); min-width: 1.5rem; text-align: right; }
     .ribbon-bar .input-field { padding: 4px 6px; width: auto; }
     .ribbon-bar .num-spin { min-height: 26px; }
     .ribbon-bar .num-spin input { }
@@ -185,7 +187,7 @@
     .ctx-menu-item { display:flex; align-items:center; justify-content:space-between; padding:4px 12px;  color:var(--slate-300); cursor:pointer; }
     .ctx-menu-item:hover { background:var(--slate-800); color:var(--slate-100); }
     .ctx-menu-item.disabled { display:none; }
-    .ctx-menu-header { padding:3px 12px; font-size:0.5625rem; font-weight:600; color:var(--slate-500); text-transform:uppercase; letter-spacing:0.04em; }
+    .ctx-menu-header { padding:3px 12px; font-size:0.7rem; font-weight:600; color:var(--slate-500); text-transform:uppercase; letter-spacing:0.04em; }
     .ctx-menu-item.danger { color:#ef4444; }
     .ctx-menu-item.danger:hover { background:rgba(239,68,68,0.1); }
     .ctx-menu-shortcut {  color:var(--slate-500); margin-left:16px; }
@@ -213,7 +215,7 @@
     .store-nav-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1rem; color: var(--slate-400); cursor: pointer; border-left: 3px solid transparent; transition: all 0.12s; }
     .store-nav-item:hover { background: var(--slate-900); color: var(--slate-200); }
     .store-nav-item.active { color: var(--saffron-400); border-left-color: var(--saffron-400); background: rgba(244,196,48,0.03); }
-    .store-nav-item .badge { font-size: 0.5625rem; background: var(--slate-800); color: var(--slate-500); padding: 1px 5px; border-radius: 3px; margin-left: auto; }
+    .store-nav-item .badge { font-size: 0.7rem; background: var(--slate-800); color: var(--slate-500); padding: 1px 5px; border-radius: 3px; margin-left: auto; }
     .asset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem; padding: 1rem; flex: 1; overflow-y: auto; align-content: start; }
     .asset-card { background: var(--slate-800); border: 1px solid var(--slate-700); border-radius: 8px; overflow: hidden; cursor: pointer; transition: border-color 0.12s; }
     .asset-card:hover { border-color: var(--slate-500); }
@@ -239,8 +241,8 @@
     </div>
     <div class="topbar-right">
       <span id="file-label" style="color:var(--slate-500);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
-      <button id="btn-tour" class="tool-btn" title="Guided tour of current tool" style="font-size:0.5625rem;padding:2px 6px;">Tour</button>
-      <button id="btn-help-page" class="tool-btn" title="Open full help page" style="font-size:0.5625rem;padding:2px 6px;">Help</button>
+      <button id="btn-tour" class="tool-btn" title="Guided tour of current tool" style="padding:2px 8px;">Tour</button>
+      <button id="btn-help-page" class="tool-btn" title="Open full help page" style="padding:2px 8px;">Help</button>
       <button id="btn-shortcuts" class="tool-btn" title="Keyboard shortcuts (Ctrl+/)" style="font-weight:700;width:22px;height:22px;padding:0;justify-content:center;">?</button>
       <button id="btn-editor-settings" class="tool-btn" title="Settings"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
@@ -331,17 +333,55 @@
       <!-- Info bar row -->
       <!-- Single ribbon bar: Size group first, then tool groups -->
       <div class="ribbon-bar" id="edit-info-bar">
-        <!-- Size / Info (merged info bar) -->
+        <!-- Size -->
         <div class="ribbon-group"><div class="ribbon-tools">
-          <div class="ribbon-row"><span class="ribbon-mini-label">W</span><input type="number" id="bar-w" class="input-field" value="800" style="width:58px;"><span style="color:var(--slate-500);">x</span><span class="ribbon-mini-label">H</span><input type="number" id="bar-h" class="input-field" value="600" style="width:58px;"></div>
-          <div class="ribbon-row"><button id="bar-unit" class="tool-btn" title="Toggle pixels / percent" style="border:1px solid var(--slate-700);border-radius:3px;">px</button><button id="bar-lock" class="tool-btn" title="Lock aspect ratio" style="color:var(--saffron-400);"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button><button id="bar-apply" class="btn-primary" title="Apply resize (Enter)">Apply</button><button id="btn-undo" class="tool-btn" title="Undo (Ctrl+Z)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button><button id="btn-redo" class="tool-btn" title="Redo (Ctrl+Y)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button><button id="btn-reset-all" class="tool-btn" title="Reset to original image" style="color:#ef4444;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg></button><button id="btn-history" class="tool-btn" title="Operation history (H)" style="position:relative;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span id="history-count" style="position:absolute;top:-2px;right:-2px;background:var(--saffron-400);color:var(--saffron-950);font-size:0.4375rem;font-weight:700;border-radius:50%;width:12px;height:12px;display:none;line-height:12px;text-align:center;">0</span></button></div>
-          <div class="ribbon-row"><span id="bar-size" style="color:var(--slate-500);"></span><span id="bar-zoom" style="color:var(--slate-500);">100%</span><button id="bar-fit" class="tool-btn" style="">Fit</button><button id="bar-actual" class="tool-btn" style="">1:1</button></div>
+          <div class="ribbon-row">
+            <span class="ribbon-mini-label">W</span><input type="number" id="bar-w" class="input-field" value="800" style="width:52px;">
+            <span style="color:var(--slate-500);">×</span>
+            <span class="ribbon-mini-label">H</span><input type="number" id="bar-h" class="input-field" value="600" style="width:52px;">
+            <button id="bar-unit" class="tool-btn" title="Toggle pixels / percent" style="border:1px solid var(--slate-700);border-radius:3px;">px</button>
+            <button id="bar-lock" class="tool-btn" title="Lock aspect ratio" style="color:var(--saffron-400);"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+          </div>
+          <div class="ribbon-row">
+            <button id="bar-apply" class="btn-primary" title="Apply resize (Enter)">Apply</button>
+            <button id="bar-original" class="tool-btn" title="Reset to original dimensions">Reset</button>
+            <select id="bar-size-preset" class="select-field" title="Size presets" style="width:88px;">
+              <option value="">Presets</option>
+              <option value="1920,1080">1920×1080</option>
+              <option value="1280,720">1280×720</option>
+              <option value="1024,768">1024×768</option>
+              <option value="800,600">800×600</option>
+              <option value="640,480">640×480</option>
+              <option value="square">Square</option>
+              <option value="half">50%</option>
+              <option value="double">200%</option>
+            </select>
+            <span id="bar-size" style="color:var(--slate-500);"></span>
+          </div>
+          <div class="ribbon-row">
+            <button id="btn-undo" class="tool-btn" title="Undo (Ctrl+Z)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
+            <button id="btn-redo" class="tool-btn" title="Redo (Ctrl+Y)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
+            <button id="btn-reset-all" class="tool-btn" title="Reset all edits to original" style="color:#ef4444;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg></button>
+            <button id="btn-history" class="tool-btn" title="Operation history (H)" style="position:relative;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span id="history-count" style="position:absolute;top:-2px;right:-2px;background:var(--saffron-400);color:var(--saffron-950);font-size:0.4375rem;font-weight:700;border-radius:50%;width:12px;height:12px;display:none;line-height:12px;text-align:center;">0</span></button>
+            <span id="bar-zoom" style="color:var(--slate-500);">100%</span>
+            <button id="bar-fit" class="tool-btn" title="Fit to viewport">Fit</button>
+            <button id="bar-actual" class="tool-btn" title="Actual size">1:1</button>
+          </div>
         </div><div class="ribbon-label">Size</div></div>
         <div class="ribbon-sep-v"></div>
         <!-- Transform -->
         <div class="ribbon-group"><div class="ribbon-tools">
-          <div class="ribbon-row"><button class="tool-btn" id="btn-crop-auto" title="Smart crop (auto-detect subject)" style="color:var(--saffron-400);">Auto</button><button class="tool-btn" id="btn-crop-free" title="Crop (free)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg></button><button class="tool-btn" id="btn-crop-1-1" title="Crop 1:1">1:1</button><button class="tool-btn" id="btn-crop-4-3" title="Crop 4:3">4:3</button><button class="tool-btn" id="btn-crop-16-9" title="Crop 16:9">16:9</button></div>
-          <div class="ribbon-row"><button class="tool-btn" id="btn-rotate-left" title="Rotate left 90"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button><button class="tool-btn" id="btn-rotate-right" title="Rotate right 90"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button><button class="tool-btn" id="btn-flip-h" title="Flip horizontal"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3"/><line x1="12" y1="20" x2="12" y2="4"/></svg></button><button class="tool-btn" id="btn-flip-v" title="Flip vertical"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8V5c0-1.1.9-2 2-2h14a2 2 0 0 1 2 2v3"/><path d="M3 16v3c0 1.1.9 2 2 2h14a2 2 0 0 1 2 2v-3"/><line x1="4" y1="12" x2="20" y2="12"/></svg></button></div>
+          <div style="display:grid;grid-template-columns:auto auto auto auto auto;gap:3px;">
+            <button class="tool-btn" id="btn-crop-auto" title="Smart crop (auto-detect subject)" style="color:var(--saffron-400);">Auto</button>
+            <button class="tool-btn" id="btn-crop-free" title="Crop (free)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg></button>
+            <button class="tool-btn" id="btn-crop-1-1" title="Crop 1:1">1:1</button>
+            <button class="tool-btn" id="btn-crop-4-3" title="Crop 4:3">4:3</button>
+            <button class="tool-btn" id="btn-crop-16-9" title="Crop 16:9">16:9</button>
+            <button class="tool-btn" id="btn-rotate-left" title="Rotate left 90"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
+            <button class="tool-btn" id="btn-rotate-right" title="Rotate right 90"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
+            <button class="tool-btn" id="btn-flip-h" title="Flip horizontal"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3"/><line x1="12" y1="20" x2="12" y2="4"/></svg></button>
+            <button class="tool-btn" id="btn-flip-v" title="Flip vertical"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8V5c0-1.1.9-2 2-2h14a2 2 0 0 1 2 2v3"/><path d="M3 16v3c0 1.1.9 2 2 2h14a2 2 0 0 1 2 2v-3"/><line x1="4" y1="12" x2="20" y2="12"/></svg></button>
+          </div>
           <div class="ribbon-row"><button id="btn-crop-apply" class="btn-primary" style="padding:2px 6px;display:none;" title="Apply crop">Apply</button><button id="btn-crop-cancel" class="tool-btn" style="display:none;" title="Cancel crop">Cancel</button></div>
         </div><div class="ribbon-label">Transform</div></div>
         <div class="ribbon-sep-v"></div>
@@ -362,10 +402,40 @@
         <div class="ribbon-sep-v"></div>
         <!-- Draw -->
         <div class="ribbon-group"><div class="ribbon-tools">
-          <div class="ribbon-row"><button class="tool-btn" id="btn-ann-rect" title="Draw rectangle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></button><button class="tool-btn" id="btn-ann-arrow" title="Draw arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button><button class="tool-btn" id="btn-ann-text" title="Add text overlay"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9.5" y1="20" x2="14.5" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg></button><button class="tool-btn" id="btn-ann-pen" title="Freehand pen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/></svg></button><button class="tool-btn" id="btn-ann-highlighter" title="Highlighter" style="color:#facc15;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3z"/></svg></button><button class="tool-btn" id="btn-ann-redact" title="Redact / pixelate region"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></button><label title="Fill shape" style="display:flex;align-items:center;gap:2px;color:var(--slate-500);cursor:pointer;"><input type="checkbox" id="ann-fill" style="width:12px;height:12px;accent-color:var(--saffron-400);">Fill</label></div>
-          <div class="ribbon-row"><input type="color" id="ann-color" value="#000000" title="Annotation color" style="width:22px;height:18px;border:none;cursor:pointer;"><input type="range" id="ann-width" min="1" max="10" value="3" title="Line width" style="width:50px;accent-color:var(--saffron-400);"><select id="ann-font" class="select-field" title="Font family" style="width:82px;"><option value="Inter, system-ui, sans-serif">Inter</option><option value="Georgia, serif">Georgia</option><option value="Courier New, monospace">Courier</option><option value="Arial, sans-serif">Arial</option><option value="Impact, sans-serif">Impact</option></select><input type="number" id="ann-fontsize" class="input-field" value="24" min="8" max="200" title="Font size (px)" style="width:52px;"></div>
+          <div class="ribbon-row"><button class="tool-btn active" id="btn-ann-select" title="Select / Move objects (Escape)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg></button><button class="tool-btn" id="btn-ann-rect" title="Draw rectangle"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg></button><button class="tool-btn" id="btn-ann-arrow" title="Draw arrow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></button><button class="tool-btn" id="btn-ann-text" title="Add text overlay"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9.5" y1="20" x2="14.5" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg></button><button class="tool-btn" id="btn-ann-pen" title="Freehand pen"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/></svg></button><button class="tool-btn" id="btn-ann-highlighter" title="Highlighter" style="color:#facc15;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 20h4l10.5-10.5a2.12 2.12 0 0 0-3-3L5 17v3z"/></svg></button><button class="tool-btn" id="btn-ann-redact" title="Redact / pixelate region"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></button><label title="Fill shape" style="display:flex;align-items:center;gap:2px;color:var(--slate-500);cursor:pointer;"><input type="checkbox" id="ann-fill" style="width:12px;height:12px;accent-color:var(--saffron-400);">Fill</label></div>
+          <div class="ribbon-row" style="gap:3px;">
+            <input type="color" id="ann-color" value="#000000" title="Custom color" style="width:22px;height:18px;border:none;cursor:pointer;">
+            <span class="ann-preset-color" data-color="#000000" title="Black" style="width:14px;height:14px;border-radius:2px;background:#000000;cursor:pointer;border:1px solid var(--slate-600);"></span>
+            <span class="ann-preset-color" data-color="#ffffff" title="White" style="width:14px;height:14px;border-radius:2px;background:#ffffff;cursor:pointer;border:1px solid var(--slate-600);"></span>
+            <span class="ann-preset-color" data-color="#ef4444" title="Red" style="width:14px;height:14px;border-radius:2px;background:#ef4444;cursor:pointer;border:1px solid transparent;"></span>
+            <span class="ann-preset-color" data-color="#f97316" title="Orange" style="width:14px;height:14px;border-radius:2px;background:#f97316;cursor:pointer;border:1px solid transparent;"></span>
+            <span class="ann-preset-color" data-color="#eab308" title="Yellow" style="width:14px;height:14px;border-radius:2px;background:#eab308;cursor:pointer;border:1px solid transparent;"></span>
+            <span class="ann-preset-color" data-color="#22c55e" title="Green" style="width:14px;height:14px;border-radius:2px;background:#22c55e;cursor:pointer;border:1px solid transparent;"></span>
+            <span class="ann-preset-color" data-color="#3b82f6" title="Blue" style="width:14px;height:14px;border-radius:2px;background:#3b82f6;cursor:pointer;border:1px solid transparent;"></span>
+            <span class="ann-preset-color" data-color="#8b5cf6" title="Purple" style="width:14px;height:14px;border-radius:2px;background:#8b5cf6;cursor:pointer;border:1px solid transparent;"></span>
+          </div>
+          <div class="ribbon-row"><input type="range" id="ann-width" min="1" max="10" value="3" title="Line width" style="width:50px;accent-color:var(--saffron-400);"><select id="ann-font" class="select-field" title="Font family" style="width:82px;"><option value="Inter, system-ui, sans-serif">Inter</option><option value="Georgia, serif">Georgia</option><option value="Courier New, monospace">Courier</option><option value="Arial, sans-serif">Arial</option><option value="Impact, sans-serif">Impact</option></select><input type="number" id="ann-fontsize" class="input-field" value="24" min="8" max="200" title="Font size (px)" style="width:52px;"></div>
           <div class="ribbon-row"><input type="text" id="watermark-text" class="input-field" placeholder="Watermark" title="Watermark text" style="width:80px;"><button class="tool-btn" id="btn-watermark" title="Apply watermark"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg></button></div>
         </div><div class="ribbon-label">Draw</div></div>
+        <div class="ribbon-sep-v"></div>
+        <!-- Export (moved before Watermark for visibility on small screens) -->
+        <div class="ribbon-group"><div class="ribbon-tools">
+          <div class="ribbon-row">
+            <select id="export-format" class="select-field" title="Output format" style="width:75px;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option><option value="bmp">BMP</option><option value="svg">SVG</option></select>
+            <button id="btn-export" class="btn-primary" title="Export image (Ctrl+S)" style="padding:3px 10px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</button>
+          </div>
+          <div class="ribbon-row" id="export-quality-row" style="display:none;"><span class="ribbon-mini-label" title="Quality">Q</span><input type="range" id="export-quality" min="1" max="100" value="85" title="Export quality (1-100)" style="width:55px;accent-color:var(--saffron-400);"><span class="range-value" id="export-quality-val" style="width:20px;">85</span></div>
+          <div style="display:grid;grid-template-columns:auto auto auto auto;gap:3px;">
+            <button class="tool-btn" id="btn-strip-meta" title="Strip metadata and re-export"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>
+            <button class="tool-btn" id="btn-to-pdf" title="Export as PDF"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></button>
+            <button class="tool-btn" id="btn-export-annotations-svg" title="Export annotations as SVG"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></button>
+            <button class="tool-btn" id="btn-edit-save-lib" title="Save to Library"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+          </div>
+          <div class="ribbon-row">
+            <button class="tool-btn" id="btn-edit-save" title="Save project (.pixeroo)">Save</button>
+            <button class="tool-btn" id="btn-edit-load" title="Load project (.pixeroo)">Load<input type="file" id="edit-load-file" accept=".pixeroo,.json" style="display:none;"></button>
+          </div>
+        </div><div class="ribbon-label">Export</div></div>
         <div class="ribbon-sep-v"></div>
         <!-- Watermark options -->
         <div class="ribbon-group"><div class="ribbon-tools">
@@ -374,19 +444,48 @@
           <div class="ribbon-row"><span class="ribbon-mini-label" title="Angle">An</span><input type="range" id="watermark-angle" min="-90" max="90" value="-30" title="Rotation angle" style="width:50px;accent-color:var(--saffron-400);"><span class="range-value" id="watermark-angle-val" style="width:22px;">-30</span></div>
         </div><div class="ribbon-label">Watermark</div></div>
         <div class="ribbon-sep-v"></div>
-        <!-- Export -->
+        <!-- Canvas: Pad + Recolor -->
         <div class="ribbon-group"><div class="ribbon-tools">
-          <div class="ribbon-row"><select id="export-format" class="select-field" title="Output format" style="width:75px;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option><option value="bmp">BMP</option><option value="svg">SVG</option></select></div>
-          <div class="ribbon-row" id="export-quality-row" style="display:none;"><span class="ribbon-mini-label" title="Quality">Q</span><input type="range" id="export-quality" min="1" max="100" value="85" title="Export quality (1-100)" style="width:55px;accent-color:var(--saffron-400);"><span class="range-value" id="export-quality-val" style="width:20px;">85</span></div>
-          <div class="ribbon-row"><button id="btn-export" class="btn-primary" title="Export image (Ctrl+S)" style="padding:3px 10px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</button><button class="tool-btn" id="btn-strip-meta" title="Strip all metadata and re-export"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button><button class="tool-btn" id="btn-to-pdf" title="Export as PDF"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></button><button class="tool-btn" id="btn-export-annotations-svg" title="Export annotations as SVG overlay"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></button><button class="tool-btn" id="btn-edit-save-lib" title="Save to Library"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button><button class="tool-btn" id="btn-edit-save" title="Save project (.pixeroo)">Save</button><button class="tool-btn" id="btn-edit-load" title="Load project (.pixeroo)">Load<input type="file" id="edit-load-file" accept=".pixeroo,.json" style="display:none;"></button></div>
-        </div><div class="ribbon-label">Export</div></div>
+          <div class="ribbon-row">
+            <button class="tool-btn" id="btn-padding" title="Add uniform padding around image">Pad</button>
+            <input type="number" id="pad-size" class="input-field" value="20" min="1" max="500" style="width:44px;" title="Padding size (px)">
+            <input type="color" id="pad-color" value="#ffffff" style="width:18px;height:16px;border:none;cursor:pointer;" title="Padding color">
+          </div>
+          <div class="ribbon-row">
+            <button class="tool-btn" id="btn-color-replace" title="Replace one color with another in the image">Recolor</button>
+            <input type="color" id="color-from" value="#ffffff" style="width:18px;height:16px;border:none;cursor:pointer;" title="Color to find">
+            <span style="color:var(--slate-500);">&rarr;</span>
+            <input type="color" id="color-to" value="#000000" style="width:18px;height:16px;border:none;cursor:pointer;" title="Replace with">
+          </div>
+        </div><div class="ribbon-label">Canvas</div></div>
         <div class="ribbon-sep-v"></div>
-        <!-- More -->
+        <!-- Channels: R/G/B + CMYK -->
         <div class="ribbon-group"><div class="ribbon-tools">
-          <div class="ribbon-row"><button class="tool-btn" id="btn-padding" title="Add uniform padding">Pad</button><input type="number" id="pad-size" class="input-field" value="20" min="1" max="500" style="width:48px;" title="Padding (px)"><input type="color" id="pad-color" value="#ffffff" style="width:18px;height:16px;border:none;cursor:pointer;" title="Padding color"><button class="tool-btn" id="btn-color-replace" title="Replace one color with another">Recolor</button></div>
-          <div class="ribbon-row"><button class="tool-btn" data-channel="r" title="View red channel only" style="color:#ef4444;">R</button><button class="tool-btn" data-channel="g" title="View green channel only" style="color:#22c55e;">G</button><button class="tool-btn" data-channel="b" title="View blue channel only" style="color:#3b82f6;">B</button><button class="tool-btn" id="btn-cmyk-sim" title="Simulate CMYK print colors">CMYK</button></div>
-          <div class="ribbon-row"><button class="tool-btn" id="btn-steg-detect" title="Detect steganography (hidden data)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button><button class="tool-btn" id="btn-ascii" title="Convert to ASCII art">ASCII</button><button class="tool-btn" id="btn-gen-favicons" title="Preview as favicon at multiple sizes"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></button><button class="tool-btn" id="btn-slice-sprite" title="Slice sprite sheet into tiles"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></button></div>
-        </div><div class="ribbon-label">More</div></div>
+          <div style="display:grid;grid-template-columns:auto auto auto auto;gap:3px;">
+            <button class="tool-btn" data-channel="r" title="View red channel only" style="color:#ef4444;">R</button>
+            <button class="tool-btn" data-channel="g" title="View green channel only" style="color:#22c55e;">G</button>
+            <button class="tool-btn" data-channel="b" title="View blue channel only" style="color:#3b82f6;">B</button>
+            <button class="tool-btn" id="btn-cmyk-sim" title="Simulate CMYK print colors">CMYK</button>
+          </div>
+        </div><div class="ribbon-label">Channels</div></div>
+        <div class="ribbon-sep-v"></div>
+        <!-- Analyze: Steg + Favicon + ASCII + Sprite -->
+        <div class="ribbon-group"><div class="ribbon-tools">
+          <div class="ribbon-row">
+            <button class="tool-btn" id="btn-steg-detect" title="Detect hidden data (steganography) in image"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Steg</button>
+            <button class="tool-btn" id="btn-gen-favicons" title="Preview image as favicon at 16/32/48/64px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> Fav</button>
+          </div>
+          <div class="ribbon-row">
+            <button class="tool-btn" id="btn-ascii" title="Convert image to ASCII art text">ASCII</button>
+            <input type="number" id="ascii-cols" class="input-field" value="80" min="20" max="200" style="width:48px;" title="Columns (20-200)">
+          </div>
+          <div class="ribbon-row">
+            <button class="tool-btn" id="btn-slice-sprite" title="Slice image into grid tiles and download as ZIP">Slice</button>
+            <input type="number" id="sprite-cols" class="input-field" value="4" min="1" max="20" style="width:40px;" title="Columns">
+            <span style="color:var(--slate-500);">×</span>
+            <input type="number" id="sprite-rows" class="input-field" value="4" min="1" max="20" style="width:40px;" title="Rows">
+          </div>
+        </div><div class="ribbon-label">Tools</div></div>
         <!-- View: Ruler/Grid/Center guides -->
         <div class="ribbon-sep-v"></div>
         <div class="ribbon-group"><div class="ribbon-tools">
@@ -406,7 +505,7 @@
         <input type="file" id="edit-file" accept="image/*" style="display:none;">
       </div>
       <div id="dimension-badge" style="display:none;position:absolute;bottom:8px;right:8px;background:rgba(15,23,42,0.8);border:1px solid var(--slate-700);border-radius:4px;padding:2px 8px;color:var(--slate-400);font-family:monospace;pointer-events:none;z-index:1;"></div>
-      <canvas id="editor-canvas" style="display:none;"></canvas>
+      <div id="edit-canvas-wrap" style="position:relative;display:inline-block;overflow:hidden;"><canvas id="editor-canvas" style="display:none;"></canvas></div>
     </div>
     <!-- Hidden elements for JS -->
     <div style="display:none;">
@@ -415,16 +514,12 @@
       <input type="number" id="border-width" value="10"><input type="color" id="border-color" value="#ffffff">
       <button id="btn-border"></button><button id="btn-tile"></button><button id="btn-tile3"></button>
       <button id="btn-split-h2"></button><button id="btn-split-v2"></button><button id="btn-split-h3"></button><button id="btn-split-v3"></button>
-      <input type="color" id="color-from" value="#ffffff"><input type="color" id="color-to" value="#000000">
       <button data-channel="a"></button><button id="btn-steg-visualize"></button>
       <button data-rsearch="google"></button><button data-rsearch="tineye"></button><button data-rsearch="bing"></button><button data-rsearch="yandex"></button>
-      <input type="number" id="pixelate-size" value="8"><input type="number" id="pad-size" value="20"><input type="color" id="pad-color" value="#ffffff">
+      <input type="number" id="pixelate-size" value="8">
       <input type="range" id="level-black" min="0" max="128" value="0"><input type="range" id="level-white" min="128" max="255" value="255"><input type="range" id="level-gamma" min="20" max="300" value="100">
       <span id="level-black-val">0</span><span id="level-white-val">255</span><span id="level-gamma-val">1.0</span><button id="btn-apply-levels"></button>
       <span id="watermark-opacity-val">30</span>
-      <input type="number" id="sprite-cols" value="4"><input type="number" id="sprite-rows" value="4">
-      <input type="number" id="ascii-cols" value="80"><pre id="ascii-output"></pre>
-      <div id="steg-result"></div><div id="favicon-previews"></div>
       <canvas id="histogram-canvas"></canvas>
       <button data-cb="protanopia"></button><button data-cb="deuteranopia"></button><button data-cb="tritanopia"></button><button data-cb="achromatopsia"></button>
     </div>
@@ -948,7 +1043,7 @@
       <!-- Pipeline -->
       <div class="ribbon-group"><div class="ribbon-tools">
         <div class="ribbon-row"><button class="tool-btn" id="btn-batch-import-pipeline" title="Import operations from Edit mode">Import Edit</button></div>
-        <div class="ribbon-row"><span id="batch-pipeline-info" style="font-size:0.5625rem;color:var(--slate-500);">No pipeline</span></div>
+        <div class="ribbon-row"><span id="batch-pipeline-info" style="color:var(--slate-500);">No pipeline</span></div>
       </div><div class="ribbon-label">Pipeline</div></div>
       <div class="ribbon-sep-v"></div>
       <!-- Filter -->
