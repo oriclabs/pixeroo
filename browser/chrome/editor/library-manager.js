@@ -186,6 +186,13 @@ function initLibraryManager() {
         sendToTool(item, 'edit');
       });
 
+      // Right-click context menu
+      card.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        _showLmCtx(e.clientX, e.clientY, item);
+      });
+
       grid.appendChild(card);
     });
   }
@@ -363,6 +370,85 @@ function initLibraryManager() {
       }, 100);
     }
   }
+
+  // ── Context menu ────────────────────────────────────────
+  function _removeLmCtx() { document.querySelector('.lm-ctx')?.remove(); }
+
+  function _showLmCtx(x, y, item) {
+    _removeLmCtx();
+    const menu = document.createElement('div');
+    menu.className = 'lm-ctx';
+
+    const sections = [
+      { header: 'Open In', items: [
+        { label: 'Edit', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>', action: () => sendToTool(item, 'edit') },
+        { label: 'Showcase', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="3"/></svg>', action: () => { closeLibrary(); openMode('showcase'); } },
+        { label: 'Social Media', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/></svg>', action: () => { closeLibrary(); openMode('social'); } },
+      ]},
+      { header: 'Actions', items: [
+        { label: 'Download', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>', action: () => {
+          const a = document.createElement('a'); a.href = item.dataUrl; a.download = item.name || 'library-image'; a.click();
+        }},
+        { label: 'Copy to Clipboard', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>', action: async () => {
+          try { const resp = await fetch(item.dataUrl); const blob = await resp.blob();
+            await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]); } catch {}
+        }},
+        { label: 'View Details', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>', action: () => showDetail(item) },
+        { label: 'Rename', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>', action: async () => {
+          if (typeof pixDialog === 'undefined') return;
+          const name = await pixDialog.prompt('Rename', 'Enter new name:', item.name || '');
+          if (name === null || name === undefined) return;
+          item.name = name;
+          if (typeof PixLibrary !== 'undefined') await PixLibrary.update(item.id, { name });
+          renderGrid();
+        }},
+      ]},
+      { header: 'Organize', items: [
+        { label: 'Move to Collection', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>', action: async () => {
+          if (typeof pickCollectionDialog !== 'function') return;
+          const col = await pickCollectionDialog('Move to Collection');
+          if (!col) return;
+          if (typeof PixLibrary !== 'undefined') await PixLibrary.update(item.id, { collection: col });
+          await loadLibrary();
+        }},
+        { label: 'Delete', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>', danger: true, action: async () => {
+          if (typeof PixLibrary !== 'undefined') await PixLibrary.remove(item.id);
+          allItems = allItems.filter(i => i.id !== item.id);
+          selectedIds.delete(item.id);
+          detail.style.display = 'none';
+          updateCount(); renderGrid();
+        }},
+      ]},
+    ];
+
+    sections.forEach((section, si) => {
+      if (si > 0) { const sep = document.createElement('div'); sep.className = 'lm-ctx-sep'; menu.appendChild(sep); }
+      const hdr = document.createElement('div');
+      hdr.className = 'lm-ctx-header';
+      hdr.textContent = section.header;
+      menu.appendChild(hdr);
+      section.items.forEach(mi => {
+        const el = document.createElement('div');
+        el.className = 'lm-ctx-item' + (mi.danger ? ' danger' : '');
+        el.innerHTML = (mi.icon || '') + '<span>' + mi.label + '</span>';
+        el.addEventListener('click', () => { _removeLmCtx(); mi.action(); });
+        menu.appendChild(el);
+      });
+    });
+
+    document.body.appendChild(menu);
+    // Position within viewport
+    const rect = menu.getBoundingClientRect();
+    const vw = window.innerWidth, vh = window.innerHeight;
+    if (x + rect.width > vw) x = vw - rect.width - 4;
+    if (y + rect.height > vh) y = vh - rect.height - 4;
+    menu.style.left = Math.max(4, x) + 'px';
+    menu.style.top = Math.max(4, y) + 'px';
+  }
+
+  // Close context menu on click outside or Escape
+  document.addEventListener('click', _removeLmCtx);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') _removeLmCtx(); });
 
   // ── Helpers ────────────────────────────────────────────
   function _formatSize(bytes) {

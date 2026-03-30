@@ -18,6 +18,15 @@
     .lib-btn:hover { background: rgba(244,196,48,0.18); box-shadow: 0 0 12px rgba(244,196,48,0.25); }
     .lib-btn .lib-count { background: var(--saffron-400); color: #1e293b; font-size: 0.55rem; font-weight: 800; border-radius: 8px; padding: 0 5px; min-width: 16px; text-align: center; line-height: 16px; }
     .lib-btn.active { background: rgba(244,196,48,0.2); box-shadow: 0 0 16px rgba(244,196,48,0.3); }
+    .lm-ctx { position: fixed; z-index: 2100; background: var(--slate-900); border: 1px solid var(--slate-700); border-radius: 8px; padding: 4px 0; min-width: 170px; box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
+    .lm-ctx-item { display: flex; align-items: center; gap: 8px; padding: 6px 12px; color: var(--slate-300); font-size: 0.75rem; cursor: pointer; transition: all 0.1s; white-space: nowrap; }
+    .lm-ctx-item:hover { background: var(--slate-800); color: var(--saffron-400); }
+    .lm-ctx-item svg { flex-shrink: 0; opacity: 0.6; width: 14px; height: 14px; }
+    .lm-ctx-item:hover svg { opacity: 1; }
+    .lm-ctx-item.danger { color: #ef4444; }
+    .lm-ctx-item.danger:hover { background: rgba(239,68,68,0.1); }
+    .lm-ctx-sep { height: 1px; background: var(--slate-800); margin: 4px 0; }
+    .lm-ctx-header { padding: 4px 12px; color: var(--slate-500); font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
     .tool-btn { padding: 5px; border-radius: 5px; border: none; background: none; color: var(--slate-400); cursor: pointer; transition: all 0.12s; display: flex; align-items: center; justify-content: center; }
     .tool-btn:hover { background: var(--slate-800); color: var(--slate-200); }
     .tool-btn.active { background: rgba(244,196,48,0.1); color: var(--saffron-400); border-color: var(--saffron-400); }
