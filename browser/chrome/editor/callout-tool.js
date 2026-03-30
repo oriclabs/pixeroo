@@ -78,7 +78,7 @@ function initCallout() {
     coObjLayer.objects.forEach(obj => obj.draw(oc));
     out.toBlob(blob => {
       const url = URL.createObjectURL(blob);
-      chrome.runtime.sendMessage({ action: 'download', url, filename: 'snaproo/callout-annotated.png', saveAs: true });
+      Platform.download(url, 'snaproo/callout-annotated.png', true);
     }, 'image/png');
   });
 

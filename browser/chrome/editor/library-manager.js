@@ -309,7 +309,7 @@ function initLibraryManager() {
       zip.addFile(`${item.name || 'image'}.${ext}`, new Uint8Array(buf));
     }
     const blob = zip.finish();
-    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: 'snaproo/library-export.zip', saveAs: true });
+    Platform.download(URL.createObjectURL(blob), 'snaproo/library-export.zip', true);
   });
 
   // ── Delete selected ────────────────────────────────────

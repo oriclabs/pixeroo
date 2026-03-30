@@ -248,7 +248,7 @@ function initGif() {
       encoder.addFrame(c, delay);
     }
     const blob = encoder.finish();
-    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/animation.gif`, saveAs: true });
+    Platform.download(URL.createObjectURL(blob), `snaproo/animation.gif`, true);
   });
 
   $('btn-gif-save-lib')?.addEventListener('click', async () => {

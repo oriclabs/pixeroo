@@ -1208,7 +1208,7 @@ function initEdit() {
     const tiles = splitImage(editCanvas, dir, parts);
     for (let i = 0; i < tiles.length; i++) {
       const blob = await new Promise(r => tiles[i].toBlob(r, 'image/png'));
-      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/${editFilename}-${dir[0]}${i+1}.png`, saveAs: false });
+      Platform.download(URL.createObjectURL(blob), `snaproo/${editFilename}-${dir[0]}${i+1}.png`, false);
     }
   }
 
@@ -1319,14 +1319,14 @@ function initEdit() {
   $('btn-strip-meta')?.addEventListener('click', async () => {
     if (!editCanvas.width) return;
     const blob = await stripMetadata(editCanvas, 'png');
-    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/${editFilename}-clean.png`, saveAs: true });
+    Platform.download(URL.createObjectURL(blob), `snaproo/${editFilename}-clean.png`, true);
   });
 
   // Image to PDF
   $('btn-to-pdf')?.addEventListener('click', async () => {
     if (!editCanvas.width) return;
     const blob = await imageToPdf([editCanvas], 'snaproo-export');
-    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/${editFilename}.pdf`, saveAs: true });
+    Platform.download(URL.createObjectURL(blob), `snaproo/${editFilename}.pdf`, true);
   });
 
   // Export
@@ -1357,7 +1357,7 @@ function initEdit() {
     const quality = +($('export-quality')?.value || 85) / 100;
     const mime = { png:'image/png', jpeg:'image/jpeg', webp:'image/webp' }[fmt] || 'image/png';
     out.toBlob(blob => {
-      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/${editFilename}-${name}.${fmt === 'jpeg' ? 'jpg' : fmt}`, saveAs: true });
+      Platform.download(URL.createObjectURL(blob), `snaproo/${editFilename}-${name}.${fmt === 'jpeg' ? 'jpg' : fmt}`, true);
     }, mime, quality);
     $('export-preset').value = '';
   });
@@ -1367,7 +1367,7 @@ function initEdit() {
     if (!window._snaprooObjLayer?.hasObjects()) return;
     const svg = window._snaprooObjLayer.exportAsSVG(editCanvas.width, editCanvas.height);
     const blob = new Blob([svg], { type: 'image/svg+xml' });
-    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/${editFilename}-annotations.svg`, saveAs: true });
+    Platform.download(URL.createObjectURL(blob), `snaproo/${editFilename}-annotations.svg`, true);
   });
 
   // --- Save/Load Edit Project ---
@@ -1394,7 +1394,7 @@ function initEdit() {
 
     const json = JSON.stringify(project);
     const blob = new Blob([json], { type: 'application/json' });
-    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/${editFilename}-project.snaproo`, saveAs: true });
+    Platform.download(URL.createObjectURL(blob), `snaproo/${editFilename}-project.snaproo`, true);
     if (footer) footer.textContent = `Project saved (${(json.length / 1024).toFixed(0)} KB)`;
   });
 
@@ -2232,14 +2232,14 @@ function editExport() {
   if (fmt === 'svg') {
     const svg = PixTrace.traceCanvas(editCanvas, 'default');
     const blob = new Blob([svg], { type: 'image/svg+xml' });
-    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/${editFilename}.svg`, saveAs: true });
+    Platform.download(URL.createObjectURL(blob), `snaproo/${editFilename}.svg`, true);
     return;
   }
 
   const mime = {png:'image/png',jpeg:'image/jpeg',webp:'image/webp',bmp:'image/bmp'}[fmt] || 'image/png';
   const q = ['jpeg','webp'].includes(fmt) ? +($('export-quality')?.value || 85) / 100 : undefined;
   editCanvas.toBlob(blob => {
-    chrome.runtime.sendMessage({ action:'download', url: URL.createObjectURL(blob), filename:`snaproo/${editFilename}.${fmt==='jpeg'?'jpg':fmt}`, saveAs:true });
+    Platform.download(URL.createObjectURL(blob), `snaproo/${editFilename}.${fmt==='jpeg'?'jpg':fmt}`, true);
   }, mime, q);
 }
 

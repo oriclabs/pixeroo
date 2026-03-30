@@ -660,14 +660,14 @@ function initBatch() {
       }
       const zipBlob = zip.toBlob();
       const zipUrl = URL.createObjectURL(zipBlob);
-      chrome.runtime.sendMessage({ action: 'download', url: zipUrl, filename: 'snaproo/batch-export.zip', saveAs: true });
+      Platform.download(zipUrl, 'snaproo/batch-export.zip', true);
       const origTotal = checked.reduce((s, bf) => s + bf.file.size, 0);
       const pctSaved = origTotal > 0 ? Math.round((1 - zipBlob.size / origTotal) * 100) : 0;
       text.textContent = `Done! ${allResults.length} files zipped (${(zipBlob.size / 1024 / 1024).toFixed(1)} MB) | Original: ${(origTotal/1024/1024).toFixed(1)} MB \u2192 ${pctSaved}% ${pctSaved >= 0 ? 'smaller' : 'larger'}`;
     } else {
       // Individual downloads
       for (const r of allResults) {
-        chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(r.blob), filename: `snaproo/batch/${r.filename}`, saveAs: false });
+        Platform.download(URL.createObjectURL(r.blob), `snaproo/batch/${r.filename}`, false);
         await new Promise(res => setTimeout(res, 50));
       }
       const origTotal = checked.reduce((s, bf) => s + bf.file.size, 0);
@@ -723,7 +723,7 @@ function initBatch() {
     if (useZip && window._batchZip) {
       await window._batchZip.addBlob(filename, blob);
     } else {
-      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/batch/${filename}`, saveAs: false });
+      Platform.download(URL.createObjectURL(blob), `snaproo/batch/${filename}`, false);
       await new Promise(r => setTimeout(r, 50));
     }
   }
@@ -740,7 +740,7 @@ function initBatch() {
   async function finishBatchZip(label) {
     if (window._batchZip) {
       const zipBlob = window._batchZip.toBlob();
-      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(zipBlob), filename: `snaproo/${label}.zip`, saveAs: true });
+      Platform.download(URL.createObjectURL(zipBlob), `snaproo/${label}.zip`, true);
       const footer = $('footer-status');
       if (footer) footer.textContent = `${label}: ${(zipBlob.size / 1024 / 1024).toFixed(1)} MB zip`;
       window._batchZip = null;

@@ -238,7 +238,7 @@ function initMeme() {
     const fmt = $('meme-export-fmt')?.value || 'png';
     const mime = { png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp' }[fmt] || 'image/png';
     canvas.toBlob(blob => {
-      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/meme.${fmt === 'jpeg' ? 'jpg' : fmt}`, saveAs: true });
+      Platform.download(URL.createObjectURL(blob), `snaproo/meme.${fmt === 'jpeg' ? 'jpg' : fmt}`, true);
     }, mime, 0.92);
   });
 

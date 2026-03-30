@@ -144,7 +144,7 @@ function initSocial() {
     const name = preset ? preset.name : 'social';
     canvas.toBlob((blob) => {
       if (!blob) return;
-      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/${name}.png`, saveAs: true });
+      Platform.download(URL.createObjectURL(blob), `snaproo/${name}.png`, true);
     }, 'image/png');
   });
 

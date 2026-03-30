@@ -162,7 +162,7 @@ function initQR() {
   // --- Export: PNG download ---
   $('btn-qr-download').addEventListener('click', () => {
     $('qr-canvas').toBlob(b => {
-      chrome.runtime.sendMessage({action:'download',url:URL.createObjectURL(b),filename:'snaproo/qrcode.png',saveAs:true});
+      Platform.download(URL.createObjectURL(b), 'snaproo/qrcode.png', true);
     });
   });
 
@@ -189,7 +189,7 @@ function initQR() {
         }
       }
       svg += '</svg>';
-      chrome.runtime.sendMessage({action:'download',url:URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'})),filename:'snaproo/qrcode.svg',saveAs:true});
+      Platform.download(new Blob([svg], {type:'image/svg+xml'}), 'snaproo/qrcode.svg', true);
     } catch {}
   });
 
@@ -497,7 +497,7 @@ function initQR() {
         } catch {}
       }},
       { label: 'Download PNG', action: () => {
-        chrome.runtime.sendMessage({ action: 'download', url: item.dataUrl, filename: 'snaproo/qr-history.png', saveAs: true });
+        Platform.download(item.dataUrl, 'snaproo/qr-history.png', true);
       }},
       'sep',
       { label: 'Remove from History', action: () => {

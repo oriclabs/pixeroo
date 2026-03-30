@@ -295,7 +295,7 @@ function initScreenshotBeautifier() {
     const fmt = $('ss-export-fmt')?.value || 'png';
     const mime = { png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp' }[fmt] || 'image/png';
     canvas.toBlob(blob => {
-      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/screenshot-beautified.${fmt === 'jpeg' ? 'jpg' : fmt}`, saveAs: true });
+      Platform.download(URL.createObjectURL(blob), `snaproo/screenshot-beautified.${fmt === 'jpeg' ? 'jpg' : fmt}`, true);
     }, mime, 0.92);
   });
 

@@ -184,7 +184,7 @@ function renderStoreAssets(filter) {
         card.addEventListener('click', () => {
           item.canvas.toBlob(blob => {
             const name = `${store}-${spec.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${spec.w}x${spec.h}.png`;
-            chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/store-assets/${name}`, saveAs: true });
+            Platform.download(URL.createObjectURL(blob), `snaproo/store-assets/${name}`, true);
           });
         });
       }
@@ -204,7 +204,7 @@ async function exportStoreZip() {
     for (const item of items) {
       const name = `${store}-${item.spec.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${item.spec.w}x${item.spec.h}.png`;
       const blob = await new Promise(r => item.canvas.toBlob(r));
-      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/store-assets/${name}`, saveAs: false });
+      Platform.download(URL.createObjectURL(blob), `snaproo/store-assets/${name}`, false);
     }
   }
 }

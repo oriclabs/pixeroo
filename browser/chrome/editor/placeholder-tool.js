@@ -169,7 +169,7 @@ function initPlaceholder() {
     const mime = { png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp' }[fmt] || 'image/png';
     canvas.toBlob(blob => {
       const w = canvas.width, h = canvas.height;
-      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/placeholder-${w}x${h}.${fmt === 'jpeg' ? 'jpg' : fmt}`, saveAs: true });
+      Platform.download(URL.createObjectURL(blob), `snaproo/placeholder-${w}x${h}.${fmt === 'jpeg' ? 'jpg' : fmt}`, true);
     }, mime, 0.92);
   });
 
@@ -225,7 +225,7 @@ function initPlaceholder() {
     svg += `</svg>`;
 
     const blob = new Blob([svg], { type: 'image/svg+xml' });
-    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/placeholder-${w}x${h}.svg`, saveAs: true });
+    Platform.download(URL.createObjectURL(blob), `snaproo/placeholder-${w}x${h}.svg`, true);
   }
 
   // ── Batch generation ────────────────────────────────────
@@ -262,7 +262,7 @@ function initPlaceholder() {
     render();
 
     const zipBlob = zip.finish();
-    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(zipBlob), filename: 'snaproo/placeholders.zip', saveAs: true });
+    Platform.download(URL.createObjectURL(zipBlob), 'snaproo/placeholders.zip', true);
   });
 
   // ── Save to Library ─────────────────────────────────────
