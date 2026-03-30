@@ -207,7 +207,15 @@ function initConvert() {
 
   // ── Dynamic format states ──────────────────────────────
   function updateFormatStates() {
-    if (!cvtFiles.length) return;
+    if (!cvtFiles.length) {
+      // Reset all to default
+      $$('#convert-formats .format-btn').forEach(btn => {
+        btn.classList.remove('fmt-supported', 'fmt-same', 'fmt-unsupported');
+        btn.querySelector('.fmt-badge')?.remove();
+        btn.querySelector('.fmt-warn')?.remove();
+      });
+      return;
+    }
     const file = cvtFiles[selectedIndex]?.file;
     if (!file) return;
     const ext = file.name.split('.').pop()?.toLowerCase();
@@ -215,19 +223,30 @@ function initConvert() {
 
     $$('#convert-formats .format-btn').forEach(btn => {
       const fmt = btn.dataset.fmt;
-      // Remove old badges
+      // Remove old classes and badges
+      btn.classList.remove('fmt-supported', 'fmt-same', 'fmt-unsupported');
       btn.querySelector('.fmt-badge')?.remove();
+      btn.querySelector('.fmt-warn')?.remove();
 
-      if (btn.disabled) return; // AVIF/TIFF/ICO stay disabled
+      if (btn.disabled) {
+        // AVIF/TIFF/ICO — unsupported (red)
+        btn.classList.add('fmt-unsupported');
+        return;
+      }
 
       if (fmt === inputFmt) {
-        // Same as input — dim it
+        // Same as input — amber
+        btn.classList.add('fmt-same');
         const badge = document.createElement('span');
         badge.className = 'fmt-badge';
-        badge.style.cssText = 'font-size:0.45rem;color:var(--slate-500);margin-left:2px;';
+        badge.style.cssText = 'font-size:0.45rem;color:#f59e0b;margin-left:2px;';
         badge.textContent = '(same)';
         btn.appendChild(badge);
+      } else {
+        // Supported, different — green
+        btn.classList.add('fmt-supported');
       }
+
       if (fmt === 'jpeg' && (ext === 'png' || ext === 'gif' || ext === 'svg' || ext === 'webp')) {
         // Transparency warning
         const existing = btn.querySelector('.fmt-warn');
