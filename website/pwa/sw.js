@@ -1,20 +1,9 @@
 // Snaproo Service Worker - Offline-first PWA
 
-const CACHE_NAME = 'snaproo-v0.1.0';
-const ASSETS = [
-  '/website/pwa/index.html',
-  '/website/pwa/app.js',
-  '/website/pwa/manifest.json',
-  '/website/docs/favicon.svg',
-];
+const CACHE_NAME = 'snaproo-v0.2.0';
 
-// Install: cache core assets
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
-  );
-  self.skipWaiting();
-});
+// Install: cache on demand (no pre-cache list needed — cache-first strategy handles it)
+self.addEventListener('install', () => self.skipWaiting());
 
 // Activate: clean old caches
 self.addEventListener('activate', (event) => {
@@ -26,23 +15,38 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch: cache-first for assets, network-first for everything else
+// Fetch: cache-first for same-origin assets, network-first for navigation
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      return cached || fetch(event.request).then((response) => {
-        // Cache successful GET requests
-        if (event.request.method === 'GET' && response.status === 200) {
+  const url = new URL(event.request.url);
+
+  // Only cache same-origin requests
+  if (url.origin !== location.origin) return;
+
+  // Navigation: network-first with offline fallback
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
           const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          return response;
+        })
+        .catch(() => caches.match(event.request).then(r => r || caches.match('/website/pwa/app/index.html')))
+    );
+    return;
+  }
+
+  // Assets (JS, CSS, images): cache-first
+  event.respondWith(
+    caches.match(event.request).then(cached => {
+      if (cached) return cached;
+      return fetch(event.request).then(response => {
+        if (response.status === 200 && event.request.method === 'GET') {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }
         return response;
       });
-    }).catch(() => {
-      // Offline fallback
-      if (event.request.mode === 'navigate') {
-        return caches.match('/website/pwa/index.html');
-      }
-    })
+    }).catch(() => new Response('Offline', { status: 503 }))
   );
 });

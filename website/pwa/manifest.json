@@ -1,8 +1,8 @@
 {
   "name": "Snaproo",
   "short_name": "Snaproo",
-  "description": "Private Image Experience Engine. Read. Optimise. Output.",
-  "start_url": "/website/pwa/index.html",
+  "description": "Free offline image toolkit. Snap. Render. Optimise. Output.",
+  "start_url": "/website/pwa/app/index.html",
   "display": "standalone",
   "background_color": "#020617",
   "theme_color": "#F4C430",
@@ -15,7 +15,7 @@
   "categories": ["utilities", "photo"],
   "screenshots": [],
   "share_target": {
-    "action": "/website/pwa/index.html",
+    "action": "/website/pwa/app/index.html",
     "method": "POST",
     "enctype": "multipart/form-data",
     "params": {

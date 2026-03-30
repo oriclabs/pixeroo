@@ -196,3 +196,35 @@ body.tool-active .tool-footer { display: flex; }
   /* Full-width file list */
   #convert-file-list { width: 100%; max-height: 120px; border-right: none; border-bottom: 1px solid var(--slate-800); }
 }
+
+/* ── PWA Mode: hide extension-only features ───────────── */
+.pwa-mode #btn-tour { display: none; }
+.pwa-mode .lib-btn { display: none; } /* Library uses IndexedDB — keep if available */
+.pwa-mode #qa-screenshot,
+.pwa-mode #sp-qa-screenshot,
+.pwa-mode #sp-qa-region,
+.pwa-mode #pqa-screenshot,
+.pwa-mode #pqa-region,
+.pwa-mode #pqa-color { display: none; }
+
+/* PWA: show library if IndexedDB available (it is in PWA) */
+.pwa-mode .lib-btn { display: flex; }
+
+/* ── Touch-friendly: larger tap targets ───────────────── */
+@media (pointer: coarse) {
+  .tool-btn { min-height: 32px; min-width: 32px; }
+  .format-btn { min-height: 32px; padding: 4px 10px; }
+  .ribbon-bar .select-field { min-height: 30px; }
+  .ribbon-bar .input-field { min-height: 30px; }
+  .ribbon-bar input[type="range"] { height: 20px; }
+  .qa-btn { padding: 8px 12px; }
+  .home-card { padding: 1rem 0.75rem; }
+  .dropzone { padding: 2rem 1.5rem; }
+  .lm-ctx-item { padding: 10px 14px; }
+
+  /* Larger resize handles */
+  .img-resize-handle { width: 16px !important; height: 16px !important; }
+
+  /* Prevent long-press context menu on canvas */
+  canvas { -webkit-touch-callout: none; touch-action: none; }
+}

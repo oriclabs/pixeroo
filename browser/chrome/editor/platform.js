@@ -201,6 +201,14 @@ const Platform = (function () {
     };
   }
 
+  // ── Apply platform visibility classes ────────────────
+  // Add CSS class to body so CSS can hide extension-only elements
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!isExtension) {
+      document.body.classList.add('pwa-mode');
+    }
+  });
+
   return {
     isExtension,
     download,

@@ -16,7 +16,9 @@
     "test:e2e:screenshots": "npx playwright test --project=chrome tests/e2e/screenshots.spec.js",
     "test:all": "npm run test:unit && npm run test:e2e",
     "test:legacy": "node --test tests/utils/*.test.js tests/extension/*.test.js tests/pwa/*.test.js",
-    "dev": "npm run watch:css"
+    "dev": "npm run watch:css",
+    "build:pwa": "node scripts/build-pwa.cjs",
+    "build:pwa:prod": "node scripts/build-pwa.cjs --minify"
   },
   "keywords": [
     "image",
@@ -29,7 +31,10 @@
   "license": "MIT",
   "devDependencies": {
     "@playwright/test": "^1.58.2",
+    "clean-css-cli": "^5.6.3",
+    "html-minifier-terser": "^7.2.0",
     "jest": "^30.3.0",
-    "tailwindcss": "^4.0"
+    "tailwindcss": "^4.0",
+    "terser": "^5.46.1"
   }
 }

@@ -16,6 +16,32 @@ let originalW = 0, originalH = 0;
 
 let currentMode = null;
 
+// ── Touch-to-Mouse event forwarding ──────────────────────
+// Makes all mousedown/mousemove/mouseup handlers work with touch
+(function() {
+  function touchHandler(event) {
+    const touch = event.changedTouches[0];
+    const type = { touchstart: 'mousedown', touchmove: 'mousemove', touchend: 'mouseup' }[event.type];
+    if (!type) return;
+
+    const mouseEvent = new MouseEvent(type, {
+      bubbles: true, cancelable: true,
+      clientX: touch.clientX, clientY: touch.clientY,
+      screenX: touch.screenX, screenY: touch.screenY,
+      button: 0, buttons: type === 'mouseup' ? 0 : 1,
+    });
+    touch.target.dispatchEvent(mouseEvent);
+
+    // Prevent scroll/zoom during canvas interaction
+    if (event.target.tagName === 'CANVAS' || event.target.closest('.work-area')) {
+      event.preventDefault();
+    }
+  }
+  document.addEventListener('touchstart', touchHandler, { passive: false });
+  document.addEventListener('touchmove', touchHandler, { passive: false });
+  document.addEventListener('touchend', touchHandler, { passive: false });
+})();
+
 // Toast notification
 function showToast(message, icon) {
   let toast = document.querySelector('.pix-toast');

@@ -118,11 +118,11 @@ function initConvert() {
   }));
 
   // SVG slider value displays + live preview on change
-  $('cvt-svg-smooth')?.addEventListener('input', (e) => { $('cvt-svg-smooth-val').textContent = e.target.value; _debounceSvgPreview(); });
-  $('cvt-svg-blur')?.addEventListener('input', (e) => { $('cvt-svg-blur-val').textContent = e.target.value; _debounceSvgPreview(); });
-  $('cvt-svg-colors')?.addEventListener('change', _debounceSvgPreview);
-  $('cvt-svg-minarea')?.addEventListener('change', _debounceSvgPreview);
-  $('cvt-svg-maxdim')?.addEventListener('change', _debounceSvgPreview);
+  $('cvt-svg-smooth')?.addEventListener('input', (e) => { $('cvt-svg-smooth-val').textContent = e.target.value; _debounceOutputPreview(); });
+  $('cvt-svg-blur')?.addEventListener('input', (e) => { $('cvt-svg-blur-val').textContent = e.target.value; _debounceOutputPreview(); });
+  $('cvt-svg-colors')?.addEventListener('change', _debounceOutputPreview);
+  $('cvt-svg-minarea')?.addEventListener('change', _debounceOutputPreview);
+  $('cvt-svg-maxdim')?.addEventListener('change', _debounceOutputPreview);
 
   let _previewTimer = null;
   function _debounceOutputPreview() { clearTimeout(_previewTimer); _previewTimer = setTimeout(_updateOutputPreview, 400); }
