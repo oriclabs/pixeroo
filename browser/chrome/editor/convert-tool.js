@@ -255,23 +255,22 @@ function initConvert() {
 
       // SVG trace
       if (isSvg) {
-        if (typeof ImageTracer === 'undefined') { continue; }
+        if (typeof SvgTracer === 'undefined') { continue; }
         // Downscale for cleaner/faster tracing
         const maxDim = +($('cvt-svg-maxdim')?.value) || 400;
         let traceC = c;
         if (c.width > maxDim || c.height > maxDim) {
-          const scale = Math.min(maxDim / c.width, maxDim / c.height);
-          const tw = Math.round(c.width * scale), th = Math.round(c.height * scale);
+          const traceScale = Math.min(maxDim / c.width, maxDim / c.height);
+          const tw = Math.round(c.width * traceScale), th = Math.round(c.height * traceScale);
           traceC = document.createElement('canvas'); traceC.width = tw; traceC.height = th;
           traceC.getContext('2d').drawImage(c, 0, 0, tw, th);
         }
-        const imgd = traceC.getContext('2d').getImageData(0, 0, traceC.width, traceC.height);
-        const opts = ImageTracer.optionpresets[svgPreset] ? { ...ImageTracer.optionpresets[svgPreset] } : {};
-        opts.numberofcolors = svgColors;
-        opts.strokewidth = Math.max(1, opts.strokewidth || 1);
-        opts.pathomit = 8; // skip tiny paths (noise)
-        opts.blurradius = 1; // slight blur to reduce noise
-        const svgStr = ImageTracer.imagedataToSVG(imgd, opts);
+        const svgStr = SvgTracer.trace(traceC, {
+          colors: svgColors,
+          blur: svgPreset === 'sharp' ? 0 : svgPreset === 'smoothed' ? 3 : 1,
+          simplify: svgPreset === 'detailed' ? 0.5 : svgPreset === 'sharp' ? 0.8 : 1.5,
+          smooth: svgPreset !== 'sharp',
+        });
         const filename = renamePattern.replace(/\{name\}/g, baseName).replace(/\{index\}/g, String(i + 1).padStart(3, '0')).replace(/\{fmt\}/g, 'svg') + '.svg';
         if (useZip) {
           zip.addFile(filename, new TextEncoder().encode(svgStr));
