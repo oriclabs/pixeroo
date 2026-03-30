@@ -811,7 +811,7 @@ async function renderRecentFiles() {
           openMode('edit');
           setTimeout(() => {
             if (typeof window._loadEditImage === 'function') {
-              window._loadEditImage(fullImg, item.name || 'recent');
+              window._loadEditImage(fullImg, item.name || 'recent', { skipLibrarySave: true });
             }
           }, 100);
         };

@@ -1914,7 +1914,8 @@ function initLibraryImport() {
   });
 
   // Expose global function for Quick Actions and Library Manager
-  window._loadEditImage = function(img, name) {
+  // opts.skipLibrarySave = true to prevent auto-save (e.g. when loaded FROM library/recents)
+  window._loadEditImage = function(img, name, opts) {
     editOriginal = img;
     editFilename = name || 'image';
     $('file-label').textContent = editFilename;
@@ -1929,8 +1930,8 @@ function initLibraryImport() {
     if (window.fitToView) window.fitToView();
     // Save to recent files
     if (window._addRecentFile) window._addRecentFile(img, editFilename);
-    // Auto-save screenshots to library (only new captures, not re-opens)
-    if (editFilename.startsWith('screenshot') && typeof PixLibrary !== 'undefined') {
+    // Auto-save screenshots to library (only new captures, not re-opens from library/recents)
+    if (editFilename.startsWith('screenshot') && typeof PixLibrary !== 'undefined' && !opts?.skipLibrarySave) {
       PixLibrary.getAll().then(items => {
         const exists = items.some(i => i.name === editFilename && i.source === 'screenshot');
         if (!exists) {

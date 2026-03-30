@@ -363,7 +363,7 @@ function initLibraryManager() {
         img.src = item.dataUrl;
         img.onload = () => {
           if (typeof window._loadEditImage === 'function') {
-            window._loadEditImage(img, item.name || 'library-image');
+            window._loadEditImage(img, item.name || 'library-image', { skipLibrarySave: true });
           }
         };
       }, 100);
