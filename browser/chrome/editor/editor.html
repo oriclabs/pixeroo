@@ -662,6 +662,7 @@
           <button class="format-btn" data-fmt="jpeg" title="Lossy, small files, no transparency">JPEG</button>
           <button class="format-btn" data-fmt="webp" title="Modern format, smallest files, good quality">WebP</button>
           <button class="format-btn" data-fmt="bmp" title="Uncompressed bitmap, very large">BMP</button>
+          <button class="format-btn" data-fmt="svg" title="Vector trace — converts raster to SVG paths">SVG</button>
         </div>
         <div class="ribbon-row" style="gap:3px;">
           <button class="format-btn disabled" data-fmt="avif" title="Not supported — browser cannot export AVIF" disabled>AVIF</button>
@@ -676,6 +677,19 @@
         <div class="ribbon-row" style="gap:5px;"><span class="ribbon-mini-label" title="Quality">Q</span><input type="range" class="range-input" id="convert-quality" min="1" max="100" value="85" style="width:70px;"><span class="range-value" id="convert-quality-val" style="width:20px;">85</span></div>
         <div class="ribbon-row"><label class="toggle-chip"><input type="checkbox" id="convert-target-size">Max</label><input type="number" id="convert-max-kb" class="input-field" value="200" min="10" max="10000" style="width:55px;display:none;" title="Target max file size (KB)"><span id="convert-max-kb-unit" style="color:var(--slate-400);font-size:0.6rem;display:none;">KB</span></div>
       </div><div class="ribbon-label">Quality</div></div>
+      <!-- SVG trace options -->
+      <div class="ribbon-group" id="convert-svg-section" style="display:none;"><div class="ribbon-tools">
+        <div class="ribbon-row" style="gap:5px;"><span class="ribbon-mini-label" title="Number of colors">Colors</span><input type="number" id="cvt-svg-colors" class="input-field" value="16" min="2" max="64" style="width:44px;" title="Number of colors in trace"></div>
+        <div class="ribbon-row" style="gap:5px;"><select id="cvt-svg-preset" class="select-field" style="width:90px;" title="Trace preset">
+          <option value="default">Default</option>
+          <option value="posterized1">Posterized</option>
+          <option value="curvy">Curvy</option>
+          <option value="sharp">Sharp</option>
+          <option value="detailed">Detailed</option>
+          <option value="smoothed">Smoothed</option>
+          <option value="grayscale">Grayscale</option>
+        </select></div>
+      </div><div class="ribbon-label">SVG Trace</div></div>
       <div class="ribbon-sep-v"></div>
       <!-- Resize -->
       <div class="ribbon-group"><div class="ribbon-tools">
@@ -2244,6 +2258,7 @@
   <script src="edit-tool.js"></script>
   <script src="collage-tool.js"></script>
   <script src="batch-tool.js"></script>
+  <script src="../lib/imagetracer.js"></script>
   <script src="convert-tool.js"></script>
   <script src="generate-tool.js"></script>
   <script src="qr-tool.js"></script>

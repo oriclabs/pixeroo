@@ -9,6 +9,7 @@ function initConvert() {
     jpeg: 'Lossy · Small files · No transparency',
     webp: 'Modern · Smallest · Good quality',
     bmp:  'Uncompressed · Very large · No transparency',
+    svg:  'Vector trace · Scalable · Best for logos & icons',
   };
 
   // ── Drop zone ──────────────────────────────────────────
@@ -113,6 +114,7 @@ function initConvert() {
     b.classList.add('active');
     const fmt = b.dataset.fmt;
     $('convert-quality-section').style.display = ['jpeg','webp'].includes(fmt) ? '' : 'none';
+    $('convert-svg-section').style.display = fmt === 'svg' ? '' : 'none';
     $('convert-fmt-hint').textContent = FORMAT_INFO[fmt] || '';
     showCompressionPreview();
   }));
@@ -212,6 +214,7 @@ function initConvert() {
     if (!cvtFiles.length) return;
     const fmtBtn = document.querySelector('#convert-formats .format-btn.active');
     const fmt = fmtBtn?.dataset.fmt || 'png';
+    const isSvg = fmt === 'svg';
     const mime = { png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp', bmp: 'image/bmp' }[fmt] || 'image/png';
     const q = ['jpeg', 'webp'].includes(fmt) ? +$('convert-quality').value / 100 : undefined;
     const targetSize = $('convert-target-size')?.checked;
@@ -221,6 +224,8 @@ function initConvert() {
     const lockAspect = $('cvt-resize-lock')?.checked;
     const renamePattern = $('cvt-rename')?.value || '{name}';
     const ext = fmt === 'jpeg' ? 'jpg' : fmt;
+    const svgColors = +($('cvt-svg-colors')?.value) || 16;
+    const svgPreset = $('cvt-svg-preset')?.value || 'default';
 
     const progress = $('convert-progress');
     const bar = $('convert-progress-bar');
@@ -245,6 +250,21 @@ function initConvert() {
       srcC.getContext('2d').drawImage(img, 0, 0);
       const c = (w !== img.naturalWidth || h !== img.naturalHeight) ?
         (typeof steppedResize === 'function' ? steppedResize(srcC, w, h) : (() => { const t = document.createElement('canvas'); t.width = w; t.height = h; t.getContext('2d').drawImage(srcC, 0, 0, w, h); return t; })()) : srcC;
+
+      // SVG trace
+      if (isSvg) {
+        if (typeof ImageTracer === 'undefined') { continue; }
+        const imgd = c.getContext('2d').getImageData(0, 0, c.width, c.height);
+        const opts = ImageTracer.optionpresets[svgPreset] || {};
+        opts.numberofcolors = svgColors;
+        const svgStr = ImageTracer.imagedataToSVG(imgd, opts);
+        const svgBlob = new Blob([svgStr], { type: 'image/svg+xml' });
+        const baseName = f.file.name.replace(/\.[^.]+$/, '');
+        const filename = renamePattern.replace(/\{name\}/g, baseName).replace(/\{index\}/g, String(i + 1).padStart(3, '0')).replace(/\{fmt\}/g, 'svg') + '.svg';
+        chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(svgBlob), filename: `snaproo/${filename}`, saveAs: total === 1 });
+        bar.style.width = Math.round((i + 1) / total * 100) + '%';
+        continue;
+      }
 
       let blob = await new Promise(r => c.toBlob(r, mime, q));
 
