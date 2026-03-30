@@ -655,27 +655,72 @@
   <!-- ============================================================ -->
   <div class="mode-view" id="mode-convert" style="flex-direction:column;">
     <div class="edit-ribbon"><div class="ribbon-bar">
-      <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row"><button class="format-btn active" data-fmt="png">PNG</button><button class="format-btn" data-fmt="jpeg">JPEG</button><button class="format-btn" data-fmt="webp">WebP</button><button class="format-btn" data-fmt="avif">AVIF</button><button class="format-btn" data-fmt="bmp">BMP</button><button class="format-btn" data-fmt="ico">ICO</button><button class="format-btn" data-fmt="tiff">TIFF</button></div>
+      <!-- Output Format -->
+      <div class="ribbon-group"><div class="ribbon-tools" id="convert-formats">
+        <div class="ribbon-row" style="gap:3px;">
+          <button class="format-btn active" data-fmt="png" title="Lossless, supports transparency, larger files">PNG</button>
+          <button class="format-btn" data-fmt="jpeg" title="Lossy, small files, no transparency">JPEG</button>
+          <button class="format-btn" data-fmt="webp" title="Modern format, smallest files, good quality">WebP</button>
+          <button class="format-btn" data-fmt="bmp" title="Uncompressed bitmap, very large">BMP</button>
+        </div>
+        <div class="ribbon-row" style="gap:3px;">
+          <button class="format-btn disabled" data-fmt="avif" title="Not supported — browser cannot export AVIF" disabled>AVIF</button>
+          <button class="format-btn disabled" data-fmt="tiff" title="Not supported — browser cannot export TIFF" disabled>TIFF</button>
+          <button class="format-btn disabled" data-fmt="ico" title="Not supported — browser cannot export ICO" disabled>ICO</button>
+        </div>
+        <div class="ribbon-row"><span id="convert-fmt-hint" style="color:var(--slate-400);font-size:0.6rem;"></span></div>
       </div><div class="ribbon-label">Format</div></div>
       <div class="ribbon-sep-v"></div>
+      <!-- Quality -->
       <div class="ribbon-group" id="convert-quality-section" style="display:none;"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:6px;"><span class="ribbon-mini-label">Q</span><input type="range" class="range-input" id="convert-quality" min="1" max="100" value="85" style="width:80px;"><span class="range-value" id="convert-quality-val" style="width:20px;">85</span></div>
+        <div class="ribbon-row" style="gap:5px;"><span class="ribbon-mini-label" title="Quality">Q</span><input type="range" class="range-input" id="convert-quality" min="1" max="100" value="85" style="width:70px;"><span class="range-value" id="convert-quality-val" style="width:20px;">85</span></div>
+        <div class="ribbon-row"><label class="toggle-chip"><input type="checkbox" id="convert-target-size">Max</label><input type="number" id="convert-max-kb" class="input-field" value="200" min="10" max="10000" style="width:55px;display:none;" title="Target max file size (KB)"><span id="convert-max-kb-unit" style="color:var(--slate-400);font-size:0.6rem;display:none;">KB</span></div>
       </div><div class="ribbon-label">Quality</div></div>
+      <div class="ribbon-sep-v"></div>
+      <!-- Resize -->
       <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:6px;"><span class="ribbon-mini-label">W</span><input type="number" id="batch-resize-w" class="input-field" placeholder="px" style="width:58px;"><span class="ribbon-mini-label">H</span><input type="number" id="batch-resize-h" class="input-field" placeholder="px" style="width:58px;"><label style="color:var(--slate-400);display:flex;align-items:center;gap:2px;"><input type="checkbox" id="batch-resize-lock" checked style="accent-color:var(--saffron-400);">Lock</label></div>
+        <div class="ribbon-row" style="gap:5px;"><span class="ribbon-mini-label" title="Width">W</span><input type="number" id="cvt-resize-w" class="input-field" placeholder="px" style="width:58px;" title="Output width (empty = original)"><span class="ribbon-mini-label" title="Height">H</span><input type="number" id="cvt-resize-h" class="input-field" placeholder="px" style="width:58px;" title="Output height (empty = original)"><label style="color:var(--slate-400);display:flex;align-items:center;gap:2px;font-size:0.6rem;"><input type="checkbox" id="cvt-resize-lock" checked style="accent-color:var(--saffron-400);">Lock</label></div>
       </div><div class="ribbon-label">Resize</div></div>
       <div class="ribbon-sep-v"></div>
+      <!-- Options -->
       <div class="ribbon-group"><div class="ribbon-tools">
         <div class="ribbon-row"><label class="toggle-chip"><input type="checkbox" id="convert-strip-meta">Strip meta</label></div>
-        <div class="ribbon-row"><button id="btn-convert-go" class="btn-primary" style="padding:3px 12px;" disabled>Convert & Save</button></div>
-      </div><div class="ribbon-label">Export</div></div>
+        <div class="ribbon-row"><input type="text" id="cvt-rename" class="input-field" value="{name}" style="width:90px;" title="Output filename pattern: {name} {index} {fmt}"></div>
+      </div><div class="ribbon-label">Options</div></div>
       <div class="ribbon-sep-v"></div>
-      <div class="ribbon-group"><div class="ribbon-tools"><div id="compression-preview" style="color:var(--slate-400);">Load image to see sizes</div></div><div class="ribbon-label">Size Preview</div></div>
+      <!-- Actions -->
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div class="ribbon-row" style="gap:5px;">
+          <button id="btn-convert-go" class="btn-primary" style="padding:3px 12px;" disabled>Convert</button>
+          <button id="btn-convert-add" class="tool-btn" title="Add more files" style="padding:3px 8px;">+ Add</button>
+          <button id="btn-convert-clear" class="tool-btn" title="Clear all files" style="padding:3px 8px;color:#ef4444;">Clear</button>
+        </div>
+        <div class="ribbon-row"><span id="convert-status" style="color:var(--slate-400);font-size:0.65rem;">0 files</span></div>
+        <div class="ribbon-row"><div id="convert-progress" style="display:none;width:100%;height:3px;background:var(--slate-700);border-radius:2px;"><div id="convert-progress-bar" style="height:100%;background:var(--saffron-400);border-radius:2px;width:0%;transition:width 0.2s;"></div></div></div>
+      </div><div class="ribbon-label">Actions</div></div>
+      <div class="ribbon-sep-v"></div>
+      <!-- Size Preview -->
+      <div class="ribbon-group"><div class="ribbon-tools">
+        <div id="compression-preview" style="color:var(--slate-400);font-size:0.65rem;min-width:120px;">Load image to see sizes</div>
+      </div><div class="ribbon-label">Size Preview</div></div>
     </div></div>
-    <div class="work-area">
-      <div id="convert-drop" class="dropzone"><p class="drop-title">Drop image(s) to convert</p><p class="drop-sub">Batch conversion supported</p><input type="file" id="convert-file" accept="image/*" multiple style="display:none;"></div>
-      <div id="convert-preview" style="display:none;text-align:center;"><img id="convert-img" src="" alt="" style="max-width:80%;max-height:60vh;border-radius:8px;"><div id="convert-batch-info" style="margin-top:0.5rem;color:var(--slate-400);"></div></div>
+    <div class="work-area" style="flex-direction:row;gap:0;">
+      <!-- File list (left panel) -->
+      <div id="convert-file-list" style="width:200px;flex-shrink:0;border-right:1px solid var(--slate-800);overflow-y:auto;padding:6px;display:none;">
+      </div>
+      <!-- Preview area -->
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;overflow:auto;">
+        <div id="convert-drop" class="dropzone" style="max-width:400px;">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--slate-500)" stroke-width="1.5" style="margin:0 auto 0.75rem;display:block;"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>
+          <p class="drop-title">Drop images to convert</p>
+          <p class="drop-sub">PNG, JPEG, WebP, BMP, GIF, SVG — batch supported</p>
+          <input type="file" id="convert-file" accept="image/*" multiple style="display:none;">
+        </div>
+        <div id="convert-preview" style="display:none;text-align:center;padding:1rem;">
+          <img id="convert-img" src="" alt="" style="max-width:80%;max-height:55vh;border-radius:8px;border:1px solid var(--slate-700);">
+          <div id="convert-img-info" style="margin-top:0.5rem;color:var(--slate-400);font-size:0.7rem;"></div>
+        </div>
+      </div>
     </div>
   </div>
 
