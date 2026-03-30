@@ -201,8 +201,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     (async () => {
       try {
         const dataUrl = await chrome.tabs.captureVisibleTab(null, { format: 'png' });
-        // Relay the full capture + region coords to all extension pages (side panel will pick it up)
-        chrome.runtime.sendMessage({ action: 'regionCaptured', dataUrl, region: message.region });
+        const region = message.region;
+        // Store capture + region for editor to crop and load
+        await chrome.storage.local.set({ 'pixeroo-region': { dataUrl, region, name: 'screenshot-region-' + new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-') } });
+        // Open editor with fromRegion param
+        const editorUrl = chrome.runtime.getURL('editor/editor.html');
+        let existingId = editorTabIds.size > 0 ? [...editorTabIds][0] : null;
+        if (!existingId) {
+          const tabs = await chrome.tabs.query({});
+          const t = tabs.find(t => t.url?.includes('editor/editor.html'));
+          if (t) { existingId = t.id; editorTabIds.add(existingId); }
+        }
+        const url = editorUrl + '?fromRegion=1';
+        if (existingId) { try { await chrome.tabs.update(existingId, { url, active: true }); } catch { chrome.tabs.create({ url }); } }
+        else { chrome.tabs.create({ url }); }
+        // Also relay for sidepanel listeners
+        chrome.runtime.sendMessage({ action: 'regionCaptured', dataUrl, region }).catch(() => {});
         sendResponse({ ok: true });
       } catch (e) {
         sendResponse({ error: e.message });

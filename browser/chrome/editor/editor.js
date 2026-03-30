@@ -642,6 +642,32 @@ document.addEventListener('DOMContentLoaded', () => {
   const mode = params.get('mode');
   if (mode) openMode(mode);
 
+  // Check for region capture transfer
+  if (params.get('fromRegion')) {
+    chrome.storage.local.get('pixeroo-region', (r) => {
+      const data = r['pixeroo-region'];
+      if (!data?.dataUrl || !data?.region) return;
+      chrome.storage.local.remove('pixeroo-region');
+      const { x, y, w, h } = data.region;
+      const fullImg = new Image();
+      fullImg.src = data.dataUrl;
+      fullImg.onload = () => {
+        // Crop to selected region
+        const dpr = window.devicePixelRatio || 1;
+        const c = document.createElement('canvas');
+        c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
+        c.getContext('2d').drawImage(fullImg, x * dpr, y * dpr, w * dpr, h * dpr, 0, 0, c.width, c.height);
+        openMode('edit');
+        const cropped = new Image();
+        cropped.src = c.toDataURL('image/png');
+        cropped.onload = () => {
+          if (typeof window._loadEditImage === 'function')
+            window._loadEditImage(cropped, data.name || 'screenshot-region');
+        };
+      };
+    });
+  }
+
   // Check for screenshot transfer (from popup Quick Action)
   if (params.get('fromScreenshot')) {
     chrome.storage.local.get('pixeroo-screenshot', (r) => {
