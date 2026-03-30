@@ -49,19 +49,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Region — tell content script to show selector, then capture
+  // Region — tell background to inject content script and start region capture
   document.getElementById('pqa-region')?.addEventListener('click', async () => {
-    try {
-      if (tab?.id) {
-        // Inject region selector into the page
-        await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content/detector.js'] }).catch(() => {});
-        await new Promise(r => setTimeout(r, 100));
-        chrome.tabs.sendMessage(tab.id, { action: 'startRegionCapture' });
-      }
-      window.close();
-    } catch {
-      window.close();
+    if (tab?.id) {
+      chrome.runtime.sendMessage({ action: 'startRegionOnTab', tabId: tab.id });
     }
+    window.close();
   });
 
   // Pick Color — open side panel with colors tab

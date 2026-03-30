@@ -84,11 +84,11 @@ function initSPQuickActions() {
     } catch {}
   });
 
-  // Region — start region selection on the page
+  // Region — tell background to inject and start region capture
   $('sp-qa-region')?.addEventListener('click', async () => {
     try {
       const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (tab?.id) chrome.tabs.sendMessage(tab.id, { action: 'startRegionCapture' });
+      if (tab?.id) chrome.runtime.sendMessage({ action: 'startRegionOnTab', tabId: tab.id });
     } catch {}
   });
 

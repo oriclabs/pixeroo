@@ -197,6 +197,30 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  if (message.action === 'startRegionOnTab') {
+    (async () => {
+      try {
+        const tabId = message.tabId;
+        // Inject content script if not already present
+        try {
+          await chrome.scripting.executeScript({ target: { tabId }, files: ['content/detector.js'] });
+        } catch {} // may already be injected
+        await new Promise(r => setTimeout(r, 200));
+        // Try sending message, retry once if fails
+        try {
+          await chrome.tabs.sendMessage(tabId, { action: 'startRegionCapture' });
+        } catch {
+          await new Promise(r => setTimeout(r, 300));
+          try { await chrome.tabs.sendMessage(tabId, { action: 'startRegionCapture' }); } catch {}
+        }
+        sendResponse({ ok: true });
+      } catch (e) {
+        sendResponse({ error: e.message });
+      }
+    })();
+    return true;
+  }
+
   if (message.action === 'captureRegion') {
     (async () => {
       try {
