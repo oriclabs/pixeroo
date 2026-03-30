@@ -49,13 +49,12 @@ function initLibraryManager() {
     }
   }
 
-  // Override back button behavior when library is open
+  // Override back button to handle library navigation
   const origGoHome = window.goHome;
   if (typeof goHome === 'function') {
     window.goHome = function() {
       if ($('library-manager').style.display === 'flex') {
         closeLibrary();
-        if (!_previousMode) origGoHome();
         return;
       }
       origGoHome();

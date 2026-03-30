@@ -948,7 +948,14 @@ function openMode(mode) {
   if (panel) applyRibbonPrefs(panel);
 }
 
-function goHome() {
+async function goHome() {
+  // Check if there's work in progress that would be lost
+  if (currentMode && _hasUnsavedWork()) {
+    if (typeof pixDialog !== 'undefined') {
+      const ok = await pixDialog.confirm('Leave Tool?', 'You have unsaved work. Going back will discard your changes.', { okText: 'Leave', danger: true });
+      if (!ok) return;
+    }
+  }
   currentMode = null;
   $('home').classList.remove('hidden');
   $$('.mode-view').forEach(v => v.classList.remove('active'));
@@ -963,6 +970,25 @@ function goHome() {
   if (lm) { lm.style.display = 'none'; $('btn-open-library')?.classList.remove('active'); }
   // Refresh recent files
   renderRecentFiles();
+}
+
+function _hasUnsavedWork() {
+  // Edit tool: check if pipeline has operations or image is loaded
+  if (currentMode === 'edit') {
+    const c = $('editor-canvas');
+    if (c && c.width > 0 && typeof pipeline !== 'undefined' && pipeline.operations?.length > 0) return true;
+  }
+  // Other tools: check if their canvas has content
+  const canvasIds = {
+    showcase: 'sc-canvas', meme: 'meme-canvas', collage: 'collage-canvas',
+    certificate: 'cert-canvas', gif: 'gif-preview',
+  };
+  const cid = canvasIds[currentMode];
+  if (cid) {
+    const c = $(cid);
+    if (c && c.width > 0 && c.style.display !== 'none') return true;
+  }
+  return false;
 }
 
 // Global drop: drop file anywhere on home -> auto-detect best mode
