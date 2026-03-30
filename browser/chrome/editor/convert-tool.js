@@ -18,7 +18,35 @@ function initConvert() {
     addFiles([file]);
   }, { multiple: true });
 
-  // Add more button
+  // Add more buttons (ribbon + panel)
+  function _triggerAddFiles() {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = 'image/*'; input.multiple = true;
+    input.addEventListener('change', () => { if (input.files.length) addFiles([...input.files]); });
+    input.click();
+  }
+  $('btn-convert-add2')?.addEventListener('click', _triggerAddFiles);
+
+  // Library import
+  $('btn-convert-lib')?.addEventListener('click', () => {
+    if (typeof openLibraryPicker !== 'function') return;
+    openLibraryPicker(async (items) => {
+      const files = [];
+      for (const item of items) {
+        const resp = await fetch(item.dataUrl);
+        const blob = await resp.blob();
+        const file = new File([blob], item.name || 'library-image.png', { type: blob.type });
+        files.push(file);
+      }
+      if (files.length) addFiles(files);
+    });
+  });
+
+  // Clear (panel)
+  $('btn-convert-clear2')?.addEventListener('click', () => {
+    $('btn-convert-clear')?.click();
+  });
+
   $('btn-convert-add')?.addEventListener('click', () => {
     const input = document.createElement('input');
     input.type = 'file'; input.accept = 'image/*'; input.multiple = true;
@@ -29,11 +57,11 @@ function initConvert() {
   // ── Add files ──────────────────────────────────────────
   function addFiles(files) {
     for (const file of files) {
-      cvtFiles.push({ file, objectUrl: URL.createObjectURL(file), custom: null });
+      cvtFiles.push({ file, objectUrl: URL.createObjectURL(file), custom: null, checked: true });
     }
     $('convert-drop').style.display = 'none';
     $('convert-preview').style.display = '';
-    $('convert-file-list').style.display = '';
+    $('convert-file-panel').style.display = 'flex';
     $('btn-convert-go').disabled = false;
     updateFileList();
     selectFile(cvtFiles.length - 1);
@@ -75,8 +103,15 @@ function initConvert() {
       removeBtn.textContent = '\u00D7';
       removeBtn.style.cssText = 'background:none;border:none;color:var(--slate-500);cursor:pointer;font-size:0.75rem;padding:0 2px;';
       removeBtn.addEventListener('click', (e) => { e.stopPropagation(); removeFile(i); });
-      el.appendChild(thumbWrap); el.appendChild(info); el.appendChild(removeBtn);
-      el.addEventListener('click', () => selectFile(i));
+      // Checkbox for selective conversion
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = f.checked !== false;
+      cb.style.cssText = 'accent-color:var(--saffron-400);flex-shrink:0;';
+      cb.addEventListener('change', (e) => { e.stopPropagation(); cvtFiles[i].checked = cb.checked; });
+
+      el.appendChild(cb); el.appendChild(thumbWrap); el.appendChild(info); el.appendChild(removeBtn);
+      el.addEventListener('click', (e) => { if (e.target !== cb) selectFile(i); });
       list.appendChild(el);
     });
     $('convert-status').textContent = cvtFiles.length + ' file' + (cvtFiles.length !== 1 ? 's' : '');
@@ -102,7 +137,7 @@ function initConvert() {
     if (cvtFiles.length === 0) {
       $('convert-drop').style.display = '';
       $('convert-preview').style.display = 'none';
-      $('convert-file-list').style.display = 'none';
+      $('convert-file-panel').style.display = 'none';
       $('btn-convert-go').disabled = true;
       $('compression-preview').innerHTML = 'Load image to see sizes';
       return;
@@ -119,7 +154,7 @@ function initConvert() {
     selectedIndex = 0;
     $('convert-drop').style.display = '';
     $('convert-preview').style.display = 'none';
-    $('convert-file-list').style.display = 'none';
+    $('convert-file-panel').style.display = 'none';
     $('btn-convert-go').disabled = true;
     $('compression-preview').innerHTML = 'Load image to see sizes';
     $('convert-status').textContent = '0 files';
@@ -511,6 +546,7 @@ function initConvert() {
 
     for (let i = 0; i < total; i++) {
       const f = cvtFiles[i];
+      if (f.checked === false) { bar.style.width = Math.round((i + 1) / total * 100) + '%'; continue; }
       const img = await loadImg(f.file);
       if (!img) continue;
 
