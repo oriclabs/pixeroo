@@ -665,7 +665,8 @@
           <button class="format-btn" data-fmt="jpeg" title="Lossy, small files, no transparency">JPEG</button>
           <button class="format-btn" data-fmt="webp" title="Modern format, smallest files, good quality">WebP</button>
           <button class="format-btn" data-fmt="bmp" title="Uncompressed bitmap, very large">BMP</button>
-          <button class="format-btn" data-fmt="svg" title="Vector trace — converts raster to SVG paths">SVG</button>
+          <button class="format-btn" data-fmt="svg" title="Vector trace — converts raster to SVG paths">SVG Trace</button>
+          <button class="format-btn" data-fmt="svg-embed" title="Embed raster as SVG image — lossless, fast">SVG Embed</button>
         </div>
         <div class="ribbon-row" style="gap:3px;">
           <button class="format-btn disabled" data-fmt="avif" title="Not supported — browser cannot export AVIF" disabled>AVIF</button>
@@ -682,13 +683,9 @@
       </div><div class="ribbon-label">Quality</div></div>
       <!-- SVG trace options (2-column grid) -->
       <div class="ribbon-group" id="convert-svg-section" style="display:none;"><div class="ribbon-tools">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 8px;">
-          <div class="ribbon-row" style="gap:4px;"><span class="ribbon-mini-label" title="Number of colors">Colors</span><input type="number" id="cvt-svg-colors" class="input-field" value="8" min="2" max="32" style="width:38px;" title="Fewer = cleaner, smaller SVG"></div>
-          <div class="ribbon-row" style="gap:4px;"><span class="ribbon-mini-label" title="Smoothness (path simplification)">Smooth</span><input type="number" id="cvt-svg-smooth" class="input-field" value="1.5" min="0" max="3" step="0.5" style="width:42px;" title="0 = sharp corners, 3 = very smooth"></div>
-          <div class="ribbon-row" style="gap:4px;"><span class="ribbon-mini-label" title="Blur pre-processing">Blur</span><input type="number" id="cvt-svg-blur" class="input-field" value="1" min="0" max="5" step="1" style="width:34px;" title="0 = no blur, 5 = heavy noise reduction"></div>
-          <div class="ribbon-row" style="gap:4px;"><span class="ribbon-mini-label" title="Min region area">Min</span><input type="number" id="cvt-svg-minarea" class="input-field" value="20" min="1" max="500" style="width:42px;" title="Skip regions smaller than this (px)"></div>
-          <div class="ribbon-row" style="gap:4px;grid-column:1/-1;"><span class="ribbon-mini-label" title="Max trace dimension">Max</span><input type="number" id="cvt-svg-maxdim" class="input-field" value="400" min="50" max="2000" style="width:50px;" title="Downscale before tracing (smaller = faster)"><span style="color:var(--slate-500);font-size:0.5rem;">px</span></div>
-        </div>
+        <div class="ribbon-row" style="gap:4px;"><span class="ribbon-mini-label" title="Number of colors">Colors</span><input type="number" id="cvt-svg-colors" class="input-field" value="8" min="2" max="32" style="width:48px;" title="Fewer = cleaner, smaller SVG"></div>
+        <div class="ribbon-row" style="gap:4px;"><span class="ribbon-mini-label" title="Blur pre-processing">Blur</span><input type="number" id="cvt-svg-blur" class="input-field" value="1" min="0" max="5" step="1" style="width:44px;" title="0 = no blur, 5 = heavy noise reduction"><span class="ribbon-mini-label" title="Smoothness" style="margin-left:4px;">Smooth</span><input type="number" id="cvt-svg-smooth" class="input-field" value="1.5" min="0" max="3" step="0.5" style="width:58px;" title="0 = sharp corners, 3 = very smooth"></div>
+        <div class="ribbon-row" style="gap:4px;"><span class="ribbon-mini-label" title="Min region area">Min</span><input type="number" id="cvt-svg-minarea" class="input-field" value="20" min="1" max="500" style="width:52px;" title="Skip regions smaller than this (px)"><span class="ribbon-mini-label" title="Max trace dimension" style="margin-left:4px;">Max</span><input type="number" id="cvt-svg-maxdim" class="input-field" value="400" min="50" max="2000" style="width:64px;" title="Downscale before tracing"><span style="color:var(--slate-500);font-size:0.5rem;">px</span></div>
       </div><div class="ribbon-label">SVG Trace</div></div>
       <div class="ribbon-sep-v"></div>
       <!-- Resize -->

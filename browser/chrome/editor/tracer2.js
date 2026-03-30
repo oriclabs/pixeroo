@@ -5,6 +5,7 @@ const SvgTracer = (function () {
   'use strict';
 
   function trace(canvas, options = {}) {
+    try {
     const numColors = options.colors || 8;
     const blur = options.blur ?? 1;
     const simplifyTol = options.simplify || 1.5;
@@ -12,6 +13,7 @@ const SvgTracer = (function () {
     const minArea = options.minArea || 20;
 
     const w = canvas.width, h = canvas.height;
+    if (w < 1 || h < 1) return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"/>';
     const ctx = canvas.getContext('2d');
     let imgData = ctx.getImageData(0, 0, w, h);
 
@@ -58,6 +60,10 @@ const SvgTracer = (function () {
     }
 
     return _toSVG(w, h, layers);
+    } catch (e) {
+      console.error('SvgTracer error:', e);
+      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><text x="0" y="1" font-size="0.5" fill="red">Trace failed</text></svg>`;
+    }
   }
 
   // ── Quantize (k-means, sampled) ────────────────────────

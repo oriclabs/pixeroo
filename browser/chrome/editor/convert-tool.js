@@ -10,6 +10,7 @@ function initConvert() {
     webp: 'Modern · Smallest · Good quality',
     bmp:  'Uncompressed · Very large · No transparency',
     svg:  'Vector trace · Scalable · Best for logos & icons',
+    'svg-embed': 'Raster wrapped in SVG · Lossless · Fast · Any image',
   };
 
   // ── Drop zone ──────────────────────────────────────────
@@ -36,9 +37,11 @@ function initConvert() {
     $('btn-convert-go').disabled = false;
     updateFileList();
     selectFile(cvtFiles.length - 1);
-    autoSelectFormat();
+    // Only auto-select format on first file, not when adding more
+    if (cvtFiles.length === files.length) autoSelectFormat();
     updateFormatStates();
     showCompressionPreview();
+    if (typeof _updateWarnings === 'function') _updateWarnings();
   }
 
   // ── File list panel ────────────────────────────────────
@@ -48,17 +51,28 @@ function initConvert() {
     cvtFiles.forEach((f, i) => {
       const el = document.createElement('div');
       el.style.cssText = `display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;cursor:pointer;margin-bottom:3px;border:1.5px solid ${i === selectedIndex ? 'var(--saffron-400)' : 'var(--slate-700)'};background:${i === selectedIndex ? 'rgba(244,196,48,0.05)' : 'transparent'};`;
+      // Thumbnail with format tag
+      const thumbWrap = document.createElement('div');
+      thumbWrap.style.cssText = 'position:relative;flex-shrink:0;';
       const thumb = document.createElement('img');
       thumb.src = f.objectUrl;
-      thumb.style.cssText = 'width:32px;height:32px;object-fit:cover;border-radius:3px;flex-shrink:0;';
+      thumb.style.cssText = 'width:48px;height:48px;object-fit:cover;border-radius:4px;display:block;border:1px solid var(--slate-700);';
+      const ext = f.file.name.split('.').pop()?.toUpperCase() || '?';
+      const tag = document.createElement('span');
+      tag.textContent = ext;
+      const tagColors = { PNG: '#22c55e', JPG: '#3b82f6', JPEG: '#3b82f6', WEBP: '#a855f7', GIF: '#f97316', SVG: '#14b8a6', BMP: '#64748b' };
+      tag.style.cssText = `position:absolute;bottom:-3px;right:-3px;font-size:0.55rem;font-weight:700;padding:2px 4px;border-radius:3px;background:${tagColors[ext] || '#64748b'};color:#fff;line-height:1;letter-spacing:0.02em;`;
+      thumbWrap.appendChild(thumb);
+      thumbWrap.appendChild(tag);
+      // Info
       const info = document.createElement('div');
       info.style.cssText = 'flex:1;min-width:0;';
-      info.innerHTML = `<div style="color:var(--slate-200);font-size:0.6rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f.file.name}</div><div style="color:var(--slate-500);font-size:0.55rem;">${_fmtSize(f.file.size)}</div>`;
+      info.innerHTML = `<div style="color:var(--slate-200);font-size:0.7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f.file.name}</div><div style="color:var(--slate-400);font-size:0.6rem;">${_fmtSize(f.file.size)}</div>`;
       const removeBtn = document.createElement('button');
       removeBtn.textContent = '\u00D7';
       removeBtn.style.cssText = 'background:none;border:none;color:var(--slate-500);cursor:pointer;font-size:0.75rem;padding:0 2px;';
       removeBtn.addEventListener('click', (e) => { e.stopPropagation(); removeFile(i); });
-      el.appendChild(thumb); el.appendChild(info); el.appendChild(removeBtn);
+      el.appendChild(thumbWrap); el.appendChild(info); el.appendChild(removeBtn);
       el.addEventListener('click', () => selectFile(i));
       list.appendChild(el);
     });
@@ -74,6 +88,7 @@ function initConvert() {
     updateFileList();
     updateFormatStates();
     showCompressionPreview();
+    _debounceOutputPreview();
   }
 
   function removeFile(idx) {
@@ -115,6 +130,7 @@ function initConvert() {
     $('convert-fmt-hint').textContent = FORMAT_INFO[fmt] || '';
     showCompressionPreview();
     _debounceOutputPreview();
+    _updateWarnings();
   }));
 
   // SVG spinner changes → live preview
@@ -138,11 +154,30 @@ function initConvert() {
     const fmt = document.querySelector('#convert-formats .format-btn.active')?.dataset.fmt;
     const file = cvtFiles[selectedIndex]?.file;
     if (!file) return;
-    const img = await loadImg(file);
-    if (!img) return;
 
     const container = $('convert-output-preview');
     const wrap = $('convert-output-preview-wrap');
+
+    // Show loader
+    wrap.style.display = '';
+    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100px;color:var(--slate-500);font-size:0.7rem;gap:8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Generating preview...</div>';
+    $('convert-output-label').textContent = fmt === 'svg' ? 'SVG Preview' : (fmt || 'PNG').toUpperCase() + ' Preview';
+    $('convert-output-size').textContent = '';
+
+    const img = await loadImg(file);
+    if (!img) return;
+
+    if (fmt === 'svg-embed') {
+      // SVG embed preview — just show original with size info
+      const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+      c.getContext('2d').drawImage(img, 0, 0);
+      const dataUrl = c.toDataURL('image/png');
+      const svgSize = dataUrl.length + 150; // approximate SVG wrapper overhead
+      container.innerHTML = `<div style="text-align:center;padding:1rem;color:var(--slate-400);font-size:0.7rem;">Raster embedded as-is inside SVG wrapper.<br>No quality loss. Scalable container.</div>`;
+      $('convert-output-label').textContent = 'SVG Embed';
+      $('convert-output-size').textContent = `(~${_fmtSize(svgSize)})`;
+      return;
+    }
 
     if (fmt === 'svg') {
       // SVG trace preview
@@ -264,6 +299,33 @@ function initConvert() {
     });
   }
 
+  // ── Warnings ───────────────────────────────────────────
+  function _updateWarnings() {
+    const hint = $('convert-fmt-hint');
+    if (!hint || !cvtFiles.length) return;
+    const fmt = document.querySelector('#convert-formats .format-btn.active')?.dataset.fmt;
+    if (!fmt) return;
+    const warnings = [];
+    for (const f of cvtFiles) {
+      const ext = f.file.name.split('.').pop()?.toLowerCase();
+      const inputFmt = { jpg: 'jpeg', jpeg: 'jpeg', png: 'png', webp: 'webp', bmp: 'bmp', gif: 'gif', svg: 'svg' }[ext] || '';
+      if (fmt === 'jpeg' && ['png', 'gif', 'svg', 'webp'].includes(ext)) {
+        warnings.push(`${f.file.name}: transparency will be lost`);
+      }
+      if (fmt === 'svg' && ['jpg', 'jpeg'].includes(ext)) {
+        warnings.push(`${f.file.name}: photo → SVG trace may produce large files. Try SVG Embed instead.`);
+      }
+      if (fmt === inputFmt) {
+        warnings.push(`${f.file.name}: same format (${ext.toUpperCase()})`);
+      }
+    }
+    if (warnings.length > 0) {
+      hint.innerHTML = (FORMAT_INFO[fmt] || '') + '<br>' + warnings.map(w => `<span style="color:#f59e0b;font-size:0.55rem;">⚠ ${w}</span>`).join('<br>');
+    } else {
+      hint.textContent = FORMAT_INFO[fmt] || '';
+    }
+  }
+
   // ── Target size toggle ─────────────────────────────────
   $('convert-target-size')?.addEventListener('change', (e) => {
     $('convert-max-kb').style.display = e.target.checked ? '' : 'none';
@@ -312,6 +374,7 @@ function initConvert() {
     const fmtBtn = document.querySelector('#convert-formats .format-btn.active');
     const fmt = fmtBtn?.dataset.fmt || 'png';
     const isSvg = fmt === 'svg';
+    const isSvgEmbed = fmt === 'svg-embed';
     const mime = { png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp', bmp: 'image/bmp' }[fmt] || 'image/png';
     const q = ['jpeg', 'webp'].includes(fmt) ? +$('convert-quality').value / 100 : undefined;
     const targetSize = $('convert-target-size')?.checked;
@@ -355,6 +418,20 @@ function initConvert() {
         (typeof steppedResize === 'function' ? steppedResize(srcC, w, h) : (() => { const t = document.createElement('canvas'); t.width = w; t.height = h; t.getContext('2d').drawImage(srcC, 0, 0, w, h); return t; })()) : srcC;
 
       const baseName = f.file.name.replace(/\.[^.]+$/, '');
+
+      // SVG embed (wrap raster as base64 inside SVG)
+      if (isSvgEmbed) {
+        const dataUrl = c.toDataURL('image/png');
+        const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${c.width}" height="${c.height}" viewBox="0 0 ${c.width} ${c.height}"><image width="${c.width}" height="${c.height}" xlink:href="${dataUrl}"/></svg>`;
+        const filename = renamePattern.replace(/\{name\}/g, baseName).replace(/\{index\}/g, String(i + 1).padStart(3, '0')).replace(/\{fmt\}/g, 'svg') + '.svg';
+        if (useZip) {
+          zip.addFile(filename, new TextEncoder().encode(svgStr));
+        } else {
+          Platform.download(new Blob([svgStr], { type: 'image/svg+xml' }), `snaproo/${filename}`, true);
+        }
+        bar.style.width = Math.round((i + 1) / total * 100) + '%';
+        continue;
+      }
 
       // SVG trace
       if (isSvg) {

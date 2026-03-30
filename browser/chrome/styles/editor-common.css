@@ -228,3 +228,6 @@ body.tool-active .tool-footer { display: flex; }
   /* Prevent long-press context menu on canvas */
   canvas { -webkit-touch-callout: none; touch-action: none; }
 }
+
+/* Spinner animation */
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
