@@ -261,6 +261,27 @@ function initEdit() {
 
   // Interactive Crop (non-destructive via pipeline)
   Crop.init(editCanvas, editCtx, (x, y, w, h) => {
+    // Flatten draw objects into the canvas before cropping
+    // so objects within the crop region become part of the cropped image
+    if (objLayer.hasObjects()) {
+      objLayer.flatten();
+      // Re-load the flattened canvas as the new pipeline original
+      const flatImg = new Image();
+      flatImg.src = editCanvas.toDataURL('image/png');
+      flatImg.onload = () => {
+        pipeline.loadImage(flatImg);
+        // Now apply crop on the flattened image
+        const cw = editCanvas.width, ch = editCanvas.height;
+        pipeline.addOperation({type:'crop', x: x/cw, y: y/ch, w: w/cw, h: h/ch});
+        zoomLevel = 1; panX = 0; panY = 0;
+        const wrap = $('edit-canvas-wrap');
+        if (wrap) wrap.style.transform = '';
+        updResize(); saveEdit(); showImageHandles();
+        if (window.fitToView) window.fitToView();
+      };
+      return;
+    }
+    // No objects — crop directly
     // Convert absolute px to relative coords (0-1) for pipeline
     const cw = editCanvas.width, ch = editCanvas.height;
     pipeline.addOperation({type:'crop', x: x/cw, y: y/ch, w: w/cw, h: h/ch});
