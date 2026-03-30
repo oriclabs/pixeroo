@@ -255,8 +255,9 @@ function initConvert() {
       if (isSvg) {
         if (typeof ImageTracer === 'undefined') { continue; }
         const imgd = c.getContext('2d').getImageData(0, 0, c.width, c.height);
-        const opts = ImageTracer.optionpresets[svgPreset] || {};
+        const opts = ImageTracer.optionpresets[svgPreset] ? { ...ImageTracer.optionpresets[svgPreset] } : {};
         opts.numberofcolors = svgColors;
+        opts.strokewidth = Math.max(1, opts.strokewidth || 1); // prevent gaps between paths
         const svgStr = ImageTracer.imagedataToSVG(imgd, opts);
         const svgBlob = new Blob([svgStr], { type: 'image/svg+xml' });
         const baseName = f.file.name.replace(/\.[^.]+$/, '');
