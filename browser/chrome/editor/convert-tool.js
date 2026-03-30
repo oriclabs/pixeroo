@@ -36,6 +36,7 @@ function initConvert() {
     $('btn-convert-go').disabled = false;
     updateFileList();
     selectFile(cvtFiles.length - 1);
+    autoSelectFormat();
     updateFormatStates();
     showCompressionPreview();
   }
@@ -113,10 +114,97 @@ function initConvert() {
     $('convert-svg-section').style.display = fmt === 'svg' ? '' : 'none';
     $('convert-fmt-hint').textContent = FORMAT_INFO[fmt] || '';
     showCompressionPreview();
+    _debounceOutputPreview();
   }));
+
+  // SVG slider value displays + live preview on change
+  $('cvt-svg-smooth')?.addEventListener('input', (e) => { $('cvt-svg-smooth-val').textContent = e.target.value; _debounceSvgPreview(); });
+  $('cvt-svg-blur')?.addEventListener('input', (e) => { $('cvt-svg-blur-val').textContent = e.target.value; _debounceSvgPreview(); });
+  $('cvt-svg-colors')?.addEventListener('change', _debounceSvgPreview);
+  $('cvt-svg-minarea')?.addEventListener('change', _debounceSvgPreview);
+  $('cvt-svg-maxdim')?.addEventListener('change', _debounceSvgPreview);
+
+  let _previewTimer = null;
+  function _debounceOutputPreview() { clearTimeout(_previewTimer); _previewTimer = setTimeout(_updateOutputPreview, 400); }
+
+  // Quality changes also trigger preview
+  $('convert-quality')?.addEventListener('input', (e) => {
+    $('convert-quality-val').textContent = e.target.value;
+    showCompressionPreview();
+    _debounceOutputPreview();
+  });
+
+  async function _updateOutputPreview() {
+    if (!cvtFiles.length) { $('convert-output-preview-wrap').style.display = 'none'; return; }
+    const fmt = document.querySelector('#convert-formats .format-btn.active')?.dataset.fmt;
+    const file = cvtFiles[selectedIndex]?.file;
+    if (!file) return;
+    const img = await loadImg(file);
+    if (!img) return;
+
+    const container = $('convert-output-preview');
+    const wrap = $('convert-output-preview-wrap');
+
+    if (fmt === 'svg') {
+      // SVG trace preview
+      if (typeof SvgTracer === 'undefined') return;
+      const maxDim = +($('cvt-svg-maxdim')?.value) || 400;
+      let c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+      c.getContext('2d').drawImage(img, 0, 0);
+      if (c.width > maxDim || c.height > maxDim) {
+        const s = Math.min(maxDim / c.width, maxDim / c.height);
+        const tc = document.createElement('canvas'); tc.width = Math.round(c.width * s); tc.height = Math.round(c.height * s);
+        tc.getContext('2d').drawImage(c, 0, 0, tc.width, tc.height);
+        c = tc;
+      }
+      const svgStr = SvgTracer.trace(c, {
+        colors: +($('cvt-svg-colors')?.value) || 8,
+        blur: +($('cvt-svg-blur')?.value) ?? 1,
+        simplify: +($('cvt-svg-smooth')?.value) ?? 1.5,
+        smooth: +($('cvt-svg-smooth')?.value) > 0,
+        minArea: +($('cvt-svg-minarea')?.value) || 20,
+      });
+      container.innerHTML = svgStr;
+      const svgEl = container.querySelector('svg');
+      if (svgEl) { svgEl.style.maxWidth = '100%'; svgEl.style.maxHeight = '50vh'; svgEl.style.display = 'block'; }
+      $('convert-output-label').textContent = 'SVG Preview';
+      $('convert-output-size').textContent = `(${_fmtSize(new Blob([svgStr]).size)})`;
+    } else {
+      // Raster format preview
+      const mime = { png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp', bmp: 'image/bmp' }[fmt] || 'image/png';
+      const q = ['jpeg', 'webp'].includes(fmt) ? +$('convert-quality').value / 100 : undefined;
+      const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+      c.getContext('2d').drawImage(img, 0, 0);
+      const blob = await new Promise(r => c.toBlob(r, mime, q));
+      const url = URL.createObjectURL(blob);
+      container.innerHTML = `<img src="${url}" style="max-width:100%;max-height:50vh;display:block;border-radius:4px;">`;
+      $('convert-output-label').textContent = fmt.toUpperCase() + ' Preview';
+      $('convert-output-size').textContent = `(${_fmtSize(blob.size)})`;
+    }
+    wrap.style.display = '';
+  }
 
   // Show hint for initial active format
   $('convert-fmt-hint').textContent = FORMAT_INFO.png;
+
+  // ── Auto-select best output format ─────────────────────
+  function autoSelectFormat() {
+    if (!cvtFiles.length) return;
+    const file = cvtFiles[selectedIndex]?.file;
+    if (!file) return;
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    // Map input to best alternative output
+    const bestAlt = { png: 'webp', jpg: 'webp', jpeg: 'webp', webp: 'png', bmp: 'png', gif: 'png', svg: 'png', avif: 'png', tiff: 'png' };
+    const targetFmt = bestAlt[ext] || 'png';
+    const btn = document.querySelector(`#convert-formats .format-btn[data-fmt="${targetFmt}"]`);
+    if (btn && !btn.disabled) {
+      $$('#convert-formats .format-btn').forEach(x => x.classList.remove('active'));
+      btn.classList.add('active');
+      $('convert-quality-section').style.display = ['jpeg','webp'].includes(targetFmt) ? '' : 'none';
+      $('convert-svg-section').style.display = targetFmt === 'svg' ? '' : 'none';
+      $('convert-fmt-hint').textContent = FORMAT_INFO[targetFmt] || '';
+    }
+  }
 
   // ── Dynamic format states ──────────────────────────────
   function updateFormatStates() {
@@ -158,12 +246,7 @@ function initConvert() {
     });
   }
 
-  // ── Quality / target size ──────────────────────────────
-  $('convert-quality')?.addEventListener('input', (e) => {
-    $('convert-quality-val').textContent = e.target.value;
-    showCompressionPreview();
-  });
-
+  // ── Target size toggle ─────────────────────────────────
   $('convert-target-size')?.addEventListener('change', (e) => {
     $('convert-max-kb').style.display = e.target.checked ? '' : 'none';
     $('convert-max-kb-unit').style.display = e.target.checked ? '' : 'none';
@@ -220,8 +303,10 @@ function initConvert() {
     const lockAspect = $('cvt-resize-lock')?.checked;
     const renamePattern = $('cvt-rename')?.value || '{name}';
     const ext = fmt === 'jpeg' ? 'jpg' : fmt;
-    const svgColors = +($('cvt-svg-colors')?.value) || 16;
-    const svgPreset = $('cvt-svg-preset')?.value || 'default';
+    const svgColors = +($('cvt-svg-colors')?.value) || 8;
+    const svgSmooth = +($('cvt-svg-smooth')?.value) ?? 1.5;
+    const svgBlur = +($('cvt-svg-blur')?.value) ?? 1;
+    const svgMinArea = +($('cvt-svg-minarea')?.value) || 20;
 
     const progress = $('convert-progress');
     const bar = $('convert-progress-bar');
@@ -267,9 +352,10 @@ function initConvert() {
         }
         const svgStr = SvgTracer.trace(traceC, {
           colors: svgColors,
-          blur: svgPreset === 'sharp' ? 0 : svgPreset === 'smoothed' ? 3 : 1,
-          simplify: svgPreset === 'detailed' ? 0.5 : svgPreset === 'sharp' ? 0.8 : 1.5,
-          smooth: svgPreset !== 'sharp',
+          blur: svgBlur,
+          simplify: svgSmooth,
+          smooth: svgSmooth > 0,
+          minArea: svgMinArea,
         });
         const filename = renamePattern.replace(/\{name\}/g, baseName).replace(/\{index\}/g, String(i + 1).padStart(3, '0')).replace(/\{fmt\}/g, 'svg') + '.svg';
         if (useZip) {

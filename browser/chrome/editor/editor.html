@@ -680,15 +680,10 @@
       <!-- SVG trace options -->
       <div class="ribbon-group" id="convert-svg-section" style="display:none;"><div class="ribbon-tools">
         <div class="ribbon-row" style="gap:5px;"><span class="ribbon-mini-label" title="Number of colors">Colors</span><input type="number" id="cvt-svg-colors" class="input-field" value="8" min="2" max="32" style="width:44px;" title="Fewer = cleaner, smaller SVG"></div>
-        <div class="ribbon-row" style="gap:5px;"><select id="cvt-svg-preset" class="select-field" style="width:90px;" title="Trace preset">
-          <option value="default">Default</option>
-          <option value="posterized1">Posterized</option>
-          <option value="curvy">Curvy</option>
-          <option value="sharp">Sharp</option>
-          <option value="smoothed">Smoothed</option>
-          <option value="grayscale">Grayscale</option>
-        </select></div>
-        <div class="ribbon-row" style="gap:5px;"><span class="ribbon-mini-label" title="Max dimension">Max</span><input type="number" id="cvt-svg-maxdim" class="input-field" value="400" min="50" max="2000" style="width:52px;" title="Downscale before tracing (smaller = faster, cleaner)"><span style="color:var(--slate-500);font-size:0.55rem;">px</span></div>
+        <div class="ribbon-row"><span class="ribbon-mini-label" title="Smoothness">Smooth</span><input type="range" id="cvt-svg-smooth" min="0" max="3" value="1.5" step="0.5" style="width:55px;accent-color:var(--saffron-400);" title="0 = sharp corners, 3 = very smooth"><span class="range-value" id="cvt-svg-smooth-val">1.5</span></div>
+        <div class="ribbon-row"><span class="ribbon-mini-label" title="Blur pre-processing">Blur</span><input type="range" id="cvt-svg-blur" min="0" max="5" value="1" step="1" style="width:50px;accent-color:var(--saffron-400);" title="0 = no blur, 5 = heavy (reduces noise)"><span class="range-value" id="cvt-svg-blur-val">1</span></div>
+        <div class="ribbon-row" style="gap:5px;"><span class="ribbon-mini-label" title="Min region area">Min</span><input type="number" id="cvt-svg-minarea" class="input-field" value="20" min="1" max="500" style="width:52px;" title="Skip regions smaller than this (reduces noise)"><span style="color:var(--slate-500);font-size:0.5rem;">px</span></div>
+        <div class="ribbon-row" style="gap:5px;"><span class="ribbon-mini-label" title="Max trace dimension">Max</span><input type="number" id="cvt-svg-maxdim" class="input-field" value="400" min="50" max="2000" style="width:58px;" title="Downscale before tracing (smaller = faster, cleaner)"><span style="color:var(--slate-500);font-size:0.5rem;">px</span></div>
       </div><div class="ribbon-label">SVG Trace</div></div>
       <div class="ribbon-sep-v"></div>
       <!-- Resize -->
@@ -731,7 +726,16 @@
           <input type="file" id="convert-file" accept="image/*" multiple style="display:none;">
         </div>
         <div id="convert-preview" style="display:none;text-align:center;padding:1rem;">
-          <img id="convert-img" src="" alt="" style="max-width:80%;max-height:55vh;border-radius:8px;border:1px solid var(--slate-700);">
+          <div style="display:flex;gap:1rem;align-items:flex-start;justify-content:center;flex-wrap:wrap;">
+            <div>
+              <img id="convert-img" src="" alt="" style="max-width:40vw;max-height:50vh;border-radius:8px;border:1px solid var(--slate-700);">
+              <div style="color:var(--slate-500);font-size:0.6rem;margin-top:4px;">Original</div>
+            </div>
+            <div id="convert-output-preview-wrap" style="display:none;">
+              <div id="convert-output-preview" style="max-width:40vw;max-height:50vh;border-radius:8px;border:1px solid var(--saffron-400);overflow:hidden;background:var(--slate-800);"></div>
+              <div style="color:var(--saffron-400);font-size:0.6rem;margin-top:4px;"><span id="convert-output-label">Output</span> <span id="convert-output-size"></span></div>
+            </div>
+          </div>
           <div id="convert-img-info" style="margin-top:0.5rem;color:var(--slate-400);font-size:0.7rem;"></div>
         </div>
       </div>
