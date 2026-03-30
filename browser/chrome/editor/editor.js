@@ -108,9 +108,9 @@ function showShortcutsOverlay() {
 
 document.addEventListener('DOMContentLoaded', () => {
   // Notify side panel that editor is open/closed
-  chrome.runtime.sendMessage({ action: 'editorOpened' }).catch(() => {});
+  Platform.sendMessage({ action: 'editorOpened' });
   window.addEventListener('beforeunload', () => {
-    chrome.runtime.sendMessage({ action: 'editorClosed' }).catch(() => {});
+    Platform.sendMessage({ action: 'editorClosed' });
   });
 
   // Wrap all number inputs with custom +/- spinner (cross-browser)
@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Help page — opens in new tab with current mode section
   $('btn-help-page')?.addEventListener('click', () => {
     const hash = currentMode || 'overview';
-    chrome.tabs.create({ url: chrome.runtime.getURL(`help/help.html#${hash}`) });
+    Platform.isExtension ? chrome.tabs.create({ url: chrome.runtime.getURL(`help/help.html#${hash}`) }) : window.open(`help/help.html#${hash}`);
   });
 
   // Guided tour
@@ -245,7 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         // Clear prefs for this mode
         delete prefs[modeId];
-        chrome.storage.sync.set({ ribbonPrefs: prefs });
+        Platform.saveSetting("ribbonPrefs", prefs);
         populateRibbonCustomize();
       });
       rcDrop.appendChild(showAll);
@@ -282,14 +282,14 @@ document.addEventListener('DOMContentLoaded', () => {
           // Save pref
           if (!prefs[modeId]) prefs[modeId] = {};
           prefs[modeId][name] = cb.checked;
-          chrome.storage.sync.set({ ribbonPrefs: prefs });
+          Platform.saveSetting("ribbonPrefs", prefs);
         };
 
         cb.addEventListener('change', () => {
           group.style.display = cb.checked ? '' : 'none';
           if (!prefs[modeId]) prefs[modeId] = {};
           prefs[modeId][name] = cb.checked;
-          chrome.storage.sync.set({ ribbonPrefs: prefs });
+          Platform.saveSetting("ribbonPrefs", prefs);
         });
         opt.addEventListener('click', (e) => { if (e.target !== cb) toggle(); });
       });
@@ -374,29 +374,29 @@ document.addEventListener('DOMContentLoaded', () => {
   // Theme toggle
   $$('.qs-theme').forEach(btn => {
     btn.addEventListener('click', () => {
-      chrome.storage.sync.set({ theme: btn.dataset.theme });
+      Platform.saveSetting("theme", btn.dataset.theme);
     });
   });
 
   // Default format
   $('qs-format')?.addEventListener('change', (e) => {
-    chrome.storage.sync.set({ defaultFormat: e.target.value });
+    Platform.saveSetting("defaultFormat", e.target.value);
   });
 
   // Download folder
   $('qs-folder')?.addEventListener('change', (e) => {
-    chrome.storage.sync.set({ downloadPrefix: e.target.value });
+    Platform.saveSetting("downloadPrefix", e.target.value);
   });
 
   // Advanced settings opens in new tab
   $('qs-advanced')?.addEventListener('click', () => {
-    chrome.tabs.create({ url: chrome.runtime.getURL('settings/settings.html') });
+    Platform.isExtension ? chrome.tabs.create({ url: chrome.runtime.getURL('settings/settings.html') }) : window.open('settings/settings.html');
     $('settings-popover').style.display = 'none';
   });
 
   // Font family
   $('qs-font-family')?.addEventListener('change', (e) => {
-    chrome.storage.sync.set({ fontFamily: e.target.value });
+    Platform.saveSetting("fontFamily", e.target.value);
   });
 
   // Load saved settings into popover
@@ -416,14 +416,14 @@ document.addEventListener('DOMContentLoaded', () => {
   $('qs-font-down')?.addEventListener('click', () => {
     chrome.storage.sync.get({ fontSize: 100 }, (r) => {
       const v = Math.max(70, (r.fontSize || 100) - 5);
-      chrome.storage.sync.set({ fontSize: v });
+      Platform.saveSetting("fontSize", v);
       applyFontSize(v);
     });
   });
   $('qs-font-up')?.addEventListener('click', () => {
     chrome.storage.sync.get({ fontSize: 100 }, (r) => {
       const v = Math.min(150, (r.fontSize || 100) + 5);
-      chrome.storage.sync.set({ fontSize: v });
+      Platform.saveSetting("fontSize", v);
       applyFontSize(v);
     });
   });
@@ -605,7 +605,7 @@ document.addEventListener('DOMContentLoaded', () => {
     clearTimeout(wsAutoSaveTimer);
     wsAutoSaveTimer = setTimeout(() => {
       const ws = collectWorkspace();
-      chrome.storage.local.set({ 'snaproo-last-workspace': ws }).catch(() => {});
+      Platform.saveLocal('snaproo-last-workspace', ws);
     }, 30000);
   }
 
@@ -647,7 +647,7 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.storage.local.get('snaproo-region', (r) => {
       const data = r['snaproo-region'];
       if (!data?.dataUrl || !data?.region) return;
-      chrome.storage.local.remove('snaproo-region');
+      Platform.removeLocal('snaproo-region');
       const { x, y, w, h } = data.region;
       const fullImg = new Image();
       fullImg.src = data.dataUrl;
@@ -673,7 +673,7 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.storage.local.get('snaproo-screenshot', (r) => {
       const data = r['snaproo-screenshot'];
       if (!data?.dataUrl) return;
-      chrome.storage.local.remove('snaproo-screenshot');
+      Platform.removeLocal('snaproo-screenshot');
       openMode('edit');
       const img = new Image();
       img.src = data.dataUrl;
@@ -690,7 +690,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = r['snaproo-lib-transfer'];
       if (!data?.images?.length) return;
       // Clean up transfer data
-      chrome.storage.local.remove('snaproo-lib-transfer');
+      Platform.removeLocal('snaproo-lib-transfer');
 
       const tool = data.tool || 'edit';
       if (tool === 'edit') {
@@ -924,11 +924,11 @@ function initHomeHints() {
   // Footer links
   $('link-footer-help')?.addEventListener('click', (e) => {
     e.preventDefault();
-    chrome.tabs.create({ url: chrome.runtime.getURL('help/help.html') });
+    Platform.isExtension ? chrome.tabs.create({ url: chrome.runtime.getURL('help/help.html') }) : window.open('help/help.html');
   });
   $('link-footer-settings')?.addEventListener('click', (e) => {
     e.preventDefault();
-    chrome.tabs.create({ url: chrome.runtime.getURL('settings/settings.html') });
+    Platform.isExtension ? chrome.tabs.create({ url: chrome.runtime.getURL('settings/settings.html') }) : window.open('settings/settings.html');
   });
 }
 

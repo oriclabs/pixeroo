@@ -162,6 +162,45 @@ const Platform = (function () {
     }
   }
 
+  // ── Chrome API Shims (for PWA compatibility) ───────────
+  // Provides chrome.storage and chrome.runtime stubs when running outside extension
+  if (!isExtension) {
+    window.chrome = window.chrome || {};
+    chrome.storage = chrome.storage || {
+      sync: {
+        get: (defaults, cb) => { loadSettings(defaults).then(r => cb(r)); },
+        set: (obj, cb) => { for (const [k,v] of Object.entries(obj)) saveSetting(k,v); if (cb) cb(); },
+        clear: (cb) => { const keys = Object.keys(localStorage).filter(k => k.startsWith('snaproo_')); keys.forEach(k => localStorage.removeItem(k)); if (cb) cb(); },
+      },
+      local: {
+        get: (keyOrObj, cb) => {
+          if (typeof keyOrObj === 'string') {
+            loadLocal(keyOrObj, undefined).then(v => cb({ [keyOrObj]: v }));
+          } else {
+            const result = {};
+            for (const [k, def] of Object.entries(keyOrObj)) {
+              const stored = localStorage.getItem(k);
+              result[k] = stored !== null ? JSON.parse(stored) : def;
+            }
+            cb(result);
+          }
+        },
+        set: (obj, cb) => { for (const [k,v] of Object.entries(obj)) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } if (cb) cb(); },
+        remove: (key, cb) => { localStorage.removeItem(key); if (cb) cb(); },
+      },
+    };
+    chrome.runtime = chrome.runtime || {
+      id: null,
+      getURL: (path) => path,
+      sendMessage: () => Promise.resolve(null),
+      onMessage: { addListener: () => {} },
+    };
+    chrome.tabs = chrome.tabs || {
+      query: () => Promise.resolve([]),
+      create: (opts) => { if (opts.url) window.open(opts.url); },
+    };
+  }
+
   return {
     isExtension,
     download,
