@@ -1,7 +1,7 @@
 // Snaproo — Convert Tool
 
 function initConvert() {
-  let cvtFiles = []; // { file, img, objectUrl }
+  let cvtFiles = []; // { file, objectUrl, custom: null | { fmt, quality, w, h } }
   let selectedIndex = 0;
 
   const FORMAT_INFO = {
@@ -29,7 +29,7 @@ function initConvert() {
   // ── Add files ──────────────────────────────────────────
   function addFiles(files) {
     for (const file of files) {
-      cvtFiles.push({ file, objectUrl: URL.createObjectURL(file) });
+      cvtFiles.push({ file, objectUrl: URL.createObjectURL(file), custom: null });
     }
     $('convert-drop').style.display = 'none';
     $('convert-preview').style.display = '';
@@ -64,10 +64,13 @@ function initConvert() {
       tag.style.cssText = `position:absolute;bottom:-3px;right:-3px;font-size:0.55rem;font-weight:700;padding:2px 4px;border-radius:3px;background:${tagColors[ext] || '#64748b'};color:#fff;line-height:1;letter-spacing:0.02em;`;
       thumbWrap.appendChild(thumb);
       thumbWrap.appendChild(tag);
-      // Info
+      // Info + custom badge
       const info = document.createElement('div');
       info.style.cssText = 'flex:1;min-width:0;';
-      info.innerHTML = `<div style="color:var(--slate-200);font-size:0.7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f.file.name}</div><div style="color:var(--slate-400);font-size:0.6rem;">${_fmtSize(f.file.size)}</div>`;
+      const customBadge = f.custom ? `<span style="color:var(--saffron-400);font-size:0.5rem;margin-left:4px;border:1px solid var(--saffron-400);border-radius:3px;padding:0 3px;">Custom</span>` : '';
+      const outputFmt = f.custom ? f.custom.fmt.toUpperCase() : '';
+      const outputInfo = outputFmt ? ` → <span style="color:var(--saffron-400);">${outputFmt}</span>` : '';
+      info.innerHTML = `<div style="color:var(--slate-200);font-size:0.7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${f.file.name}${customBadge}</div><div style="color:var(--slate-400);font-size:0.6rem;">${_fmtSize(f.file.size)}${outputInfo}</div>`;
       const removeBtn = document.createElement('button');
       removeBtn.textContent = '\u00D7';
       removeBtn.style.cssText = 'background:none;border:none;color:var(--slate-500);cursor:pointer;font-size:0.75rem;padding:0 2px;';
@@ -85,6 +88,8 @@ function initConvert() {
     const f = cvtFiles[idx];
     $('convert-img').src = f.objectUrl;
     $('convert-img-info').textContent = `${f.file.name} · ${_fmtSize(f.file.size)}`;
+    // Update custom panel
+    _syncCustomPanel(f);
     updateFileList();
     updateFormatStates();
     showCompressionPreview();
@@ -164,6 +169,26 @@ function initConvert() {
     $('convert-output-label').textContent = fmt === 'svg' ? 'SVG Preview' : (fmt || 'PNG').toUpperCase() + ' Preview';
     $('convert-output-size').textContent = '';
 
+    // Check for warnings/issues before preview
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    const inputFmt = { jpg: 'jpeg', jpeg: 'jpeg', png: 'png', webp: 'webp', bmp: 'bmp', gif: 'gif', svg: 'svg' }[ext] || '';
+    const previewWarnings = [];
+    if (['avif', 'tiff', 'ico'].includes(fmt)) {
+      container.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100px;gap:8px;padding:1rem;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><span style="color:#ef4444;font-size:0.75rem;font-weight:600;">Cannot convert to ${fmt.toUpperCase()}</span><span style="color:var(--slate-400);font-size:0.65rem;">Browser does not support ${fmt.toUpperCase()} export</span></div>`;
+      $('convert-output-label').textContent = 'Not Supported';
+      $('convert-output-size').textContent = '';
+      return;
+    }
+    if (fmt === inputFmt) {
+      previewWarnings.push({ icon: '⚠', color: '#f59e0b', text: `Input is already ${ext.toUpperCase()} — output will be identical` });
+    }
+    if (fmt === 'jpeg' && ['png', 'gif', 'svg', 'webp'].includes(ext)) {
+      previewWarnings.push({ icon: '⚠', color: '#f59e0b', text: 'Transparency will be lost in JPEG' });
+    }
+    if (fmt === 'svg' && ['jpg', 'jpeg'].includes(ext)) {
+      previewWarnings.push({ icon: '💡', color: '#3b82f6', text: 'Photo → SVG trace may be slow and produce large files. Try SVG Embed for faster, lossless output.' });
+    }
+
     const img = await loadImg(file);
     if (!img) return;
 
@@ -216,6 +241,16 @@ function initConvert() {
       $('convert-output-size').textContent = `(${_fmtSize(blob.size)})`;
     }
     wrap.style.display = '';
+
+    // Append warnings below preview
+    if (previewWarnings.length > 0) {
+      const warnDiv = document.createElement('div');
+      warnDiv.style.cssText = 'padding:6px 8px;';
+      warnDiv.innerHTML = previewWarnings.map(w =>
+        `<div style="display:flex;align-items:flex-start;gap:6px;margin-top:4px;"><span style="font-size:0.8rem;flex-shrink:0;">${w.icon}</span><span style="color:${w.color};font-size:0.65rem;line-height:1.4;">${w.text}</span></div>`
+      ).join('');
+      container.appendChild(warnDiv);
+    }
   }
 
   // Show hint for initial active format
@@ -298,6 +333,81 @@ function initConvert() {
       }
     });
   }
+
+  // ── Per-file custom settings ────────────────────────────
+  function _syncCustomPanel(f) {
+    const panel = $('cvt-custom-panel');
+    if (!panel) return;
+    panel.style.display = '';
+    const toggle = $('cvt-custom-toggle');
+    const fields = $('cvt-custom-fields');
+    toggle.checked = !!f.custom;
+    fields.style.display = f.custom ? '' : 'none';
+    if (f.custom) {
+      $('cvt-custom-fmt').value = f.custom.fmt || 'png';
+      $('cvt-custom-quality').value = f.custom.quality || 85;
+      $('cvt-custom-quality-val').textContent = f.custom.quality || 85;
+      $('cvt-custom-w').value = f.custom.w || '';
+      $('cvt-custom-h').value = f.custom.h || '';
+    }
+  }
+
+  function _saveCustomFromPanel() {
+    if (!cvtFiles[selectedIndex]) return;
+    if (!$('cvt-custom-toggle').checked) {
+      cvtFiles[selectedIndex].custom = null;
+    } else {
+      cvtFiles[selectedIndex].custom = {
+        fmt: $('cvt-custom-fmt').value,
+        quality: +$('cvt-custom-quality').value || 85,
+        w: +$('cvt-custom-w').value || 0,
+        h: +$('cvt-custom-h').value || 0,
+      };
+    }
+    updateFileList();
+  }
+
+  // Toggle custom on/off
+  $('cvt-custom-toggle')?.addEventListener('change', () => {
+    const fields = $('cvt-custom-fields');
+    if ($('cvt-custom-toggle').checked) {
+      fields.style.display = '';
+      // Initialize with global settings
+      const globalFmt = document.querySelector('#convert-formats .format-btn.active')?.dataset.fmt || 'png';
+      $('cvt-custom-fmt').value = globalFmt;
+      $('cvt-custom-quality').value = $('convert-quality')?.value || 85;
+      $('cvt-custom-quality-val').textContent = $('convert-quality')?.value || 85;
+      $('cvt-custom-w').value = $('cvt-resize-w')?.value || '';
+      $('cvt-custom-h').value = $('cvt-resize-h')?.value || '';
+    } else {
+      fields.style.display = 'none';
+    }
+    _saveCustomFromPanel();
+  });
+
+  // Save on any field change
+  ['cvt-custom-fmt', 'cvt-custom-quality', 'cvt-custom-w', 'cvt-custom-h'].forEach(id => {
+    $(id)?.addEventListener('change', _saveCustomFromPanel);
+    $(id)?.addEventListener('input', () => {
+      if (id === 'cvt-custom-quality') $('cvt-custom-quality-val').textContent = $(id).value;
+      _saveCustomFromPanel();
+    });
+  });
+
+  // Copy global settings
+  $('cvt-custom-copy')?.addEventListener('click', () => {
+    const globalFmt = document.querySelector('#convert-formats .format-btn.active')?.dataset.fmt || 'png';
+    $('cvt-custom-fmt').value = globalFmt;
+    $('cvt-custom-quality').value = $('convert-quality')?.value || 85;
+    $('cvt-custom-quality-val').textContent = $('convert-quality')?.value || 85;
+    $('cvt-custom-w').value = $('cvt-resize-w')?.value || '';
+    $('cvt-custom-h').value = $('cvt-resize-h')?.value || '';
+    if (!$('cvt-custom-toggle').checked) {
+      $('cvt-custom-toggle').checked = true;
+      $('cvt-custom-fields').style.display = '';
+    }
+    _saveCustomFromPanel();
+  });
 
   // ── Warnings ───────────────────────────────────────────
   function _updateWarnings() {
@@ -404,11 +514,22 @@ function initConvert() {
       const img = await loadImg(f.file);
       if (!img) continue;
 
+      // Per-file custom settings override globals
+      const cc = f.custom; // null or { fmt, quality, w, h }
+      const fileFmt = cc ? cc.fmt : fmt;
+      const fileMime = { png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp', bmp: 'image/bmp' }[fileFmt] || 'image/png';
+      const fileQ = cc ? cc.quality / 100 : q;
+      const fileExt = fileFmt === 'jpeg' ? 'jpg' : (fileFmt === 'svg-embed' ? 'svg' : fileFmt);
+      const fileRW = cc ? (cc.w || 0) : resizeW;
+      const fileRH = cc ? (cc.h || 0) : resizeH;
+      const fileIsSvg = fileFmt === 'svg';
+      const fileIsSvgEmbed = fileFmt === 'svg-embed';
+
       let w = img.naturalWidth, h = img.naturalHeight;
-      if (resizeW > 0 || resizeH > 0) {
-        if (resizeW > 0 && resizeH > 0 && !lockAspect) { w = resizeW; h = resizeH; }
-        else if (resizeW > 0) { w = resizeW; h = lockAspect ? Math.round(resizeW * img.naturalHeight / img.naturalWidth) : (resizeH || Math.round(resizeW * img.naturalHeight / img.naturalWidth)); }
-        else if (resizeH > 0) { h = resizeH; w = lockAspect ? Math.round(resizeH * img.naturalWidth / img.naturalHeight) : (resizeW || Math.round(resizeH * img.naturalWidth / img.naturalHeight)); }
+      if (fileRW > 0 || fileRH > 0) {
+        if (fileRW > 0 && fileRH > 0 && !lockAspect) { w = fileRW; h = fileRH; }
+        else if (fileRW > 0) { w = fileRW; h = lockAspect ? Math.round(fileRW * img.naturalHeight / img.naturalWidth) : (fileRH || Math.round(fileRW * img.naturalHeight / img.naturalWidth)); }
+        else if (fileRH > 0) { h = fileRH; w = lockAspect ? Math.round(fileRH * img.naturalWidth / img.naturalHeight) : (fileRW || Math.round(fileRH * img.naturalWidth / img.naturalHeight)); }
       }
 
       const srcC = document.createElement('canvas');
@@ -420,7 +541,7 @@ function initConvert() {
       const baseName = f.file.name.replace(/\.[^.]+$/, '');
 
       // SVG embed (wrap raster as base64 inside SVG)
-      if (isSvgEmbed) {
+      if (fileIsSvgEmbed) {
         const dataUrl = c.toDataURL('image/png');
         const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${c.width}" height="${c.height}" viewBox="0 0 ${c.width} ${c.height}"><image width="${c.width}" height="${c.height}" xlink:href="${dataUrl}"/></svg>`;
         const filename = renamePattern.replace(/\{name\}/g, baseName).replace(/\{index\}/g, String(i + 1).padStart(3, '0')).replace(/\{fmt\}/g, 'svg') + '.svg';
@@ -434,7 +555,7 @@ function initConvert() {
       }
 
       // SVG trace
-      if (isSvg) {
+      if (fileIsSvg) {
         if (typeof SvgTracer === 'undefined') { continue; }
         // Downscale for cleaner/faster tracing
         const maxDim = +($('cvt-svg-maxdim')?.value) || 400;
@@ -463,14 +584,14 @@ function initConvert() {
         continue;
       }
 
-      let blob = await new Promise(r => c.toBlob(r, mime, q));
+      let blob = await new Promise(r => c.toBlob(r, fileMime, fileQ));
 
       // Compress to target size
-      if (targetSize && fmt !== 'png' && blob.size > maxKB * 1024) {
-        let lo = 0.05, hi = q || 0.85, attempts = 0;
+      if (targetSize && fileFmt !== 'png' && blob.size > maxKB * 1024) {
+        let lo = 0.05, hi = fileQ || 0.85, attempts = 0;
         while (attempts < 8 && blob.size > maxKB * 1024 && hi - lo > 0.02) {
           const mid = (lo + hi) / 2;
-          blob = await new Promise(r => c.toBlob(r, mime, mid));
+          blob = await new Promise(r => c.toBlob(r, fileMime, mid));
           if (blob.size > maxKB * 1024) hi = mid; else lo = mid;
           attempts++;
         }
@@ -479,8 +600,8 @@ function initConvert() {
       const filename = renamePattern
         .replace(/\{name\}/g, baseName)
         .replace(/\{index\}/g, String(i + 1).padStart(3, '0'))
-        .replace(/\{fmt\}/g, fmt)
-        + '.' + ext;
+        .replace(/\{fmt\}/g, fileFmt)
+        + '.' + fileExt;
 
       if (useZip) {
         const buf = await blob.arrayBuffer();

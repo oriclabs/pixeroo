@@ -739,6 +739,37 @@
             </div>
           </div>
           <div id="convert-img-info" style="margin-top:0.5rem;color:var(--slate-400);font-size:0.7rem;"></div>
+          <!-- Per-file custom settings -->
+          <div id="cvt-custom-panel" style="display:none;margin-top:0.5rem;background:var(--slate-900);border:1px solid var(--slate-700);border-radius:8px;padding:8px 12px;max-width:360px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+              <label style="display:flex;align-items:center;gap:6px;color:var(--slate-300);font-size:0.7rem;font-weight:600;cursor:pointer;"><input type="checkbox" id="cvt-custom-toggle" style="accent-color:var(--saffron-400);">Custom settings for this file</label>
+              <button id="cvt-custom-copy" class="tool-btn" style="padding:2px 6px;font-size:0.6rem;" title="Copy settings from global">Copy Global</button>
+            </div>
+            <div id="cvt-custom-fields" style="display:none;">
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px;">
+                <span style="color:var(--slate-400);font-size:0.65rem;">Format</span>
+                <select id="cvt-custom-fmt" class="select-field" style="width:80px;">
+                  <option value="png">PNG</option>
+                  <option value="jpeg">JPEG</option>
+                  <option value="webp">WebP</option>
+                  <option value="bmp">BMP</option>
+                  <option value="svg">SVG Trace</option>
+                  <option value="svg-embed">SVG Embed</option>
+                </select>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px;">
+                <span style="color:var(--slate-400);font-size:0.65rem;">Quality</span>
+                <input type="range" id="cvt-custom-quality" min="1" max="100" value="85" style="width:70px;accent-color:var(--saffron-400);">
+                <span id="cvt-custom-quality-val" style="color:var(--slate-300);font-size:0.65rem;">85</span>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                <span style="color:var(--slate-400);font-size:0.65rem;">Size</span>
+                <input type="number" id="cvt-custom-w" class="input-field" placeholder="W" style="width:58px;">
+                <span style="color:var(--slate-500);">×</span>
+                <input type="number" id="cvt-custom-h" class="input-field" placeholder="H" style="width:58px;">
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
