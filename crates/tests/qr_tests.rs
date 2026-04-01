@@ -1,4 +1,4 @@
-use pixeroo_wasm::qr;
+use gazo_wasm::qr;
 
 // ============================================================
 // QR generation (module grid) tests
@@ -12,7 +12,7 @@ fn test_generate_qr_simple_text() {
 
 #[test]
 fn test_generate_qr_url() {
-    let result = qr::generate_qr("https://pixeroo.io", "M");
+    let result = qr::generate_qr("https://gazo.io", "M");
     assert!(result.is_ok());
 }
 
@@ -34,7 +34,7 @@ fn test_generate_qr_empty_string() {
 
 #[test]
 fn test_generate_qr_unicode() {
-    let result = qr::generate_qr("Pixeroo: Read. Optimise. Output.", "M");
+    let result = qr::generate_qr("Gazo: Read. Optimise. Output.", "M");
     assert!(result.is_ok());
 }
 
@@ -151,7 +151,7 @@ fn test_generate_qr_png_pixel_size_1() {
 
 #[test]
 fn test_generate_qr_png_url() {
-    let result = qr::generate_qr_png("https://github.com/nicosql/pixeroo", "H", 8, 4);
+    let result = qr::generate_qr_png("https://github.com/nicosql/gazo", "H", 8, 4);
     assert!(result.is_ok());
     let png = result.unwrap();
     // Verify it's a valid PNG by loading it

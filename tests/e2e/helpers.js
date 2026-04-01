@@ -1,4 +1,4 @@
-// Snaproo E2E Test Helpers
+// Gazo E2E Test Helpers
 import path from 'path';
 import { fileURLToPath } from 'url';
 

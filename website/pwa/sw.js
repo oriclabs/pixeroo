@@ -1,6 +1,6 @@
-// Snaproo Service Worker - Offline-first PWA
+// Gazo Service Worker - Offline-first PWA
 
-const CACHE_NAME = 'snaproo-v0.2.0';
+const CACHE_NAME = 'gazo-v0.2.0';
 
 // Install: cache on demand (no pre-cache list needed — cache-first strategy handles it)
 self.addEventListener('install', () => self.skipWaiting());

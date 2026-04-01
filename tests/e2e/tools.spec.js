@@ -1,4 +1,4 @@
-// Snaproo E2E — Individual tool smoke tests
+// Gazo E2E — Individual tool smoke tests
 import { test, expect } from '@playwright/test';
 import { getExtensionId, docScreenshot } from './helpers.js';
 
@@ -98,6 +98,14 @@ test.describe('Tool Smoke Tests', () => {
 
   test('Batch Edit tool opens', async () => {
     await openAndVerify('batch', '#mode-batch');
+  });
+
+  test('Compress tool opens', async () => {
+    await openAndVerify('compress', '#mode-compress');
+  });
+
+  test('Draw tool opens', async () => {
+    await openAndVerify('draw', '#mode-draw');
   });
 
   test('Social Media tool opens', async () => {

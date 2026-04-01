@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Snaproo - Pure Pixel Experience Engine</title>
-  <meta name="description" content="Snaproo: Free offline image toolkit in your browser. Edit, annotate, convert, inspect, generate QR codes, extract colors. 100% offline, zero tracking.">
+  <title>Gazo — 20 Image Tools, Offline. Zero Uploads.</title>
+  <meta name="description" content="Gazo: Free offline image toolkit. 20 tools — edit, compress, convert, draw, QR codes, SVG trace, social media resize, batch process. 100% offline, zero uploads, zero tracking.">
   <meta name="theme-color" content="#F4C430">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -57,7 +57,42 @@
       border-radius: 12px;
       font-size: 24px;
     }
+    /* Light theme overrides */
+    .light { background: #f8fafc !important; color: #1e293b !important; }
+    .light * { border-color: #e2e8f0; }
+    .light nav { background: rgba(248,250,252,0.9) !important; border-color: #e2e8f0 !important; }
+    .light .bg-slate-950 { background: #f8fafc !important; }
+    .light .bg-slate-950\/80 { background: rgba(248,250,252,0.9) !important; }
+    .light .bg-slate-900\/50, .light .bg-slate-900\/80 { background: rgba(241,245,249,0.9) !important; }
+    .light .bg-slate-800 { background: #e2e8f0 !important; }
+    .light .text-white { color: #0f172a !important; }
+    .light .text-gray-100 { color: #1e293b !important; }
+    .light .text-gray-300 { color: #475569 !important; }
+    .light .text-gray-400 { color: #64748b !important; }
+    .light .text-gray-500 { color: #94a3b8 !important; }
+    .light .text-gray-600 { color: #94a3b8 !important; }
+    .light .text-gray-700 { color: #cbd5e1 !important; }
+    .light .border-slate-800 { border-color: #e2e8f0 !important; }
+    .light .border-slate-800\/50 { border-color: #e2e8f0 !important; }
+    .light .border-gray-700 { border-color: #cbd5e1 !important; }
+    .light h1, .light h2, .light h3, .light h4 { color: #0f172a; }
+    .light h1 .text-white { color: #0f172a !important; }
+    .light footer { background: #f1f5f9; }
+    .light .font-mono { color: #475569 !important; }
+    .light .glow-saffron { box-shadow: 0 0 40px rgba(244,196,48,0.1); }
+    .light .bg-slate-900 { background: #f1f5f9 !important; }
+    .light .border-slate-700 { border-color: #cbd5e1 !important; }
+    .light .bg-saffron-400\/10 { background: rgba(244,196,48,0.08) !important; }
+    .light .border-saffron-400\/20 { border-color: rgba(244,196,48,0.25) !important; }
+    .light section { border-color: #e2e8f0 !important; }
+    .light .gradient-saffron { background: linear-gradient(135deg, #F4C430 0%, #D4A017 50%, #B8860B 100%); }
+    .theme-btn { background: none; border: 1px solid rgba(148,163,184,0.3); border-radius: 8px; padding: 6px; cursor: pointer; color: inherit; transition: all 0.15s; display:flex;align-items:center; }
+    .theme-btn:hover { border-color: #F4C430; color: #F4C430; }
   </style>
+  <script>
+    // Apply saved theme before render to avoid flash
+    if (localStorage.getItem('gazo-theme') === 'light') document.documentElement.classList.add('light');
+  </script>
 </head>
 <body class="bg-slate-950 text-gray-100 font-sans antialiased">
 
@@ -65,14 +100,19 @@
   <nav class="fixed top-0 w-full z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/50">
     <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
       <a href="#" class="flex items-center gap-2">
-        <img src="icon32.png" width="32" height="32" alt="Snaproo" style="border-radius:7px;">
-        <span class="text-lg font-bold text-white">Snaproo</span>
+        <img src="icon32.png" width="36" height="36" alt="Gazo" style="border-radius:7px;">
+        <span class="text-lg font-bold text-white">Gazo</span>
       </a>
       <div class="hidden md:flex items-center gap-8 text-sm text-gray-400">
         <a href="#features" class="hover:text-saffron-400 transition-colors">Features</a>
         <a href="#how-it-works" class="hover:text-saffron-400 transition-colors">How It Works</a>
-        <a href="#privacy" class="hover:text-saffron-400 transition-colors">Privacy</a>
+        <a href="help/" class="hover:text-saffron-400 transition-colors">Docs</a>
+        <a href="privacy.html" class="hover:text-saffron-400 transition-colors">Privacy</a>
         <a href="#download" class="bg-saffron-400 hover:bg-saffron-500 text-saffron-950 font-semibold px-4 py-2 rounded-lg transition-colors">Install Free</a>
+        <button id="theme-toggle" class="theme-btn" title="Toggle light/dark theme">
+          <svg id="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg id="theme-icon-light" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
       </div>
     </div>
   </nav>
@@ -86,23 +126,22 @@
     <div class="max-w-4xl mx-auto text-center relative z-10">
       <div class="inline-flex items-center gap-2 bg-saffron-400/10 border border-saffron-400/20 rounded-full px-4 py-1.5 mb-6">
         <span class="w-2 h-2 bg-saffron-400 rounded-full animate-pulse"></span>
-        <span class="text-saffron-400 text-sm font-medium">100% Offline &middot; Zero Tracking</span>
+        <span class="text-saffron-400 text-sm font-medium">100% Offline &middot; Zero Uploads &middot; Zero Tracking</span>
       </div>
       <h1 class="text-5xl md:text-7xl font-extrabold leading-tight mb-6">
-        <span class="text-white">63 Image Tools.</span><br>
+        <span class="text-white">20 Image Tools.</span><br>
         <span class="bg-gradient-to-r from-saffron-300 via-saffron-400 to-saffron-600 bg-clip-text text-transparent">One Install. Zero Tracking.</span>
       </h1>
-      <p class="text-xl text-gray-400 max-w-2xl mx-auto mb-4">
-        <img src="icon64.png" width="48" height="48" alt="Snaproo" style="border-radius:10px;vertical-align:middle;margin-right:8px;">Free offline image toolkit in your browser
+      <p class="text-xl text-gray-400 max-w-2xl mx-auto mb-4">Free offline image toolkit in your browser</p>
+      <p class="text-lg text-gray-500 max-w-2xl mx-auto mb-2 font-mono">
+        <strong class="text-saffron-400">G</strong>rab. <strong class="text-saffron-400">A</strong>lter. <strong class="text-saffron-400">Z</strong>one. <strong class="text-saffron-400">O</strong>utput.
       </p>
-      <p class="text-lg text-gray-500 max-w-2xl mx-auto mb-10 font-mono">
-        Snap. Render. Optimise. Output.
-      </p>
+      <p class="text-sm text-gray-600 max-w-2xl mx-auto mb-10">Image tools, offline. <span class="text-gray-700">&middot;</span> <span class="text-gray-500" title="Gazo (&#x753B;&#x50CF;) is the Japanese word for &quot;image&quot;">&#x753B;&#x50CF; <span style="font-size:0.7em;">(gazo = image)</span></span></p>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
         <a href="#download" class="gradient-saffron text-saffron-950 font-bold px-8 py-3.5 rounded-xl text-lg hover:opacity-90 transition-opacity shadow-lg shadow-saffron-400/20">
           Add to Chrome &mdash; Free
         </a>
-        <a href="https://github.com/oriclabs/snaproo" class="border border-gray-700 text-gray-300 hover:border-saffron-400 hover:text-saffron-400 font-semibold px-8 py-3.5 rounded-xl text-lg transition-colors">
+        <a href="https://github.com/oriclabs/gazo" class="border border-gray-700 text-gray-300 hover:border-saffron-400 hover:text-saffron-400 font-semibold px-8 py-3.5 rounded-xl text-lg transition-colors">
           View on GitHub
         </a>
       </div>
@@ -224,24 +263,24 @@
       </div>
       <div class="grid md:grid-cols-4 gap-6">
         <div class="text-center">
-          <div class="w-16 h-16 gradient-saffron rounded-2xl flex items-center justify-center mx-auto mb-4 text-saffron-950 font-bold text-2xl">S</div>
-          <h3 class="text-lg font-semibold text-white mb-2">Snap</h3>
-          <p class="text-gray-400 text-sm">Capture screenshots, grab page images, select regions, pick colors — all from your browser toolbar or side panel.</p>
+          <div class="w-16 h-16 gradient-saffron rounded-2xl flex items-center justify-center mx-auto mb-4 text-saffron-950 font-bold text-2xl">G</div>
+          <h3 class="text-lg font-semibold text-white mb-2">Grab</h3>
+          <p class="text-gray-400 text-sm">Capture screenshots, grab page images, select regions, pick colors, drop files, paste from clipboard — all from your browser.</p>
         </div>
         <div class="text-center">
-          <div class="w-16 h-16 gradient-saffron rounded-2xl flex items-center justify-center mx-auto mb-4 text-saffron-950 font-bold text-2xl">R</div>
-          <h3 class="text-lg font-semibold text-white mb-2">Render</h3>
-          <p class="text-gray-400 text-sm">Edit, annotate, filter, create mockups, generate memes, certificates, QR codes, collages — all locally in canvas.</p>
+          <div class="w-16 h-16 gradient-saffron rounded-2xl flex items-center justify-center mx-auto mb-4 text-saffron-950 font-bold text-2xl">A</div>
+          <h3 class="text-lg font-semibold text-white mb-2">Alter</h3>
+          <p class="text-gray-400 text-sm">Edit, annotate, filter, compress, convert, draw, create mockups, memes, certificates, QR codes, collages — all locally.</p>
         </div>
         <div class="text-center">
-          <div class="w-16 h-16 gradient-saffron rounded-2xl flex items-center justify-center mx-auto mb-4 text-saffron-950 font-bold text-2xl">O</div>
-          <h3 class="text-lg font-semibold text-white mb-2">Optimise</h3>
-          <p class="text-gray-400 text-sm">Resize, compress, convert formats, batch process — optimize for web, social, print, or app stores in one click.</p>
+          <div class="w-16 h-16 gradient-saffron rounded-2xl flex items-center justify-center mx-auto mb-4 text-saffron-950 font-bold text-2xl">Z</div>
+          <h3 class="text-lg font-semibold text-white mb-2">Zone</h3>
+          <p class="text-gray-400 text-sm">Focus on what matters — crop, safe zones, social platform frames, drag to position, side-by-side compare, pixel inspect.</p>
         </div>
         <div class="text-center">
           <div class="w-16 h-16 gradient-saffron rounded-2xl flex items-center justify-center mx-auto mb-4 text-saffron-950 font-bold text-2xl">O</div>
           <h3 class="text-lg font-semibold text-white mb-2">Output</h3>
-          <p class="text-gray-400 text-sm">Export PNG, JPEG, WebP, SVG, PDF, GIF. Copy to clipboard, download as ZIP, save to library — images never leave your machine.</p>
+          <p class="text-gray-400 text-sm">Export PNG, JPEG, WebP, SVG, GIF. Copy to clipboard, download as ZIP, save to library — images never leave your device.</p>
         </div>
       </div>
     </div>
@@ -296,7 +335,7 @@
   <!-- Download -->
   <section id="download" class="py-20 px-6 border-t border-slate-800/50">
     <div class="max-w-4xl mx-auto text-center">
-      <h2 class="text-4xl font-bold text-white mb-4">Get Snaproo</h2>
+      <h2 class="text-4xl font-bold text-white mb-4">Get Gazo</h2>
       <p class="text-gray-400 mb-10">Free and open source. Install in seconds.</p>
       <div class="grid sm:grid-cols-3 gap-4 max-w-2xl mx-auto">
         <a href="#" class="bg-slate-900 border border-slate-700 hover:border-saffron-400/50 rounded-xl p-6 transition-colors group">
@@ -321,7 +360,7 @@
           <p class="text-gray-500 text-xs mt-1">Add-ons for Firefox</p>
         </a>
       </div>
-      <p class="text-gray-600 text-sm mt-6">Also available as a <a href="/website/pwa" class="text-saffron-400 hover:underline">Progressive Web App</a></p>
+      <p class="text-gray-600 text-sm mt-6">Also available as a <a href="pwa/" class="text-saffron-400 hover:underline">Progressive Web App</a></p>
     </div>
   </section>
 
@@ -329,17 +368,35 @@
   <footer class="py-10 px-6 border-t border-slate-800/50">
     <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-2">
-        <img src="icon32.png" width="20" height="20" alt="Snaproo" style="border-radius:4px;">
-        <span class="text-sm text-gray-500">Snaproo &mdash; Snap. Render. Optimise. Output.</span>
+        <img src="icon32.png" width="20" height="20" alt="Gazo" style="border-radius:4px;">
+        <span class="text-sm text-gray-500">Gazo &mdash; Grab. Alter. Zone. Output.</span>
       </div>
       <div class="flex items-center gap-6 text-sm text-gray-500">
-        <a href="https://github.com/oriclabs/snaproo" class="hover:text-saffron-400 transition-colors">GitHub</a>
-        <a href="/website/docs/privacy.html" class="hover:text-saffron-400 transition-colors">Privacy</a>
-        <a href="/website/docs/changelog.html" class="hover:text-saffron-400 transition-colors">Changelog</a>
-        <span>MIT License</span>
+        <a href="https://github.com/oriclabs/gazo" class="hover:text-saffron-400 transition-colors">GitHub</a>
+        <a href="privacy.html" class="hover:text-saffron-400 transition-colors">Privacy</a>
+        <a href="contact.html" class="hover:text-saffron-400 transition-colors">Contact</a>
+        <a href="changelog.html" class="hover:text-saffron-400 transition-colors">Changelog</a>
+        <span>MIT License &middot; &copy; <script>document.write(new Date().getFullYear())</script> Gazo</span>
       </div>
     </div>
   </footer>
 
+  <script>
+    const toggle = document.getElementById('theme-toggle');
+    const iconDark = document.getElementById('theme-icon-dark');
+    const iconLight = document.getElementById('theme-icon-light');
+    function updateIcons() {
+      const isLight = document.documentElement.classList.contains('light');
+      iconDark.style.display = isLight ? 'none' : 'block';
+      iconLight.style.display = isLight ? 'block' : 'none';
+    }
+    updateIcons();
+    toggle.addEventListener('click', () => {
+      document.documentElement.classList.toggle('light');
+      const isLight = document.documentElement.classList.contains('light');
+      localStorage.setItem('gazo-theme', isLight ? 'light' : 'dark');
+      updateIcons();
+    });
+  </script>
 </body>
 </html>

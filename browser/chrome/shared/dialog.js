@@ -1,4 +1,4 @@
-// Snaproo - Custom dialog (replaces confirm/alert/prompt)
+// Gazo - Custom dialog (replaces confirm/alert/prompt)
 // Usage:
 //   await pixDialog.alert('Title', 'Message');
 //   const ok = await pixDialog.confirm('Title', 'Are you sure?');
@@ -33,7 +33,7 @@ const pixDialog = {
     o.querySelector('#pix-dialog-title').textContent = title;
     // Support HTML in body (tables, styled content)
     const bodyEl = o.querySelector('#pix-dialog-body');
-    if (body.includes('<')) { bodyEl.innerHTML = body; } else { bodyEl.textContent = body; }
+    if (body.includes('<')) { bodyEl.innerHTML = body; } else { bodyEl.style.whiteSpace = 'pre-line'; bodyEl.textContent = body; }
 
     const input = o.querySelector('#pix-dialog-input');
     const cancelBtn = o.querySelector('#pix-dialog-cancel');

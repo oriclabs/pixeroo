@@ -1,4 +1,4 @@
-use pixeroo_wasm::convert;
+use gazo_wasm::convert;
 
 // --- Helper: create a minimal valid 1x1 PNG ---
 fn minimal_png() -> Vec<u8> {

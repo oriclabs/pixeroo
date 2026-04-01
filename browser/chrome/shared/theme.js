@@ -1,4 +1,4 @@
-// Snaproo - Shared Theme & Font System
+// Gazo - Shared Theme & Font System
 // Include this script in every HTML page (popup, sidepanel, editor, settings, help)
 
 (function () {

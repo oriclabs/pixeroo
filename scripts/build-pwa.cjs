@@ -40,6 +40,13 @@ if (fs.existsSync(sharedDir)) {
   }
 }
 
+// Copy popup qr.js (referenced by editor.html)
+const qrJs = path.join(SRC, 'popup', 'qr.js');
+if (fs.existsSync(qrJs)) {
+  fs.mkdirSync(path.join(DEST, 'popup'), { recursive: true });
+  fs.copyFileSync(qrJs, path.join(DEST, 'popup', 'qr.js'));
+}
+
 // Copy icons
 for (const f of ['icon16.png', 'icon32.png', 'icon48.png', 'icon128.png']) {
   const src = path.join(SRC, 'icons', f);
@@ -54,12 +61,13 @@ html = html.replace(/\.\.\/styles\//g, 'styles/');
 html = html.replace(/\.\.\/lib\//g, 'lib/');
 html = html.replace(/\.\.\/shared\//g, 'shared/');
 html = html.replace(/\.\.\/icons\//g, 'icons/');
+html = html.replace(/\.\.\/popup\//g, 'popup/');
 
 // Add PWA meta tags after <meta name="viewport">
 html = html.replace(
-  '<title>Snaproo</title>',
-  `<title>Snaproo</title>
-  <meta name="description" content="Snaproo — Free offline image toolkit. Snap. Render. Optimise. Output.">
+  '<title>Gazo</title>',
+  `<title>Gazo</title>
+  <meta name="description" content="Gazo — Image tools, zero uploads, offline. Grab. Alter. Zone. Output.">
   <meta name="theme-color" content="#F4C430">
   <link rel="manifest" href="../manifest.json">
   <link rel="apple-touch-icon" href="../icons/icon-192.png">
@@ -112,7 +120,7 @@ if (fs.existsSync(OVERRIDES)) {
 fs.writeFileSync(path.join(DEST, 'index.html'), html);
 
 // Copy favicon
-const favicon = path.join(__dirname, '..', 'website', 'docs', 'favicon.svg');
+const favicon = path.join(__dirname, '..', 'website', 'favicon.svg');
 if (fs.existsSync(favicon)) fs.copyFileSync(favicon, path.join(DEST, 'icons', 'favicon.svg'));
 
 // Minify if --minify flag passed

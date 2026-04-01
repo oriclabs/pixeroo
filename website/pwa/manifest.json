@@ -1,8 +1,8 @@
 {
-  "name": "Snaproo",
-  "short_name": "Snaproo",
-  "description": "Free offline image toolkit. Snap. Render. Optimise. Output.",
-  "start_url": "/website/pwa/app/index.html",
+  "name": "Gazo",
+  "short_name": "Gazo",
+  "description": "Image tools, zero uploads, offline. Grab. Alter. Zone. Output.",
+  "start_url": "app/index.html",
   "display": "standalone",
   "background_color": "#020617",
   "theme_color": "#F4C430",
@@ -15,7 +15,7 @@
   "categories": ["utilities", "photo"],
   "screenshots": [],
   "share_target": {
-    "action": "/website/pwa/app/index.html",
+    "action": "app/index.html",
     "method": "POST",
     "enctype": "multipart/form-data",
     "params": {

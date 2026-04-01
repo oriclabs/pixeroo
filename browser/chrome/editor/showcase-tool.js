@@ -1,4 +1,4 @@
-// Snaproo — Showcase Tool (unified Screenshot Beautifier + Device Mockup)
+// Gazo — Showcase Tool (unified Screenshot Beautifier + Device Mockup)
 
 function initShowcase() {
   const canvas = $('sc-canvas');
@@ -562,7 +562,7 @@ function initShowcase() {
     const fmt = $('sc-export-fmt')?.value || 'png';
     const mime = { png:'image/png', jpeg:'image/jpeg', webp:'image/webp' }[fmt] || 'image/png';
     canvas.toBlob(blob => {
-      Platform.download(URL.createObjectURL(blob), `snaproo/showcase.${fmt === 'jpeg' ? 'jpg' : fmt}`, true);
+      Platform.download(URL.createObjectURL(blob), `gazo/showcase.${fmt === 'jpeg' ? 'jpg' : fmt}`, true);
     }, mime, 0.92);
   });
   $('btn-sc-save-lib')?.addEventListener('click', async () => {

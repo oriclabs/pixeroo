@@ -1,4 +1,4 @@
-// Snaproo E2E — Edit operations (from tests.md scenarios)
+// Gazo E2E — Edit operations (from tests.md scenarios)
 import { test, expect } from '@playwright/test';
 import { getExtensionId, getCanvasDims, docScreenshot, FIXTURES } from './helpers.js';
 import path from 'path';
@@ -13,7 +13,7 @@ test.describe('Edit Operations', () => {
       await page.click('#btn-back');
       await page.waitForTimeout(300);
       // Handle unsaved dialog
-      try { const ok = page.locator('.snaproo-dialog-backdrop button.btn-primary:visible'); if (await ok.count()) await ok.click(); } catch {}
+      try { const ok = page.locator('.gazo-dialog-backdrop button.btn-primary:visible'); if (await ok.count()) await ok.click(); } catch {}
       await page.waitForTimeout(300);
     }
     await page.click('[data-mode="edit"]');
@@ -157,7 +157,7 @@ test.describe('Edit Operations', () => {
 
     // Check object layer is active
     const hasObjects = await page.evaluate(() => {
-      return window._snaprooObjLayer?.objects?.length || 0;
+      return window._gazoObjLayer?.objects?.length || 0;
     });
     // Objects may or may not be added via click — just verify the tool activated
     await page.click('#btn-ann-select'); // back to select
@@ -199,5 +199,58 @@ test.describe('Edit Operations', () => {
 
     const handles = page.locator('#img-resize-handles:visible');
     await expect(handles).toBeVisible();
+  });
+
+  // ── Clear button ──────────────────────────────────────
+  test('clear button exists in ribbon', async () => {
+    await loadImage('test-500x300.png');
+    await expect(page.locator('#btn-edit-clear')).toBeVisible();
+  });
+
+  test('clear button has tooltip', async () => {
+    const title = await page.locator('#btn-edit-clear').getAttribute('title');
+    expect(title).toContain('Clear');
+  });
+
+  test('clear button prompts for confirmation', async () => {
+    await page.click('#btn-edit-clear');
+    await page.waitForTimeout(300);
+    // pixDialog confirm should appear
+    await expect(page.locator('#pix-dialog-overlay')).toBeVisible();
+    const body = await page.locator('#pix-dialog-body').textContent();
+    expect(body).toContain('Unload');
+  });
+
+  test('cancelling clear keeps image loaded', async () => {
+    // Click Cancel
+    await page.click('#pix-dialog-cancel');
+    await page.waitForTimeout(200);
+    // Canvas should still have dimensions
+    const dims = await getCanvasDims(page);
+    expect(dims.width).toBe(500);
+  });
+
+  test('confirming clear unloads image and shows dropzone', async () => {
+    await page.click('#btn-edit-clear');
+    await page.waitForTimeout(300);
+    // Click OK/Clear
+    await page.click('#pix-dialog-ok');
+    await page.waitForTimeout(300);
+
+    // Dropzone should be visible
+    await expect(page.locator('#edit-dropzone')).toBeVisible();
+    // Canvas should be hidden
+    const display = await page.locator('#editor-canvas').evaluate(el => el.style.display);
+    expect(display).toBe('none');
+    // File label should be empty
+    const label = await page.locator('#file-label').textContent();
+    expect(label).toBe('');
+  });
+
+  test('can load new image after clear', async () => {
+    await loadImage('test-200x200.png');
+    const dims = await getCanvasDims(page);
+    expect(dims.width).toBe(200);
+    expect(dims.height).toBe(200);
   });
 });

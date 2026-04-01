@@ -1,4 +1,4 @@
-// Snaproo — Library Manager (editor topbar)
+// Gazo — Library Manager (editor topbar)
 
 function initLibraryManager() {
   const grid = $('lm-grid');
@@ -24,15 +24,8 @@ function initLibraryManager() {
 
   function openLibrary() {
     const lm = $('library-manager');
-    // Hide current mode view
-    _previousMode = currentMode;
-    $$('.mode-view').forEach(v => v.classList.remove('active'));
-    $('home')?.classList.add('hidden');
     lm.style.display = 'flex';
     $('btn-open-library')?.classList.add('active');
-    $('mode-label').textContent = 'Library';
-    $('btn-back').classList.add('visible');
-    document.body.classList.add('tool-active');
     loadLibrary();
   }
 
@@ -41,13 +34,24 @@ function initLibraryManager() {
     lm.style.display = 'none';
     $('btn-open-library')?.classList.remove('active');
     detail.style.display = 'none';
-    // Restore previous state
-    if (_previousMode) {
-      openMode(_previousMode);
-    } else {
-      goHome();
-    }
   }
+
+  // Close button — stop propagation to prevent clicks bleeding through to tools underneath
+  $('btn-library-close')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    closeLibrary();
+  });
+  $('btn-library-close')?.addEventListener('dblclick', (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+  });
+
+  // Escape to close
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && $('library-manager')?.style.display === 'flex') {
+      closeLibrary();
+    }
+  });
 
   // Override back button to handle library navigation
   const origGoHome = window.goHome;
@@ -180,8 +184,9 @@ function initLibraryManager() {
         updateCount();
       });
 
-      // Double-click to open in editor
+      // Double-click to open in editor (only if no tool is active)
       card.addEventListener('dblclick', () => {
+        if (currentMode) return; // overlay mode — browse only
         sendToTool(item, 'edit');
       });
 
@@ -309,7 +314,7 @@ function initLibraryManager() {
       zip.addFile(`${item.name || 'image'}.${ext}`, new Uint8Array(buf));
     }
     const blob = zip.finish();
-    Platform.download(URL.createObjectURL(blob), 'snaproo/library-export.zip', true);
+    Platform.download(URL.createObjectURL(blob), 'gazo/library-export.zip', true);
   });
 
   // ── Delete selected ────────────────────────────────────
@@ -378,12 +383,16 @@ function initLibraryManager() {
     const menu = document.createElement('div');
     menu.className = 'lm-ctx';
 
-    const sections = [
-      { header: 'Open In', items: [
+    const sections = [];
+    // Only show "Open In" when no tool is active (not in overlay mode)
+    if (!currentMode) {
+      sections.push({ header: 'Open In', items: [
         { label: 'Edit', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>', action: () => sendToTool(item, 'edit') },
         { label: 'Showcase', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="3"/></svg>', action: () => { closeLibrary(); openMode('showcase'); } },
         { label: 'Social Media', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/></svg>', action: () => { closeLibrary(); openMode('social'); } },
-      ]},
+      ]});
+    }
+    sections.push(
       { header: 'Actions', items: [
         { label: 'Download', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>', action: () => {
           const a = document.createElement('a'); a.href = item.dataUrl; a.download = item.name || 'library-image'; a.click();
@@ -418,7 +427,7 @@ function initLibraryManager() {
           updateCount(); renderGrid();
         }},
       ]},
-    ];
+    );
 
     sections.forEach((section, si) => {
       if (si > 0) { const sep = document.createElement('div'); sep.className = 'lm-ctx-sep'; menu.appendChild(sep); }

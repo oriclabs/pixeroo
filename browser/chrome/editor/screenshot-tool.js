@@ -1,4 +1,4 @@
-// Snaproo — Screenshot Beautifier Tool
+// Gazo — Screenshot Beautifier Tool
 
 function initScreenshotBeautifier() {
   const canvas = $('ss-canvas');
@@ -295,7 +295,7 @@ function initScreenshotBeautifier() {
     const fmt = $('ss-export-fmt')?.value || 'png';
     const mime = { png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp' }[fmt] || 'image/png';
     canvas.toBlob(blob => {
-      Platform.download(URL.createObjectURL(blob), `snaproo/screenshot-beautified.${fmt === 'jpeg' ? 'jpg' : fmt}`, true);
+      Platform.download(URL.createObjectURL(blob), `gazo/screenshot-beautified.${fmt === 'jpeg' ? 'jpg' : fmt}`, true);
     }, mime, 0.92);
   });
 

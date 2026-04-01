@@ -1,4 +1,4 @@
-// Snaproo Popup - QR + launchers + quick settings
+// Gazo Popup - QR + launchers + quick settings
 
 document.addEventListener('DOMContentLoaded', async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -15,6 +15,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Toolkit -> reuse existing editor tab or open new
   document.getElementById('btn-toolkit').addEventListener('click', () => {
     chrome.runtime.sendMessage({ action: 'openEditor' });
+    window.close();
+  });
+
+  // FAQ — opens help page at FAQ section
+  document.getElementById('btn-faq')?.addEventListener('click', () => {
+    chrome.tabs.create({ url: chrome.runtime.getURL('help/help.html#faq') });
     window.close();
   });
 
@@ -38,7 +44,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const dataUrl = await chrome.tabs.captureVisibleTab(null, { format: 'png' });
       const name = 'screenshot-' + new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
       // Store for editor to pick up
-      await chrome.storage.local.set({ 'snaproo-screenshot': { dataUrl, name } });
+      await chrome.storage.local.set({ 'gazo-screenshot': { dataUrl, name } });
       // Screenshot will be auto-saved to recent files when editor loads it
       chrome.runtime.sendMessage({ action: 'openEditor', params: 'fromScreenshot=1' });
       window.close();
@@ -65,9 +71,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.close();
   });
 
-  // QR Page — scroll to QR section (already visible, just focus)
-  document.getElementById('pqa-qr-page')?.addEventListener('click', () => {
-    document.getElementById('qr-output')?.scrollIntoView({ behavior: 'smooth' });
+  // Paste — open editor with paste flag
+  document.getElementById('pqa-paste')?.addEventListener('click', () => {
+    chrome.runtime.sendMessage({ action: 'openEditor', params: 'paste=1' });
+    window.close();
+  });
+
+  // Library — open editor in library view
+  document.getElementById('pqa-library')?.addEventListener('click', () => {
+    chrome.runtime.sendMessage({ action: 'openEditor', params: 'library=1' });
+    window.close();
+  });
+
+  // Draw — open editor in draw mode
+  document.getElementById('pqa-draw')?.addEventListener('click', () => {
+    chrome.runtime.sendMessage({ action: 'openEditor', mode: 'draw' });
+    window.close();
   });
 
   // Copy QR
@@ -81,23 +100,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
-  // ── Quick Settings toggle ──────────────────────────────
-  const qsHeader = document.getElementById('qs-header');
-  const qsBody = document.getElementById('qs-body');
-  const qsArrow = document.getElementById('qs-arrow');
+  // ── Gear dropdown toggle ───────────────────────────────
+  const gearBtn = document.getElementById('btn-gear');
+  const gearDrop = document.getElementById('gear-dropdown');
 
-  // Restore collapsed state
-  chrome.storage.local.get({ qsOpen: false }, (r) => {
-    if (r.qsOpen) {
-      qsBody.classList.add('open');
-      qsArrow.style.transform = 'rotate(180deg)';
-    }
+  gearBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    gearDrop.style.display = gearDrop.style.display === 'none' ? '' : 'none';
   });
-
-  qsHeader.addEventListener('click', () => {
-    const open = qsBody.classList.toggle('open');
-    qsArrow.style.transform = open ? 'rotate(180deg)' : '';
-    chrome.storage.local.set({ qsOpen: open });
+  document.addEventListener('click', (e) => {
+    if (gearDrop && gearDrop.style.display !== 'none' && !gearDrop.contains(e.target) && e.target !== gearBtn) {
+      gearDrop.style.display = 'none';
+    }
   });
 
   // ── Load quick settings values ─────────────────────────

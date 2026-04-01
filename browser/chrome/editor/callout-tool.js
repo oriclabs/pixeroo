@@ -1,4 +1,4 @@
-// Snaproo — Callout Tool
+// Gazo — Callout Tool
 // Uses shared callout rendering from objects.js (DrawObject + ObjectLayer)
 
 const CALLOUT_TEMPLATES = {
@@ -78,7 +78,7 @@ function initCallout() {
     coObjLayer.objects.forEach(obj => obj.draw(oc));
     out.toBlob(blob => {
       const url = URL.createObjectURL(blob);
-      Platform.download(url, 'snaproo/callout-annotated.png', true);
+      Platform.download(url, 'gazo/callout-annotated.png', true);
     }, 'image/png');
   });
 

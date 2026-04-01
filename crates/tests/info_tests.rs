@@ -1,4 +1,4 @@
-use pixeroo_wasm::info;
+use gazo_wasm::info;
 
 // --- Helper: create test images ---
 fn test_png() -> Vec<u8> {

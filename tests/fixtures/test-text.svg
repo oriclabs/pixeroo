@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200">
+  <rect width="300" height="200" fill="#0f172a"/>
+  <text x="150" y="80" text-anchor="middle" font-size="32" font-weight="bold" fill="#F4C430" font-family="sans-serif">Gazo</text>
+  <text x="150" y="120" text-anchor="middle" font-size="14" fill="#94a3b8" font-family="sans-serif">Test Fixture</text>
+  <text x="150" y="160" text-anchor="middle" font-size="10" fill="#64748b" font-family="monospace">300×200 SVG</text>
+</svg>

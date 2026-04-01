@@ -124,6 +124,16 @@ document.addEventListener('keydown', (e) => {
 // Wire tour button
 $('btn-sp-tour')?.addEventListener('click', startSPTour);
 
+// Help button — opens full help page
+$('btn-sp-help')?.addEventListener('click', () => {
+  chrome.tabs.create({ url: chrome.runtime.getURL('help/help.html') });
+});
+
+// FAQ button — opens help page at FAQ section
+$('btn-sp-faq')?.addEventListener('click', () => {
+  chrome.tabs.create({ url: chrome.runtime.getURL('help/help.html#faq') });
+});
+
 // Show tour hint on first use — points to the ? button
 chrome.storage.sync.get({ spTourSeen: false }, (r) => {
   if (!r.spTourSeen) {

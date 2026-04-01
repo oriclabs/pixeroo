@@ -1,4 +1,4 @@
-// Snaproo Editor - Home screen + tool mode initialization
+// Gazo Editor - Home screen + tool mode initialization
 // Navigation, global drop, workspace, help system, library picker
 
 // ── Help System: per-tool popovers + shortcuts overlay ──
@@ -27,9 +27,12 @@ const toolHelp = {
   info: { Info: ['Drop image to inspect EXIF, DPI, JPEG structure, hash', 'Copy Data URI for embedding', 'All analysis is offline — no data sent anywhere'] },
   qr: { QR: ['Type content, select preset (URL, WiFi, vCard, etc.)', 'Customize size, margin, colors, error correction', 'Export as PNG or SVG, or copy to clipboard', 'Drop an image to read/decode QR codes'] },
   colors: { Colors: ['Drop image, click any pixel to pick color', 'Dominant palette extracted automatically', 'Adjust palette count with slider'] },
-  svg: { SVG: ['Drop SVG to inspect source, export as raster', 'Drop image to trace into SVG (vectorize)', 'Trace presets: Logo, Sketch, Photo, Artistic, etc.', 'Grid overlay to check trace accuracy'] },
+  svg: { Inspect: ['Drop SVG to view source, metadata, elements', 'Export as PNG/JPEG/WebP at custom dimensions', 'Copy Source copies raw SVG markup', 'Grid overlay to check alignment'], Trace: ['Drop any image to vectorize into SVG', 'Presets: Logo, Sketch, Photo, Artistic, etc.', 'Adjust color count for detail vs file size', 'Download or copy the traced SVG'] },
+  compress: { Compress: ['Drop image to reduce file size', 'Quality slider for JPEG/WebP, target size mode', 'Compare Formats shows size across all formats + qualities', 'Resize option to cap dimensions before compressing'] },
+  draw: { Draw: ['Blank canvas — no image needed', 'Rectangle, arrow, text, pen, highlighter', 'Pick canvas size from presets or custom', 'Export as PNG, JPEG, WebP or copy to clipboard'] },
+  fonts: { Fonts: ['3 tiers: built-in web-safe, system fonts, custom uploads', 'Upload .ttf/.otf/.woff/.woff2 (max 10)', 'System fonts detected via browser API (one-time permission)', 'All fonts available across Edit, Callout, Meme, Certificate, Collage, Watermark'] },
   compare: { Compare: ['Drop two images (A and B)', 'Diff: highlights pixel differences in red', 'Slider: drag to compare before/after', 'Center guides toggle for alignment check'] },
-  batch: { Batch: ['Drop multiple images, apply same operations to all', 'Resize, filter, watermark, format conversion', 'Click thumbnails to remove, + to add more', 'Process All downloads everything to snaproo/batch/'] },
+  batch: { Batch: ['Drop multiple images, apply same operations to all', 'Resize, filter, watermark, format conversion', 'Click thumbnails to remove, + to add more', 'Process All downloads everything to gazo/batch/'] },
 };
 
 function showHelpPopover(btn, mode, group) {
@@ -167,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Map ribbon-title text to help keys
     const helpMap = { 'Info':'Info', 'Generate':'QR', 'Export':'QR', 'Compare':'Compare',
       'SVG Inspect':'SVG', 'Trace':'SVG', 'Eyedropper':'Colors', 'Palette':'Colors',
-      'Source':'Store' };
+      'Source':'Store', 'Compress':'Compress' };
     const helpKey = helpMap[groupName];
     const modeHelp = toolHelp[modeId];
     // Find first matching help section for this mode
@@ -329,6 +332,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initMeme();
   initCertificate();
   initGif();
+  initCompress();
+  initDraw();
   initLibraryManager();
 
   // Drop-to-replace on all single-image tool work areas
@@ -399,7 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Load saved settings into popover
-  chrome.storage.sync.get({ defaultFormat: 'png', downloadPrefix: 'snaproo', fontSize: 100, fontFamily: 'jetbrains' }, (r) => {
+  chrome.storage.sync.get({ defaultFormat: 'png', downloadPrefix: 'gazo', fontSize: 100, fontFamily: 'jetbrains' }, (r) => {
     const fmtEl = $('qs-format'); if (fmtEl) fmtEl.value = r.defaultFormat;
     const folderEl = $('qs-folder'); if (folderEl) folderEl.value = r.downloadPrefix;
     const ffEl = $('qs-font-family'); if (ffEl) ffEl.value = r.fontFamily || 'system';
@@ -430,7 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // === Workspace Save / Load ===
 
   function collectWorkspace() {
-    const ws = { version: 1, timestamp: Date.now(), name: 'Snaproo Workspace' };
+    const ws = { version: 1, timestamp: Date.now(), name: 'Gazo Workspace' };
 
     function val(id) {
       const el = document.getElementById(id);
@@ -569,7 +574,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     const timestamp = new Date().toISOString().slice(0, 10);
-    a.href = url; a.download = `snaproo-workspace-${timestamp}.json`; a.click();
+    a.href = url; a.download = `gazo-workspace-${timestamp}.json`; a.click();
     URL.revokeObjectURL(url);
     $('settings-popover').style.display = 'none';
   });
@@ -589,7 +594,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (ok) {
         await pixDialog.alert('Workspace Loaded', `Settings restored from "${file.name}".`);
       } else {
-        await pixDialog.alert('Invalid Workspace', 'This file is not a valid Snaproo workspace.');
+        await pixDialog.alert('Invalid Workspace', 'This file is not a valid Gazo workspace.');
       }
     } catch {
       await pixDialog.alert('Error', 'Could not read workspace file.');
@@ -604,14 +609,14 @@ document.addEventListener('DOMContentLoaded', () => {
     clearTimeout(wsAutoSaveTimer);
     wsAutoSaveTimer = setTimeout(() => {
       const ws = collectWorkspace();
-      Platform.saveLocal('snaproo-last-workspace', ws);
+      Platform.saveLocal('gazo-last-workspace', ws);
     }, 30000);
   }
 
   // Load last workspace on startup
-  chrome.storage.local.get('snaproo-last-workspace', (r) => {
-    if (r['snaproo-last-workspace']) {
-      applyWorkspace(r['snaproo-last-workspace']);
+  chrome.storage.local.get('gazo-last-workspace', (r) => {
+    if (r['gazo-last-workspace']) {
+      applyWorkspace(r['gazo-last-workspace']);
     }
   });
 
@@ -643,10 +648,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Check for region capture transfer
   if (params.get('fromRegion')) {
-    chrome.storage.local.get('snaproo-region', (r) => {
-      const data = r['snaproo-region'];
+    chrome.storage.local.get('gazo-region', (r) => {
+      const data = r['gazo-region'];
       if (!data?.dataUrl || !data?.region) return;
-      Platform.removeLocal('snaproo-region');
+      Platform.removeLocal('gazo-region');
       const { x, y, w, h } = data.region;
       const fullImg = new Image();
       fullImg.src = data.dataUrl;
@@ -669,10 +674,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Check for screenshot transfer (from popup Quick Action)
   if (params.get('fromScreenshot')) {
-    chrome.storage.local.get('snaproo-screenshot', (r) => {
-      const data = r['snaproo-screenshot'];
+    chrome.storage.local.get('gazo-screenshot', (r) => {
+      const data = r['gazo-screenshot'];
       if (!data?.dataUrl) return;
-      Platform.removeLocal('snaproo-screenshot');
+      Platform.removeLocal('gazo-screenshot');
       openMode('edit');
       const img = new Image();
       img.src = data.dataUrl;
@@ -685,11 +690,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Check for library transfer (images sent from side panel)
   if (params.get('fromLib')) {
-    chrome.storage.local.get('snaproo-lib-transfer', async (r) => {
-      const data = r['snaproo-lib-transfer'];
+    chrome.storage.local.get('gazo-lib-transfer', async (r) => {
+      const data = r['gazo-lib-transfer'];
       if (!data?.images?.length) return;
       // Clean up transfer data
-      Platform.removeLocal('snaproo-lib-transfer');
+      Platform.removeLocal('gazo-lib-transfer');
 
       const tool = data.tool || 'edit';
       if (tool === 'edit') {
@@ -730,6 +735,38 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  // Open library view directly
+  if (params.get('library')) {
+    setTimeout(() => { $('btn-open-library')?.click(); }, 300);
+  }
+
+  // Paste from clipboard into edit mode
+  if (params.get('paste')) {
+    openMode('edit');
+    setTimeout(async () => {
+      try {
+        const items = await navigator.clipboard.read();
+        let found = false;
+        for (const item of items) {
+          const imageType = item.types.find(t => t.startsWith('image/'));
+          if (imageType) {
+            const blob = await item.getType(imageType);
+            const img = new Image();
+            img.src = URL.createObjectURL(blob);
+            await new Promise((ok, fail) => { img.onload = ok; img.onerror = fail; });
+            if (typeof window._loadEditImage === 'function')
+              window._loadEditImage(img, 'clipboard-paste');
+            found = true;
+            break;
+          }
+        }
+        if (!found) showToast('No image found in clipboard', 'info');
+      } catch {
+        showToast('Could not read clipboard \u2014 try Ctrl+V in the editor', 'info');
+      }
+    }, 500);
+  }
 });
 
 // ============================================================
@@ -743,8 +780,13 @@ function initNavigation() {
     card.addEventListener('click', () => openMode(card.dataset.mode));
   });
   $('btn-back').addEventListener('click', goHome);
+  // Hide tool-specific buttons on initial load (home screen)
+  if ($('btn-tour')) $('btn-tour').style.display = 'none';
+  if ($('btn-ribbon-customize')) $('btn-ribbon-customize').style.display = 'none';
   initHomeSearch();
   initHomeHints();
+  initFAQ();
+  initFontManager();
   initQuickActions();
   initRecentFiles();
 }
@@ -831,6 +873,139 @@ window._addRecentFile = async function(img, name) {
   } catch {}
 };
 
+// ── FAQ overlay ──────────────────────────────────────────
+function initFAQ() {
+  const overlay = $('faq-overlay');
+  if (!overlay) return;
+
+  $('btn-faq')?.addEventListener('click', () => overlay.classList.add('open'));
+  $('faq-close')?.addEventListener('click', () => overlay.classList.remove('open'));
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('open'); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && overlay.classList.contains('open')) overlay.classList.remove('open'); });
+
+  // Tool links — click to open tool directly
+  overlay.querySelectorAll('.faq-tool-link').forEach(btn => {
+    btn.addEventListener('click', () => {
+      overlay.classList.remove('open');
+      const mode = btn.dataset.faqMode;
+      if (mode && typeof openMode === 'function') openMode(mode);
+    });
+  });
+}
+
+// ── Font Manager ─────────────────────────────────────────
+async function initFontManager() {
+  if (typeof PixFontManager === 'undefined') return;
+
+  // Init and register all font selects with defaults
+  await PixFontManager.init();
+  const selects = [
+    { id: 'ann-font', defaultValue: 'Inter, system-ui, sans-serif' },
+    { id: 'ph-font', defaultValue: 'Inter, system-ui, sans-serif' },
+    { id: 'meme-font', defaultValue: 'Impact, sans-serif' },
+    { id: 'coll-text-font', defaultValue: 'Inter, system-ui, sans-serif' },
+    { id: 'co-font', defaultValue: 'Inter, system-ui, sans-serif' },
+    { id: 'wm-font', defaultValue: 'Arial, sans-serif' },
+    { id: 'batch-wm-font', defaultValue: 'Arial, sans-serif' },
+    { id: 'social-font', defaultValue: 'Inter, system-ui, sans-serif' },
+    { id: 'draw-font', defaultValue: 'Inter, system-ui, sans-serif' },
+  ];
+  for (const { id, defaultValue } of selects) {
+    const el = $(id);
+    if (el) PixFontManager.registerSelect(el, { defaultValue });
+  }
+  PixFontManager.populateAll();
+
+  // Modal open/close
+  const overlay = $('font-manager-overlay');
+  if (!overlay) return;
+
+  $('btn-font-manager')?.addEventListener('click', () => {
+    overlay.style.display = 'flex';
+    _renderFontManagerUI();
+  });
+  $('font-mgr-close')?.addEventListener('click', () => { overlay.style.display = 'none'; });
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.style.display = 'none'; });
+
+  // Upload handler
+  $('fm-upload')?.addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const result = await PixFontManager.addCustomFont(file);
+    if (result.error) { showToast(result.error, 'info'); }
+    else { showToast(`Font "${result.name}" added`, 'success'); }
+    e.target.value = '';
+    _renderFontManagerUI();
+  });
+
+  // Detect system fonts
+  $('fm-detect-system')?.addEventListener('click', async () => {
+    const btn = $('fm-detect-system');
+    btn.disabled = true; btn.textContent = 'Detecting\u2026';
+    const result = await PixFontManager.detectSystemFonts();
+    btn.disabled = false; btn.textContent = 'Detect System Fonts';
+    if (result.error) { showToast(result.error, 'info'); }
+    else { showToast(`Found ${result.count} system fonts`, 'success'); }
+    _renderFontManagerUI();
+  });
+
+  // Clear system fonts
+  $('fm-clear-system')?.addEventListener('click', () => {
+    PixFontManager.clearSystemFonts();
+    _renderFontManagerUI();
+  });
+
+  function _renderFontManagerUI() {
+    const fonts = PixFontManager.getAllFonts();
+    const preview = $('fm-preview-text')?.value || 'The quick brown fox';
+
+    // Custom fonts list
+    const customList = $('fm-custom-list');
+    $('fm-custom-count').textContent = `${fonts.custom.length}/${PixFontManager.MAX_CUSTOM}`;
+    if (fonts.custom.length) {
+      customList.innerHTML = fonts.custom.map(f =>
+        `<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 8px;background:var(--slate-800);border-radius:6px;">` +
+        `<div><div style="font-family:${f.value};font-size:0.85rem;color:var(--slate-200);">${preview}</div>` +
+        `<div style="font-size:0.65rem;color:var(--slate-500);">${f.name}</div></div>` +
+        `<button class="tool-btn fm-delete" data-id="${f.id}" style="color:#ef4444;padding:2px 6px;font-size:0.65rem;" title="Remove font">&times;</button>` +
+        `</div>`
+      ).join('');
+      customList.querySelectorAll('.fm-delete').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          await PixFontManager.removeCustomFont(+btn.dataset.id);
+          showToast('Font removed', 'success');
+          _renderFontManagerUI();
+        });
+      });
+    } else {
+      customList.innerHTML = '<span style="color:var(--slate-500);font-size:0.75rem;">No custom fonts uploaded</span>';
+    }
+
+    // System fonts info
+    const sysCount = $('fm-system-count');
+    const sysInfo = $('fm-system-info');
+    const clearBtn = $('fm-clear-system');
+    if (fonts.system.length) {
+      sysCount.textContent = `(${fonts.system.length})`;
+      sysInfo.textContent = `${fonts.system.length} fonts detected. Available in all font dropdowns.`;
+      clearBtn.style.display = '';
+    } else {
+      sysCount.textContent = '';
+      sysInfo.textContent = 'Click "Detect" to scan installed fonts (requires one-time permission).';
+      clearBtn.style.display = 'none';
+    }
+
+    // Built-in fonts
+    const builtinList = $('fm-builtin-list');
+    builtinList.innerHTML = fonts.builtin.map(f =>
+      `<span style="font-family:${f.value};font-size:0.72rem;color:var(--slate-400);padding:2px 8px;background:var(--slate-800);border-radius:4px;">${f.name}</span>`
+    ).join('');
+  }
+
+  // Re-render preview on text change
+  $('fm-preview-text')?.addEventListener('input', _renderFontManagerUI);
+}
+
 // ── Home grid search filter ──────────────────────────────
 function initHomeSearch() {
   const input = $('home-search');
@@ -842,7 +1017,8 @@ function initHomeSearch() {
       const title = card.querySelector('.home-card-title')?.textContent?.toLowerCase() || '';
       const desc = card.querySelector('.home-card-desc')?.textContent?.toLowerCase() || '';
       const mode = card.dataset.mode || '';
-      card.style.display = (title.includes(q) || desc.includes(q) || mode.includes(q)) ? '' : 'none';
+      const keywords = card.dataset.keywords?.toLowerCase() || '';
+      card.style.display = (title.includes(q) || desc.includes(q) || mode.includes(q) || keywords.includes(q)) ? '' : 'none';
     });
   });
 }
@@ -868,6 +1044,8 @@ function initHomeHints() {
     callout:     { tips: '5 shapes with tail directions \u00B7 Custom colors & icons \u00B7 Drag to position & resize' },
     collage:     { tips: 'Freeform canvas, drag & drop \u00B7 Solid/gradient/image backgrounds \u00B7 Grid or manual layout' },
     batch:       { tips: 'Resize, filter, watermark multiple images \u00B7 Consistent output \u00B7 Download as ZIP' },
+    compress:    { tips: 'Reduce file size with quality control \u00B7 JPEG/WebP/PNG \u00B7 Live before/after preview \u00B7 Target size mode' },
+    draw:        { tips: 'Blank canvas \u00B7 Shapes, arrows, text, freehand pen \u00B7 No image needed \u00B7 Quick sketches and diagrams' },
   };
 
   const bar = $('home-hint-bar');
@@ -916,7 +1094,10 @@ function openMode(mode) {
 
   $('btn-back').classList.add('visible');
   document.body.classList.add('tool-active');
-  const labels = { edit:'Edit', convert:'Convert', store:'Store Assets', info:'Info', qr:'QR Code', colors:'Colors', svg:'SVG Tools', compare:'Compare', generate:'Generate', showcase:'Showcase', meme:'Meme', certificate:'Certificate', gif:'GIF Creator', collage:'Collage', batch:'Batch Edit', social:'Social Media', watermark:'Watermark', callout:'Callout' };
+  // Show tool-specific topbar buttons
+  if ($('btn-tour')) $('btn-tour').style.display = '';
+  if ($('btn-ribbon-customize')) $('btn-ribbon-customize').style.display = '';
+  const labels = { edit:'Edit', convert:'Convert', compress:'Compress', draw:'Draw', store:'Store Assets', info:'Info', qr:'QR Code', colors:'Colors', svg:'SVG Tools', compare:'Compare', generate:'Generate', showcase:'Showcase', meme:'Meme', certificate:'Certificate', gif:'GIF Creator', collage:'Collage', batch:'Batch Edit', social:'Social Media', watermark:'Watermark', callout:'Callout' };
   $('mode-label').textContent = labels[mode] || '';
 
   // Restore undo/redo visibility for edit mode
@@ -943,9 +1124,14 @@ async function goHome() {
   $('btn-back').classList.remove('visible');
   document.body.classList.remove('tool-active');
   $('mode-label').textContent = '';
+  // Clear URL params so Back doesn't re-open the tool
+  if (location.search) history.replaceState(null, '', location.pathname);
   $('btn-undo').style.display = 'none';
   $('btn-redo').style.display = 'none';
   $('file-label').textContent = '';
+  // Hide tool-specific topbar buttons on home
+  if ($('btn-tour')) $('btn-tour').style.display = 'none';
+  if ($('btn-ribbon-customize')) $('btn-ribbon-customize').style.display = 'none';
   // Ensure library manager is hidden
   const lm = $('library-manager');
   if (lm) { lm.style.display = 'none'; $('btn-open-library')?.classList.remove('active'); }
@@ -958,7 +1144,7 @@ function _hasUnsavedWork() {
   if (currentMode === 'edit') {
     if (typeof pipeline !== 'undefined' && pipeline.operations?.length > 0) return true;
     // Also check if draw objects exist
-    if (window._snaprooObjLayer?.hasObjects?.()) return true;
+    if (window._gazoObjLayer?.hasObjects?.()) return true;
     return false;
   }
   // Other tools: check if their canvas has content

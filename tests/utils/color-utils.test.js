@@ -1,4 +1,4 @@
-// Snaproo - color-utils.js tests
+// Gazo - color-utils.js tests
 // Run with: node --test tests/utils/color-utils.test.js
 
 import { describe, it } from 'node:test';

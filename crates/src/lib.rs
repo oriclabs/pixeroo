@@ -18,5 +18,5 @@ pub fn version() -> String {
 
 #[wasm_bindgen]
 pub fn ping() -> String {
-    "pixeroo-wasm ready".to_string()
+    "gazo-wasm ready".to_string()
 }

@@ -1,24 +1,24 @@
-// Snaproo - Firefox Background Script
+// Gazo - Firefox Background Script
 // Firefox uses sidebar_action instead of sidePanel, and event pages instead of service workers
 
 // --- Context Menu Setup ---
 browser.runtime.onInstalled.addListener(() => {
   browser.contextMenus.create({
-    id: 'snaproo',
-    title: 'Snaproo',
+    id: 'gazo',
+    title: 'Gazo',
     contexts: ['image']
   });
 
   browser.contextMenus.create({
-    id: 'snaproo-info',
-    parentId: 'snaproo',
+    id: 'gazo-info',
+    parentId: 'gazo',
     title: 'View Image Info',
     contexts: ['image']
   });
 
   browser.contextMenus.create({
-    id: 'snaproo-saveas',
-    parentId: 'snaproo',
+    id: 'gazo-saveas',
+    parentId: 'gazo',
     title: 'Save As...',
     contexts: ['image']
   });
@@ -26,44 +26,44 @@ browser.runtime.onInstalled.addListener(() => {
   const formats = ['PNG', 'JPEG', 'WebP', 'AVIF', 'BMP', 'ICO'];
   formats.forEach(fmt => {
     browser.contextMenus.create({
-      id: `snaproo-save-${fmt.toLowerCase()}`,
-      parentId: 'snaproo-saveas',
+      id: `gazo-save-${fmt.toLowerCase()}`,
+      parentId: 'gazo-saveas',
       title: fmt,
       contexts: ['image']
     });
   });
 
   browser.contextMenus.create({
-    id: 'snaproo-copy-png',
-    parentId: 'snaproo',
+    id: 'gazo-copy-png',
+    parentId: 'gazo',
     title: 'Copy as PNG',
     contexts: ['image']
   });
 
   browser.contextMenus.create({
-    id: 'snaproo-read-qr',
-    parentId: 'snaproo',
+    id: 'gazo-read-qr',
+    parentId: 'gazo',
     title: 'Read QR Code',
     contexts: ['image']
   });
 
   browser.contextMenus.create({
-    id: 'snaproo-edit',
-    parentId: 'snaproo',
+    id: 'gazo-edit',
+    parentId: 'gazo',
     title: 'Open in Editor',
     contexts: ['image']
   });
 
   browser.contextMenus.create({
-    id: 'snaproo-separator',
-    parentId: 'snaproo',
+    id: 'gazo-separator',
+    parentId: 'gazo',
     type: 'separator',
     contexts: ['image']
   });
 
   browser.contextMenus.create({
-    id: 'snaproo-extract-colors',
-    parentId: 'snaproo',
+    id: 'gazo-extract-colors',
+    parentId: 'gazo',
     title: 'Extract Colors',
     contexts: ['image']
   });
@@ -73,19 +73,19 @@ browser.runtime.onInstalled.addListener(() => {
 browser.contextMenus.onClicked.addListener((info, tab) => {
   const { menuItemId, srcUrl } = info;
 
-  if (menuItemId === 'snaproo-info') {
+  if (menuItemId === 'gazo-info') {
     browser.tabs.sendMessage(tab.id, { action: 'showImageInfo', src: srcUrl });
-  } else if (menuItemId.startsWith('snaproo-save-')) {
-    const format = menuItemId.replace('snaproo-save-', '');
+  } else if (menuItemId.startsWith('gazo-save-')) {
+    const format = menuItemId.replace('gazo-save-', '');
     browser.tabs.sendMessage(tab.id, { action: 'convertAndSave', src: srcUrl, format });
-  } else if (menuItemId === 'snaproo-copy-png') {
+  } else if (menuItemId === 'gazo-copy-png') {
     browser.tabs.sendMessage(tab.id, { action: 'copyAsPng', src: srcUrl });
-  } else if (menuItemId === 'snaproo-read-qr') {
+  } else if (menuItemId === 'gazo-read-qr') {
     browser.tabs.sendMessage(tab.id, { action: 'readQR', src: srcUrl });
-  } else if (menuItemId === 'snaproo-edit') {
+  } else if (menuItemId === 'gazo-edit') {
     const editorUrl = browser.runtime.getURL(`editor/editor.html?src=${encodeURIComponent(srcUrl)}`);
     browser.tabs.create({ url: editorUrl });
-  } else if (menuItemId === 'snaproo-extract-colors') {
+  } else if (menuItemId === 'gazo-extract-colors') {
     browser.tabs.sendMessage(tab.id, { action: 'extractColors', src: srcUrl });
   }
 });
@@ -105,7 +105,7 @@ browser.runtime.onMessage.addListener((message, sender) => {
   if (message.action === 'download') {
     return browser.downloads.download({
       url: message.url,
-      filename: message.filename || 'snaproo-image',
+      filename: message.filename || 'gazo-image',
       saveAs: message.saveAs !== false
     }).then(downloadId => ({ success: true, downloadId }));
   }

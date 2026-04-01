@@ -1,4 +1,4 @@
-// Snaproo — Placeholder Image Generator Tool
+// Gazo — Placeholder Image Generator Tool
 
 function initPlaceholder() {
   const canvas = $('ph-canvas');
@@ -169,7 +169,7 @@ function initPlaceholder() {
     const mime = { png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp' }[fmt] || 'image/png';
     canvas.toBlob(blob => {
       const w = canvas.width, h = canvas.height;
-      Platform.download(URL.createObjectURL(blob), `snaproo/placeholder-${w}x${h}.${fmt === 'jpeg' ? 'jpg' : fmt}`, true);
+      Platform.download(URL.createObjectURL(blob), `gazo/placeholder-${w}x${h}.${fmt === 'jpeg' ? 'jpg' : fmt}`, true);
     }, mime, 0.92);
   });
 
@@ -225,7 +225,7 @@ function initPlaceholder() {
     svg += `</svg>`;
 
     const blob = new Blob([svg], { type: 'image/svg+xml' });
-    Platform.download(URL.createObjectURL(blob), `snaproo/placeholder-${w}x${h}.svg`, true);
+    Platform.download(URL.createObjectURL(blob), `gazo/placeholder-${w}x${h}.svg`, true);
   }
 
   // ── Batch generation ────────────────────────────────────
@@ -262,7 +262,7 @@ function initPlaceholder() {
     render();
 
     const zipBlob = zip.finish();
-    Platform.download(URL.createObjectURL(zipBlob), 'snaproo/placeholders.zip', true);
+    Platform.download(URL.createObjectURL(zipBlob), 'gazo/placeholders.zip', true);
   });
 
   // ── Save to Library ─────────────────────────────────────

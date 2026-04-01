@@ -1,4 +1,4 @@
-// Pixeroo - Shared Image Utilities
+// Gazo - Shared Image Utilities
 
 /**
  * Convert a File/Blob to ArrayBuffer

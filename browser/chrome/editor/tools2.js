@@ -1,4 +1,4 @@
-// Snaproo Editor - Extended Tools Part 2
+// Gazo Editor - Extended Tools Part 2
 // Canvas ops, color ops, generators, social presets, analysis, quality
 
 // ============================================================

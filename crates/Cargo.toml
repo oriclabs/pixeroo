@@ -1,8 +1,8 @@
 [package]
-name = "pixeroo-wasm"
+name = "gazo-wasm"
 version = "0.1.0"
 edition = "2021"
-description = "Pixeroo WASM engine - image processing, format conversion, QR codes, metadata extraction"
+description = "Gazo WASM engine - image processing, format conversion, QR codes, metadata extraction"
 license = "MIT"
 
 [lib]

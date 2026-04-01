@@ -3,7 +3,7 @@ const $ = id => document.getElementById(id);
 const $$ = sel => document.querySelectorAll(sel);
 const on = (el, evt, fn) => el?.addEventListener(evt, fn);
 
-// Snaproo — Shared Editor Utilities
+// Gazo — Shared Editor Utilities
 
 // ── Shared mutable globals ──
 let editCanvas, editCtx, editOriginal, editFilename = 'edited';
@@ -205,7 +205,7 @@ function createRenamePopover(anchorBtn, opts) {
   // Build popover DOM
   const popover = document.createElement('div');
   popover.id = inputId + '-popover';
-  popover.style.cssText = 'display:none;position:absolute;top:100%;left:50%;transform:translateX(-50%);z-index:100;margin-top:4px;background:var(--slate-900);border:1px solid var(--slate-700);border-radius:10px;box-shadow:0 12px 36px rgba(0,0,0,0.5);padding:14px 16px;width:320px;';
+  popover.style.cssText = 'display:none;position:fixed;z-index:1000;background:var(--slate-900);border:1px solid var(--slate-700);border-radius:10px;box-shadow:0 12px 36px rgba(0,0,0,0.5);padding:14px 16px;width:320px;';
 
   const title = document.createElement('div');
   title.style.cssText = 'color:var(--slate-300);font-size:0.75rem;font-weight:600;margin-bottom:10px;';
@@ -251,19 +251,27 @@ function createRenamePopover(anchorBtn, opts) {
   previewEl.style.cssText = 'color:var(--slate-300);font-size:0.75rem;font-family:monospace;background:var(--slate-800);border-radius:4px;padding:6px 10px;word-break:break-all;';
   popover.appendChild(previewEl);
 
-  // Insert into DOM
-  anchorBtn.style.position = 'relative';
-  anchorBtn.parentElement.style.position = 'relative';
-  anchorBtn.parentElement.appendChild(popover);
+  // Insert into DOM (append to body so it's not clipped by ribbon overflow)
+  document.body.appendChild(popover);
+
+  // Warning when pattern has no unique token
+  const warnEl = document.createElement('div');
+  warnEl.style.cssText = 'display:none;color:#eab308;font-size:0.65rem;margin-bottom:6px;';
+  warnEl.textContent = '\u26a0 No unique token \u2014 {index} will be appended to avoid overwrites';
+  previewLabel.before(warnEl);
 
   function updatePreview() {
-    const pattern = input.value || '{name}';
-    if (hiddenInput) hiddenInput.value = pattern;
-    const sample = getSampleFn ? getSampleFn(pattern) : null;
+    let pattern = input.value || '{name}';
+    const hasUnique = /\{name\}|\{index\}/.test(pattern);
+    warnEl.style.display = hasUnique ? 'none' : '';
+    // Auto-append index for actual output if no unique token
+    const effectivePattern = hasUnique ? pattern : pattern + '-{index}';
+    if (hiddenInput) hiddenInput.value = effectivePattern;
+    const sample = getSampleFn ? getSampleFn(effectivePattern) : null;
     if (sample) {
       previewEl.textContent = sanitizeFilename(sample.name) + '.' + sample.ext;
     } else {
-      previewEl.textContent = sanitizeFilename(pattern.replace(/\{name\}/g, 'photo').replace(/\{index\}/g, '001').replace(/\{[^}]+\}/g, '')) + '.webp';
+      previewEl.textContent = sanitizeFilename(effectivePattern.replace(/\{name\}/g, 'photo').replace(/\{index\}/g, '001').replace(/\{[^}]+\}/g, '')) + '.webp';
     }
   }
 
@@ -275,6 +283,9 @@ function createRenamePopover(anchorBtn, opts) {
     const show = popover.style.display === 'none';
     popover.style.display = show ? '' : 'none';
     if (show) {
+      const rect = anchorBtn.getBoundingClientRect();
+      popover.style.top = (rect.bottom + 4) + 'px';
+      popover.style.left = Math.max(8, rect.left + rect.width / 2 - 160) + 'px';
       input.value = hiddenInput?.value || '{name}';
       updatePreview();
       input.focus();
@@ -282,9 +293,19 @@ function createRenamePopover(anchorBtn, opts) {
     }
   });
 
+  // Reset to default if empty on blur
+  input.addEventListener('blur', () => {
+    if (!input.value.trim()) {
+      input.value = '{name}';
+      if (hiddenInput) hiddenInput.value = '{name}';
+      updatePreview();
+    }
+  });
+
   // Close on outside click
   document.addEventListener('click', (e) => {
     if (popover.style.display !== 'none' && !popover.contains(e.target) && e.target !== anchorBtn && !anchorBtn.contains(e.target)) {
+      if (!input.value.trim()) input.value = '{name}';
       if (hiddenInput) hiddenInput.value = input.value || '{name}';
       popover.style.display = 'none';
     }

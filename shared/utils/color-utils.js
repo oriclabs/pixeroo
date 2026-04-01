@@ -1,4 +1,4 @@
-// Pixeroo - Color Extraction Utilities
+// Gazo - Color Extraction Utilities
 
 /**
  * Extract dominant colors from image data using k-means clustering

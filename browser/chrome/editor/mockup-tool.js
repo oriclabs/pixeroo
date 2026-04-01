@@ -1,4 +1,4 @@
-// Snaproo — Device Mockup Tool
+// Gazo — Device Mockup Tool
 
 function initMockup() {
   const canvas = $('mockup-canvas');
@@ -335,7 +335,7 @@ function initMockup() {
     const fmt = $('mockup-export-fmt')?.value || 'png';
     const mime = { png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp' }[fmt] || 'image/png';
     canvas.toBlob(blob => {
-      Platform.download(URL.createObjectURL(blob), `snaproo/mockup.${fmt === 'jpeg' ? 'jpg' : fmt}`, true);
+      Platform.download(URL.createObjectURL(blob), `gazo/mockup.${fmt === 'jpeg' ? 'jpg' : fmt}`, true);
     }, mime, 0.92);
   });
 

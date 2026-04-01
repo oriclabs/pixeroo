@@ -1,4 +1,4 @@
-// Snaproo - Non-destructive Editing Pipeline
+// Gazo - Non-destructive Editing Pipeline
 //
 // Architecture:
 //   Original Image (immutable, full resolution)

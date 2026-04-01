@@ -1,4 +1,4 @@
-// Snaproo PWA - Main Application
+// Gazo PWA - Main Application
 
 document.addEventListener('DOMContentLoaded', () => {
   initToolTabs();

@@ -1,4 +1,4 @@
-// Snaproo — Guided Tour System
+// Gazo — Guided Tour System
 // Shared engine. Each tool defines its own step array.
 //
 // Usage:
@@ -175,6 +175,8 @@ const tourSteps = {
     { target: '#btn-ann-rect', title: 'Drawing Tools', text: 'Rectangle, arrow, text, freehand pen, highlighter. Objects are selectable and movable.' },
     { target: '#export-format', title: 'Export', text: 'PNG, JPEG, WebP, BMP, or traced SVG. Quality slider for lossy formats.' },
     { target: '#btn-history', title: 'History Panel', text: 'Press H to see all operations. Click any step to revert to that state.' },
+    { target: '#btn-reset-all', title: 'Reset All', text: 'Reverts all edits back to the original image. The image stays loaded.' },
+    { target: '#btn-edit-clear', title: 'Clear / New', text: 'Unloads the image entirely and returns to the drop zone. Use this to start fresh with a different image.' },
   ],
   collage: [
     { target: '#collage-drop', title: 'Add Images', text: 'Drop images to start. Each becomes a freeform object you can drag, resize, and layer.' },
@@ -215,18 +217,37 @@ const tourSteps = {
     { target: '#btn-copy-base64', title: 'Copy Data URI', text: 'Copy the image as a base64 data URI for embedding in HTML/CSS.' },
   ],
   qr: [
-    { target: '#qr-text', title: 'Enter Content', text: 'Type a URL, text, or structured data. QR generates live as you type — no need to click Generate.' },
-    { target: '[data-qr-preset="url"]', title: 'Quick Presets', text: 'Click a preset to fill in a template: URL, WiFi password, email, phone, vCard, SMS, location, or calendar event. Edit the values to customize.' },
-    { target: '#qr-style', title: 'Style & Quality', text: 'Choose dot shape (square, rounded, dots), error correction level, pixel size, and margin. Higher error correction = more scannable even if damaged.' },
-    { target: '#qr-fg', title: 'Colors & Label', text: 'Customize foreground and background colors. Add a label like "Scan Me" below the QR code.' },
-    { target: '#btn-qr-logo', title: 'Center Logo', text: 'Upload a logo or icon to embed in the center of the QR. Error correction auto-switches to High for reliable scanning.' },
-    { target: '#btn-qr-generate', title: 'Generate & Bulk', text: 'Generate manually, or use Bulk to paste multiple URLs and create a QR for each — downloaded as a ZIP.' },
-    { target: '#btn-qr-copy', title: 'Export Options', text: 'Copy image to clipboard, copy the raw text, download as PNG or SVG, export in 4 sizes as ZIP, or save to your Library.' },
-    { target: 'details', title: 'Read QR', text: 'Expand this section to drop an image containing a QR code and decode it.' },
+    { target: '#qr-text', title: 'Enter Content', text: 'Type a URL, text, or structured data. QR generates live as you type \u2014 no need to click Generate.' },
+    { target: '[data-qr-preset="url"]', title: 'Quick Presets', text: 'Click a preset to fill a template: URL, WiFi, email, phone, vCard, SMS, location, or calendar event.' },
+    { target: '#qr-style', title: 'Style', text: 'Dot shape (square, rounded, dots), error correction, pixel size, margin, and compact mode.' },
+    { target: '#qr-fg', title: 'Colors & Logo', text: 'FG/BG colors, gradient option, center logo, and background image. All in one row.' },
+    { target: '#btn-qr-generate', title: 'Generate & Export', text: 'Generate, Bulk (multiple URLs as ZIP), Reset. Export as PNG, SVG, copy to clipboard, 4 sizes ZIP, or save to Library.' },
+    { target: '.qr-mode-tab[data-qr-mode="read"]', title: 'Read QR', text: 'Switch to the Read tab to drop an image and decode its QR content. Clear to scan another.' },
   ],
   svg: [
-    { target: '#svg-drop', title: 'SVG Inspect', text: 'Drop an SVG file to view source, info, and export as raster image.' },
-    { target: '#trace-drop', title: 'Image Trace', text: 'Drop a raster image to vectorize it into SVG paths. Multiple style presets.' },
+    { target: '.svg-mode-tab[data-svg-mode="inspect"]', title: 'Inspect Tab', text: 'Drop an SVG to view formatted source with syntax highlighting, element breakdown, and color palette.' },
+    { target: '#btn-svg-export', title: 'Export Raster', text: 'Render the SVG as PNG, JPEG, or WebP at custom dimensions (defaults to 2\u00d7).' },
+    { target: '#btn-svg-toggle-source', title: 'Source Controls', text: 'Copy, wrap, or collapse the formatted SVG source code.' },
+    { target: '.svg-mode-tab[data-svg-mode="trace"]', title: 'Trace Tab', text: 'Drop a raster image (PNG, JPEG, WebP, BMP) to vectorize into SVG. SVG files are not accepted.' },
+    { target: '#trace-preset-inline', title: 'Trace Settings', text: 'Choose a preset (Logo, Photo, Artistic, etc.) and color count. Controls appear after dropping an image.' },
+    { target: '#btn-trace-fit', title: 'Fit / 1:1', text: 'Toggle between fitted preview and actual-size with scrolling.' },
+  ],
+  draw: [
+    { target: '#draw-preset', title: 'Canvas Size', text: 'Pick a preset size or enter custom dimensions. Background color is configurable.' },
+    { target: '[data-draw-tool="rect"]', title: 'Drawing Tools', text: 'Rectangle, arrow, text, freehand pen, highlighter. Click to create, drag to place.' },
+    { target: '#draw-color', title: 'Style', text: 'Color picker, line width, fill toggle. Changes apply to the next object or the selected one.' },
+    { target: '#draw-font', title: 'Text', text: 'Custom fonts from the Font Manager. Set size before clicking the text tool.' },
+    { target: '#btn-draw-export', title: 'Export', text: 'Download as PNG, JPEG, or WebP. Copy to clipboard. Objects are flattened into the canvas on export.' },
+  ],
+  compress: [
+    { target: '#compress-drop', title: 'Drop Image', text: 'Drop a raster image to compress. SVG files are not supported.' },
+    { target: '#compress-format', title: 'Output Format', text: 'JPEG and WebP are lossy (smaller files). PNG is lossless (larger but pixel-perfect).' },
+    { target: '#compress-quality', title: 'Quality Slider', text: 'Lower quality = smaller file. The live preview updates so you can see artifacts before downloading.' },
+    { target: '#compress-resize', title: 'Resize Option', text: 'Cap the maximum dimension. A 4000px photo resized to 1920px before compression saves the most space.' },
+    { target: '#compress-target', title: 'Target Size', text: 'Set a KB limit and the tool will binary-search for the right quality to hit it.' },
+    { target: '#btn-compress-compare', title: 'Compare Formats', text: 'See a full table of every format at 7 quality levels, with file sizes and savings percentages.' },
+    { target: '#compress-output-canvas', title: 'Live Preview', text: 'Side-by-side comparison. The compressed preview updates in real-time as you adjust settings.' },
+    { target: '#btn-compress-go', title: 'Download', text: 'Saves with quality in the filename (e.g. photo-compressed-80q.jpg) so you know what settings were used.' },
   ],
   compare: [
     { target: '#compare-drop-a', title: 'Image A', text: 'Drop the first image (before).' },

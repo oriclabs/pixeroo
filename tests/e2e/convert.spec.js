@@ -1,4 +1,4 @@
-// Snaproo E2E — Convert Tool tests
+// Gazo E2E — Convert Tool tests
 import { test, expect } from '@playwright/test';
 import { getExtensionId, docScreenshot, openTool, goHome } from './helpers.js';
 import path from 'path';

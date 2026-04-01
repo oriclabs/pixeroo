@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Snaproo - Toolkit</title>
+  <title>Gazo - Toolkit</title>
   <link rel="stylesheet" href="../styles/shared.css">
   <style>
     body { width: 100%; height: 100vh; display: flex; flex-direction: column; overflow: hidden; font-size: 0.79rem; }
@@ -225,11 +225,17 @@
   <!-- Header -->
   <div class="flex items-center justify-between p-3" style="border-bottom: 1px solid var(--slate-800);">
     <div class="flex items-center gap-2">
-      <img src="../icons/icon32.png" width="24" height="24" alt="Snaproo" style="flex-shrink:0;border-radius:5px;">
-      <span style="font-size:1.375rem;font-weight:800;color:var(--saffron-400);letter-spacing:-0.02em;">Snaproo</span>
+      <img src="../icons/icon32.png" width="24" height="24" alt="Gazo" style="flex-shrink:0;border-radius:5px;">
+      <span style="font-size:1.375rem;font-weight:800;color:var(--saffron-400);letter-spacing:-0.02em;">Gazo</span>
       <span id="image-count" class="text-xs text-gray-500 ml-1"></span>
     </div>
     <div style="display:flex;align-items:center;gap:2px;">
+      <button id="btn-sp-help" class="tool-btn" title="Help" style="padding:2px 6px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      </button>
+      <button id="btn-sp-faq" class="tool-btn" title="Which tool should I use?" style="padding:2px 6px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01"/><circle cx="12" cy="12" r="10"/></svg>
+      </button>
       <button id="btn-sp-tour" class="tool-btn" title="Take a quick tour" style="padding:2px 6px;">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </button>

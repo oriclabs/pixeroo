@@ -1,4 +1,4 @@
-// Snaproo — Certificate / Badge Generator Tool
+// Gazo — Certificate / Badge Generator Tool
 
 function initCertificate() {
   const canvas = $('cert-canvas');
@@ -287,7 +287,7 @@ function initCertificate() {
     const fmt = $('cert-export-fmt')?.value || 'png';
     const mime = { png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp' }[fmt] || 'image/png';
     canvas.toBlob(blob => {
-      Platform.download(URL.createObjectURL(blob), `snaproo/certificate.${fmt === 'jpeg' ? 'jpg' : fmt}`, true);
+      Platform.download(URL.createObjectURL(blob), `gazo/certificate.${fmt === 'jpeg' ? 'jpg' : fmt}`, true);
     }, mime, 0.92);
   });
 

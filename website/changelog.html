@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Changelog - Snaproo</title>
+  <title>Changelog - Gazo</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config={theme:{extend:{colors:{saffron:{400:'#F4C430',500:'#D4A017',600:'#B8860B',950:'#2A1E05'}},fontFamily:{sans:['Inter','system-ui','sans-serif']}}}}</script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
+<style>.light{background:#f8fafc!important;color:#1e293b!important}.light *{border-color:#e2e8f0}.light nav{background:rgba(248,250,252,0.9)!important}.light .bg-slate-950{background:#f8fafc!important}.light .bg-slate-900/50{background:rgba(241,245,249,0.9)!important}.light .text-white{color:#0f172a!important}.light .text-gray-100{color:#1e293b!important}.light .text-gray-400{color:#64748b!important}.light .text-gray-500,.light .text-gray-600{color:#94a3b8!important}.light h1,.light h2,.light h3{color:#0f172a}.light footer{background:#f1f5f9}.light .border-slate-800,.light .border-slate-800/50{border-color:#e2e8f0!important}.theme-btn{background:none;border:1px solid rgba(148,163,184,0.3);border-radius:8px;padding:6px;cursor:pointer;color:inherit;transition:all 0.15s;display:flex;align-items:center}.theme-btn:hover{border-color:#F4C430;color:#F4C430}</style><script>if(localStorage.getItem("gazo-theme")==="light")document.documentElement.classList.add("light")</script></head>
 <body class="bg-slate-950 text-gray-100 font-sans min-h-screen">
   <nav class="border-b border-slate-800/50 px-6 py-4">
     <div class="max-w-3xl mx-auto flex items-center justify-between">
       <a href="index.html" class="flex items-center gap-2 text-white font-bold">
-        <img src="icon32.png" width="32" height="32" alt="Snaproo" style="border-radius:7px;">
-        Snaproo
+        <img src="icon32.png" width="32" height="32" alt="Gazo" style="border-radius:7px;">
+        Gazo
       </a>
       <div class="flex gap-4 text-sm text-gray-400">
         <a href="features.html" class="hover:text-saffron-400">Features</a>
@@ -61,10 +61,10 @@
   </main>
 
   <footer class="border-t border-slate-800/50 px-6 py-6 text-center text-sm text-gray-600">
-    <a href="https://github.com/oriclabs/snaproo" class="hover:text-saffron-400">GitHub</a> &middot;
+    <a href="https://github.com/oriclabs/gazo" class="hover:text-saffron-400">GitHub</a> &middot;
     <a href="privacy.html" class="hover:text-saffron-400">Privacy</a> &middot;
     <a href="contact.html" class="hover:text-saffron-400">Contact</a> &middot;
-    MIT License &middot; oriclabs
+    MIT License &middot; &copy; <script>document.write(new Date().getFullYear())</script> Gazo
   </footer>
-</body>
+<script>const tg=document.getElementById("theme-toggle"),id=document.getElementById("ti-d"),il=document.getElementById("ti-l");function ui(){const l=document.documentElement.classList.contains("light");if(id)id.style.display=l?"none":"block";if(il)il.style.display=l?"block":"none"}ui();tg&&tg.addEventListener("click",()=>{document.documentElement.classList.toggle("light");localStorage.setItem("gazo-theme",document.documentElement.classList.contains("light")?"light":"dark");ui()})</script></body>
 </html>

@@ -1,4 +1,4 @@
-// Snaproo — Platform Abstraction Layer
+// Gazo — Platform Abstraction Layer
 // Provides unified API that works in both Chrome Extension and PWA/standalone contexts.
 // Extension uses chrome.* APIs, PWA uses standard web APIs.
 
@@ -14,7 +14,7 @@ const Platform = (function () {
       chrome.runtime.sendMessage({
         action: 'download',
         url,
-        filename: filename || 'snaproo-image',
+        filename: filename || 'gazo-image',
         saveAs: saveAs !== false,
       });
     } else {
@@ -22,7 +22,7 @@ const Platform = (function () {
       const url = urlOrBlob instanceof Blob ? URL.createObjectURL(urlOrBlob) : urlOrBlob;
       const a = document.createElement('a');
       a.href = url;
-      a.download = (filename || 'snaproo-image').replace(/^snaproo\//, '');
+      a.download = (filename || 'gazo-image').replace(/^gazo\//, '');
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -35,7 +35,7 @@ const Platform = (function () {
     if (isExtension) {
       return new Promise(r => chrome.storage.sync.set({ [key]: value }, r));
     } else {
-      localStorage.setItem('snaproo_' + key, JSON.stringify(value));
+      localStorage.setItem('gazo_' + key, JSON.stringify(value));
     }
   }
 
@@ -45,7 +45,7 @@ const Platform = (function () {
     } else {
       const result = {};
       for (const [key, def] of Object.entries(defaults)) {
-        const stored = localStorage.getItem('snaproo_' + key);
+        const stored = localStorage.getItem('gazo_' + key);
         result[key] = stored !== null ? JSON.parse(stored) : def;
       }
       return result;
@@ -170,7 +170,7 @@ const Platform = (function () {
       sync: {
         get: (defaults, cb) => { loadSettings(defaults).then(r => cb(r)); },
         set: (obj, cb) => { for (const [k,v] of Object.entries(obj)) saveSetting(k,v); if (cb) cb(); },
-        clear: (cb) => { const keys = Object.keys(localStorage).filter(k => k.startsWith('snaproo_')); keys.forEach(k => localStorage.removeItem(k)); if (cb) cb(); },
+        clear: (cb) => { const keys = Object.keys(localStorage).filter(k => k.startsWith('gazo_')); keys.forEach(k => localStorage.removeItem(k)); if (cb) cb(); },
       },
       local: {
         get: (keyOrObj, cb) => {

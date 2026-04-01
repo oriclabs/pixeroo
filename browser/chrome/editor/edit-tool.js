@@ -1,4 +1,4 @@
-// Snaproo — Edit Tool
+// Gazo — Edit Tool
 
 // Shared state for zoom (used by initInfoBar + initImageHandles)
 let zoomLevel = 1;
@@ -83,6 +83,31 @@ function initEdit() {
     saveEdit();
     resetAdjustmentSliders();
     if (window.fitToView) window.fitToView();
+  });
+
+  // Clear -- unload image entirely, show dropzone
+  $('btn-edit-clear')?.addEventListener('click', async () => {
+    if (!editOriginal) return;
+    const ok = await pixDialog.confirm('Clear Image', 'Unload the current image and start fresh?', { danger: true, okText: 'Clear' });
+    if (!ok) return;
+    editOriginal = null;
+    editFilename = 'edited';
+    pipeline.resetAll();
+    pipeline.original = null;
+    editCanvas.width = 0; editCanvas.height = 0;
+    editCanvas.style.display = 'none';
+    const ol = window._gazoObjLayer;
+    if (ol) { ol.objects = []; ol.selected = null; ol.selectedObjects = []; if (ol.active) ol.detach(); }
+    $('edit-dropzone').style.display = '';
+    $('edit-ribbon')?.classList.add('disabled');
+    $('file-label').textContent = '';
+    $('dimension-badge').style.display = 'none';
+    if (window._resetResizeSlider) window._resetResizeSlider();
+    resetAdjustmentSliders();
+    removeSliceOverlay();
+    showImageHandles(); // hides the resize handles container
+    if (editGuides) { editGuides.destroy(); editGuides = null; }
+    originalW = 0; originalH = 0;
   });
 
   // Reset Adjustments -- remove adjust ops from pipeline, reset sliders
@@ -398,9 +423,9 @@ function initEdit() {
   };
 
   // Attach object layer when image loads (called from image load handlers)
-  window._snaprooObjLayer = objLayer;
+  window._gazoObjLayer = objLayer;
 
-  const annTools = { 'btn-ann-rect': 'rect', 'btn-ann-arrow': 'arrow', 'btn-ann-text': 'text', 'btn-ann-pen': 'pen', 'btn-ann-highlighter': 'highlighter', 'btn-ann-redact': 'redact' };
+  const annTools = { 'btn-ann-rect': 'rect', 'btn-ann-ellipse': 'ellipse', 'btn-ann-arrow': 'arrow', 'btn-ann-curved': 'curvedArrow', 'btn-ann-text': 'text', 'btn-ann-pen': 'pen', 'btn-ann-highlighter': 'highlighter', 'btn-ann-redact': 'redact' };
   const allAnnBtns = ['btn-ann-select', ...Object.keys(annTools)];
 
   function setActiveAnnTool(activeId) {
@@ -1171,7 +1196,7 @@ function initEdit() {
     const zipBlob = await zip.toBlob();
     const url = URL.createObjectURL(zipBlob);
     const a = document.createElement('a');
-    a.href = url; a.download = 'snaproo-slices.zip'; a.click();
+    a.href = url; a.download = 'gazo-slices.zip'; a.click();
     URL.revokeObjectURL(url);
   });
 
@@ -1215,7 +1240,7 @@ function initEdit() {
     const tiles = splitImage(editCanvas, dir, parts);
     for (let i = 0; i < tiles.length; i++) {
       const blob = await new Promise(r => tiles[i].toBlob(r, 'image/png'));
-      Platform.download(URL.createObjectURL(blob), `snaproo/${editFilename}-${dir[0]}${i+1}.png`, false);
+      Platform.download(URL.createObjectURL(blob), `gazo/${editFilename}-${dir[0]}${i+1}.png`, false);
     }
   }
 
@@ -1326,14 +1351,14 @@ function initEdit() {
   $('btn-strip-meta')?.addEventListener('click', async () => {
     if (!editCanvas.width) return;
     const blob = await stripMetadata(editCanvas, 'png');
-    Platform.download(URL.createObjectURL(blob), `snaproo/${editFilename}-clean.png`, true);
+    Platform.download(URL.createObjectURL(blob), `gazo/${editFilename}-clean.png`, true);
   });
 
   // Image to PDF
   $('btn-to-pdf')?.addEventListener('click', async () => {
     if (!editCanvas.width) return;
-    const blob = await imageToPdf([editCanvas], 'snaproo-export');
-    Platform.download(URL.createObjectURL(blob), `snaproo/${editFilename}.pdf`, true);
+    const blob = await imageToPdf([editCanvas], 'gazo-export');
+    Platform.download(URL.createObjectURL(blob), `gazo/${editFilename}.pdf`, true);
   });
 
   // Export
@@ -1357,24 +1382,24 @@ function initEdit() {
     else { sw = src.width; sh = sw / ta; sx = 0; sy = (src.height - sh) / 2; }
     octx.drawImage(src, sx, sy, sw, sh, 0, 0, tw, th);
     // Flatten annotations if present
-    if (window._snaprooObjLayer?.hasObjects()) {
-      window._snaprooObjLayer.renderTo(octx, tw / src.width, th / src.height);
+    if (window._gazoObjLayer?.hasObjects()) {
+      window._gazoObjLayer.renderTo(octx, tw / src.width, th / src.height);
     }
     const fmt = $('export-format').value || 'png';
     const quality = +($('export-quality')?.value || 85) / 100;
     const mime = { png:'image/png', jpeg:'image/jpeg', webp:'image/webp' }[fmt] || 'image/png';
     out.toBlob(blob => {
-      Platform.download(URL.createObjectURL(blob), `snaproo/${editFilename}-${name}.${fmt === 'jpeg' ? 'jpg' : fmt}`, true);
+      Platform.download(URL.createObjectURL(blob), `gazo/${editFilename}-${name}.${fmt === 'jpeg' ? 'jpg' : fmt}`, true);
     }, mime, quality);
     $('export-preset').value = '';
   });
 
   // Export annotations as SVG overlay
   $('btn-export-annotations-svg')?.addEventListener('click', () => {
-    if (!window._snaprooObjLayer?.hasObjects()) return;
-    const svg = window._snaprooObjLayer.exportAsSVG(editCanvas.width, editCanvas.height);
+    if (!window._gazoObjLayer?.hasObjects()) return;
+    const svg = window._gazoObjLayer.exportAsSVG(editCanvas.width, editCanvas.height);
     const blob = new Blob([svg], { type: 'image/svg+xml' });
-    Platform.download(URL.createObjectURL(blob), `snaproo/${editFilename}-annotations.svg`, true);
+    Platform.download(URL.createObjectURL(blob), `gazo/${editFilename}-annotations.svg`, true);
   });
 
   // --- Save/Load Edit Project ---
@@ -1401,7 +1426,7 @@ function initEdit() {
 
     const json = JSON.stringify(project);
     const blob = new Blob([json], { type: 'application/json' });
-    Platform.download(URL.createObjectURL(blob), `snaproo/${editFilename}-project.snaproo`, true);
+    Platform.download(URL.createObjectURL(blob), `gazo/${editFilename}-project.gazo`, true);
     if (footer) footer.textContent = `Project saved (${(json.length / 1024).toFixed(0)} KB)`;
   });
 
@@ -1459,8 +1484,8 @@ function initEdit() {
     const hasImage = !!editOriginal;
     const hasOps = pipeline.operations.length > 0;
     const hasUndone = pipeline.undoneOps.length > 0;
-    const hasObjects = window._snaprooObjLayer?.hasObjects();
-    const selObj = window._snaprooObjLayer?.selected;
+    const hasObjects = window._gazoObjLayer?.hasObjects();
+    const selObj = window._gazoObjLayer?.selected;
 
     const items = [
       { label: 'Undo', shortcut: 'Ctrl+Z', enabled: hasOps, action: editUndo },
@@ -1487,8 +1512,8 @@ function initEdit() {
       { label: 'Export', shortcut: 'Ctrl+S', enabled: hasImage, action: editExport },
       { sep: true },
       { header: 'Annotations', enabled: hasObjects },
-      { label: 'Flatten Annotations', enabled: hasObjects, action: () => { window._snaprooObjLayer.flatten(); saveEdit(); } },
-      { label: 'Delete Selected', enabled: !!selObj, action: () => { window._snaprooObjLayer.deleteSelected(); window._snaprooObjLayer.render(); } },
+      { label: 'Flatten Annotations', enabled: hasObjects, action: () => { window._gazoObjLayer.flatten(); saveEdit(); } },
+      { label: 'Delete Selected', enabled: !!selObj, action: () => { window._gazoObjLayer.deleteSelected(); window._gazoObjLayer.render(); } },
       { label: 'Export as SVG', enabled: hasObjects, action: () => $('btn-export-annotations-svg')?.click() },
     ];
 
@@ -1737,148 +1762,11 @@ function _initEditGuides() {
 // Image Resize Handles (visual drag-to-resize on canvas)
 // ============================================================
 
-function initImageHandles() {
-  const container = $('img-resize-handles');
-  if (!container) return;
-
-  const HS = 10; // handle size
-  const cursors = { tl:'nwse-resize', tr:'nesw-resize', bl:'nesw-resize', br:'nwse-resize', tm:'ns-resize', bm:'ns-resize', ml:'ew-resize', mr:'ew-resize' };
-  const handleNames = ['tl','tr','bl','br','tm','bm','ml','mr'];
-  const handleEls = {};
-
-  // Create resize handle elements
-  handleNames.forEach(name => {
-    const h = document.createElement('div');
-    h.dataset.handle = name;
-    h.style.cssText = `position:absolute;width:${HS}px;height:${HS}px;background:var(--saffron-400);border:1px solid var(--saffron-950);cursor:${cursors[name]};pointer-events:auto;z-index:10;border-radius:2px;`;
-    container.appendChild(h);
-    handleEls[name] = h;
-  });
-
-
-  let dragHandle = null, startX, startY, startW, startH;
-
-  // Position handles based on canvas rect
-  function positionHandles() {
-    if (!editCanvas.width) return;
-    const canvasRect = editCanvas.getBoundingClientRect();
-    const workRect = $('edit-work').getBoundingClientRect();
-    const ox = canvasRect.left - workRect.left;
-    const oy = canvasRect.top - workRect.top;
-    const cw = canvasRect.width;
-    const ch = canvasRect.height;
-    const hh = HS / 2;
-
-    container.style.position = 'absolute';
-    container.style.inset = '0';
-    container.style.pointerEvents = 'none';
-
-    handleEls.tl.style.left = (ox - hh) + 'px'; handleEls.tl.style.top = (oy - hh) + 'px';
-    handleEls.tr.style.left = (ox + cw - hh) + 'px'; handleEls.tr.style.top = (oy - hh) + 'px';
-    handleEls.bl.style.left = (ox - hh) + 'px'; handleEls.bl.style.top = (oy + ch - hh) + 'px';
-    handleEls.br.style.left = (ox + cw - hh) + 'px'; handleEls.br.style.top = (oy + ch - hh) + 'px';
-    handleEls.tm.style.left = (ox + cw / 2 - hh) + 'px'; handleEls.tm.style.top = (oy - hh) + 'px';
-    handleEls.bm.style.left = (ox + cw / 2 - hh) + 'px'; handleEls.bm.style.top = (oy + ch - hh) + 'px';
-    handleEls.ml.style.left = (ox - hh) + 'px'; handleEls.ml.style.top = (oy + ch / 2 - hh) + 'px';
-    handleEls.mr.style.left = (ox + cw - hh) + 'px'; handleEls.mr.style.top = (oy + ch / 2 - hh) + 'px';
-  }
-
-  // Wire drag on handles
-  Object.values(handleEls).forEach(h => {
-    h.addEventListener('mousedown', (e) => {
-      e.stopPropagation();
-      e.preventDefault();
-      dragHandle = h.dataset.handle;
-      startX = e.clientX;
-      startY = e.clientY;
-      startW = editCanvas.width;
-      startH = editCanvas.height;
-    });
-  });
-
-
-  window.addEventListener('mousemove', (e) => {
-    if (!dragHandle) return;
-
-    const curZoom = zoomLevel || 1;
-
-    const dx = (e.clientX - startX) / curZoom;
-    const dy = (e.clientY - startY) / curZoom;
-    let newW = startW, newH = startH;
-
-    if (dragHandle.includes('r')) newW = Math.max(50, Math.round(startW + dx));
-    if (dragHandle.includes('l')) newW = Math.max(50, Math.round(startW - dx));
-    if (dragHandle.startsWith('b')) newH = Math.max(50, Math.round(startH + dy));
-    if (dragHandle.startsWith('t')) newH = Math.max(50, Math.round(startH - dy));
-
-    if (barLocked) {
-      // Maintain aspect ratio for all handles when locked
-      const ratio = startW / startH;
-      if (dragHandle === 'ml' || dragHandle === 'mr') {
-        // Horizontal edge: adjust height to match
-        newH = Math.round(newW / ratio);
-      } else if (dragHandle === 'tm' || dragHandle === 'bm') {
-        // Vertical edge: adjust width to match
-        newW = Math.round(newH * ratio);
-      } else {
-        // Corner: use width as primary
-        newH = Math.round(newW / ratio);
-      }
-    } else {
-      // Unlocked: edge handles only resize one dimension
-      if (dragHandle === 'ml' || dragHandle === 'mr') newH = startH;
-      if (dragHandle === 'tm' || dragHandle === 'bm') newW = startW;
-    }
-
-    $('bar-w').value = newW;
-    $('bar-h').value = newH;
-    // Visual preview only — CSS resize, no pipeline render during drag
-    editCanvas.style.width = newW + 'px';
-    editCanvas.style.height = newH + 'px';
-    positionHandles();
-    showEditHint(`${newW} × ${newH} px`);
-    // Store for mouseup
-    pendingResizeW = newW;
-    pendingResizeH = newH;
-  });
-
-  let pendingResizeW = 0, pendingResizeH = 0;
-
-  window.addEventListener('mouseup', () => {
-    if (dragHandle) {
-      // Apply resize via pipeline only on release
-      if (pendingResizeW && pendingResizeH && (pendingResizeW !== startW || pendingResizeH !== startH)) {
-        pipeline.setExportSize(pendingResizeW, pendingResizeH);
-        updResize();
-        if (window.fitToView) window.fitToView();
-      }
-      pendingResizeW = 0;
-      pendingResizeH = 0;
-      dragHandle = null;
-      saveEdit();
-      positionHandles();
-      hideEditHint();
-    }
-  });
-
-  // Re-position on window resize
-  window.addEventListener('resize', positionHandles);
-
-  // Expose for external calls
-  window._positionImageHandles = positionHandles;
-}
-
+// Image resize handles removed — use ribbon W/H inputs for exact resize
+function initImageHandles() {}
 function showImageHandles() {
   const container = $('img-resize-handles');
-  if (!container || !editCanvas.width) { if (container) container.style.display = 'none'; return; }
-  // Hide handles only during active crop overlay
-  if (Crop?.active) { container.style.display = 'none'; return; }
-  // Move handles container to edit-work (not canvas-wrap, which gets CSS transformed)
-  const work = $('edit-work');
-  if (container.parentElement !== work) work.appendChild(container);
-  container.style.display = '';
-  // Position after a frame (canvas needs to be rendered first)
-  requestAnimationFrame(() => { if (window._positionImageHandles) window._positionImageHandles(); });
+  if (container) container.style.display = 'none';
 }
 
 // ============================================================
@@ -2030,7 +1918,16 @@ function initInfoBar() {
     }
   });
 
-  // Apply resize on button click or Enter key
+  // Scale draw objects proportionally after resize
+  function _scaleObjectsAfterResize(oldW, oldH) {
+    const ol = window._gazoObjLayer;
+    if (!ol?.hasObjects || !ol.hasObjects()) return;
+    const newW = editCanvas.width || 1;
+    const newH = editCanvas.height || 1;
+    if (oldW === newW && oldH === newH) return;
+    ol.scaleObjects(newW / oldW, newH / oldH);
+  }
+
   function applyBarResize() {
     if (!editCanvas.width) return;
     let newW, newH;
@@ -2042,15 +1939,57 @@ function initInfoBar() {
     }
     if (!newW || !newH || newW < 1 || newH < 1) return;
 
-    // Non-destructive: pipeline resize as undoable operation
+    const oldW = editCanvas.width, oldH = editCanvas.height;
     pipeline.setExportSize(newW, newH);
+    _scaleObjectsAfterResize(oldW, oldH);
     updResize(); saveEdit();
     if (window.fitToView) window.fitToView();
+    showToast(`Resized to ${newW}\u00d7${newH} \u00b7 View fitted to screen`, 'info');
   }
 
   barApply?.addEventListener('click', applyBarResize);
   barW?.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyBarResize(); });
   barH?.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyBarResize(); });
+
+  // --- Resize percentage slider ---
+  const resizeSlider = $('bar-resize-slider');
+  const resizePct = $('bar-resize-pct');
+  const SNAP_POINTS = [25, 50, 75, 100, 150, 200];
+  const SNAP_THRESHOLD = 3; // snap within ±3%
+
+  if (resizeSlider) {
+    resizeSlider.addEventListener('input', () => {
+      if (!editCanvas.width || !originalW || !originalH) return;
+      let pct = +resizeSlider.value;
+      // Snap to preset marks
+      for (const sp of SNAP_POINTS) {
+        if (Math.abs(pct - sp) <= SNAP_THRESHOLD) { pct = sp; resizeSlider.value = sp; break; }
+      }
+      resizePct.textContent = pct + '%';
+      const newW = Math.max(1, Math.round(originalW * pct / 100));
+      const newH = Math.max(1, Math.round(originalH * pct / 100));
+      barW.value = barUnitPx ? newW : pct;
+      barH.value = barUnitPx ? newH : pct;
+    });
+
+    resizeSlider.addEventListener('change', () => {
+      if (!editCanvas.width || !originalW || !originalH) return;
+      const pct = +resizeSlider.value;
+      const newW = Math.max(1, Math.round(originalW * pct / 100));
+      const newH = Math.max(1, Math.round(originalH * pct / 100));
+      const oldW = editCanvas.width, oldH = editCanvas.height;
+      pipeline.setExportSize(newW, newH);
+      _scaleObjectsAfterResize(oldW, oldH);
+      updResize(); saveEdit();
+      if (window.fitToView) window.fitToView();
+      showToast(`Resized to ${newW}\u00d7${newH} (${pct}%) \u00b7 View fitted to screen`, 'info');
+    });
+  }
+
+  // Reset slider when image changes
+  window._resetResizeSlider = function() {
+    if (resizeSlider) { resizeSlider.value = 100; resizePct.textContent = '100%'; }
+  };
 
   // --- Zoom / Pan ---
   let isPanning = false, panStartX = 0, panStartY = 0;
@@ -2063,7 +2002,6 @@ function initInfoBar() {
     const zoomEl = $('bar-zoom');
     if (zoomEl) zoomEl.textContent = Math.round(zoomLevel * 100) + '%';
     if (editGuides) editGuides.render();
-    if (window._positionImageHandles) window._positionImageHandles();
   }
 
   // Fit image to the work area viewport
@@ -2087,7 +2025,7 @@ function initInfoBar() {
     }
     zoomLevel = 1; panX = 0; panY = 0;
     updateZoom();
-    // Re-sync guides overlay after CSS change
+    // Re-sync handles and guides after CSS change
     if (editGuides?.visible) setTimeout(() => editGuides.update(), 0);
   }
 
@@ -2194,7 +2132,10 @@ function updateInfoBar() {
   if (!bar) return;
 
   // Track original dimensions (set once on first load)
-  if (editCanvas.width && !originalW) { originalW = editCanvas.width; originalH = editCanvas.height; }
+  if (editCanvas.width && !originalW) {
+    originalW = editCanvas.width; originalH = editCanvas.height;
+    if (window._resetResizeSlider) window._resetResizeSlider();
+  }
 
   const barW = $('bar-w');
   const barH = $('bar-h');
@@ -2232,21 +2173,21 @@ function editRedo() {
 function editExport() {
   if (!editCanvas.width) return;
   // Flatten any drawn objects into the canvas before export
-  if (window._snaprooObjLayer?.hasObjects()) window._snaprooObjLayer.flatten();
+  if (window._gazoObjLayer?.hasObjects()) window._gazoObjLayer.flatten();
   const fmt = $('export-format').value;
 
   // SVG trace export
   if (fmt === 'svg') {
     const svg = PixTrace.traceCanvas(editCanvas, 'default');
     const blob = new Blob([svg], { type: 'image/svg+xml' });
-    Platform.download(URL.createObjectURL(blob), `snaproo/${editFilename}.svg`, true);
+    Platform.download(URL.createObjectURL(blob), `gazo/${editFilename}.svg`, true);
     return;
   }
 
   const mime = {png:'image/png',jpeg:'image/jpeg',webp:'image/webp',bmp:'image/bmp'}[fmt] || 'image/png';
   const q = ['jpeg','webp'].includes(fmt) ? +($('export-quality')?.value || 85) / 100 : undefined;
   editCanvas.toBlob(blob => {
-    Platform.download(URL.createObjectURL(blob), `snaproo/${editFilename}.${fmt==='jpeg'?'jpg':fmt}`, true);
+    Platform.download(URL.createObjectURL(blob), `gazo/${editFilename}.${fmt==='jpeg'?'jpg':fmt}`, true);
   }, mime, q);
 }
 

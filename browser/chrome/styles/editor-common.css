@@ -1,4 +1,4 @@
-/* Snaproo — Editor Common CSS (extracted from editor.html) */
+/* Gazo — Editor Common CSS (extracted from editor.html) */
 
 /* Mode panels */
 .mode-view { display: none; flex: 1; overflow: hidden; }
@@ -7,6 +7,7 @@
 /* Common */
 .work-area { flex: 1; display: flex; align-items: center; justify-content: safe center; flex-direction: column; background: var(--slate-900); overflow: auto; position: relative; min-height: 0; }
 .work-area canvas { max-width: 90%; max-height: 90%; }
+#social-guides, .obj-overlay { max-width: none !important; max-height: none !important; }
 /* Edit canvas + overlay canvases: no CSS constraints */
 #editor-canvas,
 #edit-canvas-wrap canvas { max-width: none !important; max-height: none !important; }

@@ -1,4 +1,4 @@
-// Snaproo — Meme Generator Tool
+// Gazo — Meme Generator Tool
 
 function initMeme() {
   const canvas = $('meme-canvas');
@@ -238,7 +238,7 @@ function initMeme() {
     const fmt = $('meme-export-fmt')?.value || 'png';
     const mime = { png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp' }[fmt] || 'image/png';
     canvas.toBlob(blob => {
-      Platform.download(URL.createObjectURL(blob), `snaproo/meme.${fmt === 'jpeg' ? 'jpg' : fmt}`, true);
+      Platform.download(URL.createObjectURL(blob), `gazo/meme.${fmt === 'jpeg' ? 'jpg' : fmt}`, true);
     }, mime, 0.92);
   });
 

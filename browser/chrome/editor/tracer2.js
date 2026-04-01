@@ -1,4 +1,4 @@
-// Snaproo — Clean SVG Tracer v2
+// Gazo — Clean SVG Tracer v2
 // Multi-color raster-to-SVG: quantize → connected regions → outline → smooth bezier
 
 const SvgTracer = (function () {

@@ -1,4 +1,4 @@
-// Snaproo — Store Tool
+// Gazo — Store Tool
 const STORE_SPECS = {
   play: [
     { name: 'App Icon', w: 512, h: 512, type: 'icon' },
@@ -184,7 +184,7 @@ function renderStoreAssets(filter) {
         card.addEventListener('click', () => {
           item.canvas.toBlob(blob => {
             const name = `${store}-${spec.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${spec.w}x${spec.h}.png`;
-            Platform.download(URL.createObjectURL(blob), `snaproo/store-assets/${name}`, true);
+            Platform.download(URL.createObjectURL(blob), `gazo/store-assets/${name}`, true);
           });
         });
       }
@@ -204,7 +204,7 @@ async function exportStoreZip() {
     for (const item of items) {
       const name = `${store}-${item.spec.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${item.spec.w}x${item.spec.h}.png`;
       const blob = await new Promise(r => item.canvas.toBlob(r));
-      Platform.download(URL.createObjectURL(blob), `snaproo/store-assets/${name}`, false);
+      Platform.download(URL.createObjectURL(blob), `gazo/store-assets/${name}`, false);
     }
   }
 }

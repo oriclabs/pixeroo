@@ -1,4 +1,4 @@
-// Snaproo — Info Tool
+// Gazo — Info Tool
 function initInfo() {
   setupDropzone($('info-drop'), $('info-file'), async (file) => {
     $('info-drop').style.display = 'none';
@@ -48,8 +48,51 @@ function initInfo() {
       b64Btn.disabled = false;
       b64Btn.onclick = () => {
         navigator.clipboard.writeText(c.toDataURL(file.type || 'image/png'));
+        showToast('Data URI copied', 'success');
+      };
+
+      // Strip metadata — only if EXIF exists
+      const stripBtn = $('btn-info-strip-meta');
+      stripBtn.disabled = !exif.length;
+      stripBtn.onclick = () => {
+        c.toBlob((blob) => {
+          if (!blob) return;
+          directDownload(blob, file.name.replace(/\.[^.]+$/, '-stripped') + '.png');
+          showToast('Stripped image downloaded', 'success');
+        }, 'image/png');
+      };
+
+      // Copy JSON — all metadata as JSON
+      const jsonBtn = $('btn-info-copy-json');
+      jsonBtn.disabled = false;
+      jsonBtn.onclick = () => {
+        const data = {
+          file: { name: file.name, type: file.type, size: file.size, modified: file.lastModified ? new Date(file.lastModified).toISOString() : null },
+          dimensions: { width: img.naturalWidth, height: img.naturalHeight },
+          dpi: dpi || null,
+          exif: exif.length ? Object.fromEntries(exif) : null,
+        };
+        navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+        showToast('Metadata JSON copied', 'success');
       };
     }
+  });
+
+  // Reset
+  $('btn-info-reset')?.addEventListener('click', () => {
+    $('info-drop').style.display = '';
+    $('info-preview').style.display = 'none';
+    const grid = $('info-details-grid');
+    if (grid) grid.style.display = 'none';
+    $('info-file-details').innerHTML = '<span style="color:var(--slate-400);">No image loaded</span>';
+    $('info-exif').innerHTML = '';
+    $('info-structure').innerHTML = '';
+    $('info-dpi').innerHTML = '';
+    $('info-hash').innerHTML = '';
+    $('btn-copy-base64').disabled = true;
+    $('btn-info-strip-meta').disabled = true;
+    $('btn-info-copy-json').disabled = true;
+    $('info-file').value = '';
   });
 }
 

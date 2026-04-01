@@ -1,8 +1,12 @@
-// Snaproo — Batch Edit Tool
+// Gazo — Batch Edit Tool
 function initBatch() {
   let batchFiles = [];
   let importedPipeline = null;
   let previewIndex = 0; // which image to preview
+
+  // Watermark B/I toggles
+  $('batch-wm-bold')?.addEventListener('click', (e) => e.currentTarget.classList.toggle('active'));
+  $('batch-wm-italic')?.addEventListener('click', (e) => e.currentTarget.classList.toggle('active'));
 
   // Slider labels
   $('batch-wm-opacity')?.addEventListener('input', (e) => {
@@ -192,7 +196,7 @@ function initBatch() {
   // --- 1. Import Pipeline from Edit mode ---
   $('btn-batch-import-pipeline')?.addEventListener('click', () => {
     if (!pipeline || !pipeline.operations.length) {
-      $('batch-pipeline-info').innerHTML = 'Go to <b>Edit</b> first, apply operations, then come back here to import';
+      $('batch-pipeline-info').textContent = 'No Edit ops';
       return;
     }
     importedPipeline = JSON.parse(JSON.stringify(pipeline.operations));
@@ -279,7 +283,10 @@ function initBatch() {
     const pos = $('batch-wm-position')?.value || 'center';
     const color = $('batch-wm-color')?.value || '#ffffff';
     const fontFamily = $('batch-wm-font')?.value || 'Inter, system-ui, sans-serif';
-    const fontSize = Math.round(Math.min(c.width, c.height) * 0.05);
+    const customSize = +($('batch-wm-fontsize')?.value) || 0;
+    const fontSize = customSize > 0 ? customSize : Math.round(Math.min(c.width, c.height) * 0.05);
+    const bold = $('batch-wm-bold')?.classList.contains('active') ? 'bold' : 'normal';
+    const italic = $('batch-wm-italic')?.classList.contains('active') ? 'italic' : 'normal';
     const opacity = opts.opacity || 0.3;
 
     ctx.save();
@@ -310,7 +317,7 @@ function initBatch() {
 
     // --- Text-based modes ---
     ctx.fillStyle = color;
-    ctx.font = `bold ${fontSize}px ${fontFamily}`;
+    ctx.font = `${italic} ${bold} ${fontSize}px ${fontFamily}`;
 
     if (mode === 'diagonal') {
       // Large diagonal text across center
@@ -805,8 +812,8 @@ function initBatch() {
   // --- 3. Processing Report ---
   $('btn-batch-report')?.addEventListener('click', async () => {
     const checked = getChecked(); if (!checked.length) return;
-    let html = '<!DOCTYPE html><html><head><title>Snaproo Batch Report</title><style>body{font-family:Inter,system-ui,sans-serif;background:#0f172a;color:#e2e8f0;padding:2rem;max-width:900px;margin:0 auto;}table{width:100%;border-collapse:collapse;margin:1rem 0;}th,td{padding:8px 12px;border-bottom:1px solid #334155;text-align:left;font-size:0.875rem;}th{color:#94a3b8;font-weight:600;}img{max-height:60px;border-radius:4px;}</style></head><body>';
-    html += `<h1>Snaproo Batch Report</h1><p style="color:#94a3b8;">${new Date().toLocaleString()} | ${checked.length} images</p>`;
+    let html = '<!DOCTYPE html><html><head><title>Gazo Batch Report</title><style>body{font-family:Inter,system-ui,sans-serif;background:#0f172a;color:#e2e8f0;padding:2rem;max-width:900px;margin:0 auto;}table{width:100%;border-collapse:collapse;margin:1rem 0;}th,td{padding:8px 12px;border-bottom:1px solid #334155;text-align:left;font-size:0.875rem;}th{color:#94a3b8;font-weight:600;}img{max-height:60px;border-radius:4px;}</style></head><body>';
+    html += `<h1>Gazo Batch Report</h1><p style="color:#94a3b8;">${new Date().toLocaleString()} | ${checked.length} images</p>`;
     html += '<table><tr><th>#</th><th>Preview</th><th>Filename</th><th>Dimensions</th><th>Format</th><th>Size</th></tr>';
     checked.forEach((bf, i) => {
       const thumb = bf.canvas.toDataURL('image/jpeg', 0.3);

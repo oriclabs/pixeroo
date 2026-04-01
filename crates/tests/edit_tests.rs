@@ -1,4 +1,4 @@
-use pixeroo_wasm::edit;
+use gazo_wasm::edit;
 
 // --- Helper: 10x10 red PNG ---
 fn test_png_10x10() -> Vec<u8> {

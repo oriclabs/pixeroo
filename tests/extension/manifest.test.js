@@ -1,4 +1,4 @@
-// Snaproo - Manifest & Extension Structure Tests
+// Gazo - Manifest & Extension Structure Tests
 // Run with: node --test tests/extension/manifest.test.js
 
 import { describe, it } from 'node:test';
@@ -30,7 +30,7 @@ describe('Chrome manifest.json', () => {
   });
 
   it('should have correct name', () => {
-    assert.equal(manifest.name, 'Snaproo');
+    assert.equal(manifest.name, 'Gazo');
   });
 
   it('should have a version', () => {
@@ -164,7 +164,7 @@ describe('Edge manifest.json', () => {
   });
 
   it('should have same name as Chrome', () => {
-    assert.equal(manifest.name, 'Snaproo');
+    assert.equal(manifest.name, 'Gazo');
   });
 });
 

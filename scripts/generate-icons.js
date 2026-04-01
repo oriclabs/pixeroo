@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Pixeroo Icon Generator
+// Gazo Icon Generator
 // Generates PNG icons at 16, 32, 48, 128, 192, 512 px
 // Pure Node.js - no external dependencies
 
@@ -11,10 +11,12 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 
-// Saffron palette
-const SAFFRON_LIGHT = [0xF4, 0xC4, 0x30]; // #F4C430
-const SAFFRON_DARK  = [0xB8, 0x86, 0x0B]; // #B8860B
-const ICON_STROKE   = [0x2A, 0x1E, 0x05]; // #2A1E05
+// Gazo brand colors
+const SAFFRON_LIGHT = [0xFC, 0xD3, 0x4D]; // #FCD34D
+const SAFFRON       = [0xF4, 0xC4, 0x30]; // #F4C430
+const SAFFRON_DARK  = [0xD4, 0xA0, 0x17]; // #D4A017
+const DARK_BG       = [0x0F, 0x17, 0x2A]; // #0f172a
+const SLATE_200     = [0xE2, 0xE8, 0xF0]; // #e2e8f0
 const TRANSPARENT   = [0, 0, 0, 0];
 
 function lerp(a, b, t) {
@@ -30,38 +32,98 @@ function dist(x1, y1, x2, y2) {
 }
 
 /**
- * Generate icon pixel data at given size
- * Design: saffron gradient rounded rect with image icon (frame + sun + mountain)
+ * Generate Gazo icon — dark bg, saffron frame border, bold "G" center
+ * Design matches brand/logo/10-kanji-frame-with-text.svg simplified for pixel rendering
  */
 function generateIcon(size) {
   const pixels = new Uint8Array(size * size * 4);
-  const r = size * 0.1875; // corner radius (~6/32)
+  const r = size * 0.1875; // outer corner radius
+  const borderW = Math.max(1, Math.round(size * 0.024)); // frame border width
+  const frameInset = Math.round(size * 0.11); // frame inset from edge
+  const frameR = Math.max(1, Math.round(size * 0.055)); // frame corner radius
 
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
       const idx = (y * size + x) * 4;
-      const nx = x / size; // normalized 0-1
+      const nx = x / size;
       const ny = y / size;
 
-      // Rounded rect mask
+      // Outer rounded rect mask (transparent outside)
       if (!inRoundedRect(x, y, size, size, r)) {
         pixels[idx] = 0; pixels[idx+1] = 0; pixels[idx+2] = 0; pixels[idx+3] = 0;
         continue;
       }
 
-      // Background gradient (top-left to bottom-right)
-      const t = (nx + ny) / 2;
-      const bg = lerpColor(SAFFRON_LIGHT, SAFFRON_DARK, t);
+      // Default: dark background
+      let color = DARK_BG;
+      let alpha = 255;
 
-      // Draw the image icon motif
-      const color = getIconPixel(nx, ny, size, bg);
-      pixels[idx]     = color[0];
+      // Frame border (saffron gradient)
+      const inOuter = inRoundedRect(x - frameInset, y - frameInset,
+        size - frameInset * 2, size - frameInset * 2, frameR);
+      const inInner = inRoundedRect(x - frameInset - borderW, y - frameInset - borderW,
+        size - (frameInset + borderW) * 2, size - (frameInset + borderW) * 2, Math.max(0, frameR - borderW));
+
+      if (inOuter && !inInner) {
+        const t = (nx + ny) / 2;
+        color = lerpColor(SAFFRON_LIGHT, SAFFRON_DARK, t);
+      }
+
+      // Bold "G" letterform — saffron gradient
+      const gColor = getGPixel(nx, ny, size);
+      if (gColor) {
+        const t = (nx + ny) / 2;
+        color = lerpColor(SAFFRON_LIGHT, SAFFRON_DARK, t);
+      }
+
+      // Pixel accent (top-right corner, small squares)
+      if (size >= 32) {
+        const pxS = Math.max(2, Math.round(size * 0.028));
+        const pxX = size - frameInset - pxS * 3;
+        const pxY = frameInset + Math.round(borderW * 1.5);
+        if (x >= pxX && x < pxX + pxS && y >= pxY && y < pxY + pxS) { color = SAFFRON; alpha = 150; }
+        if (x >= pxX + pxS + 1 && x < pxX + pxS * 2 + 1 && y >= pxY && y < pxY + pxS) { color = SAFFRON; alpha = 80; }
+        if (x >= pxX && x < pxX + pxS && y >= pxY + pxS + 1 && y < pxY + pxS * 2 + 1) { color = SAFFRON; alpha = 80; }
+      }
+
+      pixels[idx] = color[0];
       pixels[idx + 1] = color[1];
       pixels[idx + 2] = color[2];
-      pixels[idx + 3] = color[3] !== undefined ? color[3] : 255;
+      pixels[idx + 3] = alpha;
     }
   }
   return pixels;
+}
+
+// Bold "G" shape check (normalized coordinates)
+function getGPixel(nx, ny) {
+  // G occupies roughly center of the icon, within the frame
+  // Vertical range: 0.22 - 0.68, Horizontal: 0.25 - 0.75
+
+  const cx = 0.50, cy = 0.43; // center of G
+  const outerR = 0.20; // outer radius
+  const innerR = 0.12; // inner radius
+  const gapAngleStart = -0.6; // gap in the circle (right side)
+  const gapAngleEnd = 0.6;
+
+  // Check if point is in the ring (outer circle minus inner circle)
+  const dx = nx - cx, dy = ny - cy;
+  const d = Math.sqrt(dx * dx + dy * dy);
+
+  if (d >= innerR && d <= outerR) {
+    // Angle from center
+    const angle = Math.atan2(dy, dx);
+    // Gap on the right side
+    if (angle > gapAngleStart && angle < gapAngleEnd) return false;
+    return true;
+  }
+
+  // Horizontal bar of G (extends inward from right)
+  if (nx >= cx && nx <= cx + outerR && ny >= cy - 0.025 && ny <= cy + 0.025) {
+    return true;
+  }
+
+  return false;
 }
 
 function inRoundedRect(x, y, w, h, r) {
@@ -73,99 +135,6 @@ function inRoundedRect(x, y, w, h, r) {
   return true;
 }
 
-function getIconPixel(nx, ny, size, bg) {
-  // Bold "P" letterform with pixel-grid accent
-  // The "P" is white/light on the saffron gradient
-
-  const WHITE = [255, 255, 255];
-  const DARK = ICON_STROKE;
-
-  // --- Bold "P" letter ---
-  // Vertical stem: x 0.25-0.40, y 0.20-0.80
-  if (nx >= 0.25 && nx <= 0.40 && ny >= 0.20 && ny <= 0.80) {
-    return WHITE;
-  }
-
-  // Top bar of P: x 0.40-0.65, y 0.20-0.33
-  if (nx >= 0.40 && nx <= 0.65 && ny >= 0.20 && ny <= 0.33) {
-    return WHITE;
-  }
-
-  // Right curve of P (approximated as rectangle + rounded): x 0.65-0.75, y 0.20-0.52
-  if (nx >= 0.65 && nx <= 0.75 && ny >= 0.20 && ny <= 0.52) {
-    return WHITE;
-  }
-
-  // Bottom bar of P bowl: x 0.40-0.65, y 0.40-0.52
-  if (nx >= 0.40 && nx <= 0.65 && ny >= 0.40 && ny <= 0.52) {
-    return WHITE;
-  }
-
-  // --- Pixel grid accent (3 small squares bottom-right) ---
-  // These give it an "image processing" feel
-  const pxSize = 0.08;
-
-  // Pixel 1: bottom-right
-  if (nx >= 0.72 && nx <= 0.72 + pxSize && ny >= 0.70 && ny <= 0.70 + pxSize) {
-    return DARK;
-  }
-  // Pixel 2
-  if (nx >= 0.60 && nx <= 0.60 + pxSize && ny >= 0.70 && ny <= 0.70 + pxSize) {
-    return WHITE;
-  }
-  // Pixel 3
-  if (nx >= 0.72 && nx <= 0.72 + pxSize && ny >= 0.58 && ny <= 0.58 + pxSize) {
-    return WHITE;
-  }
-  // Pixel 4 (darker)
-  if (nx >= 0.60 && nx <= 0.60 + pxSize && ny >= 0.58 && ny <= 0.58 + pxSize) {
-    return DARK;
-  }
-
-  return bg;
-}
-
-function isOnRoundedRectBorder(nx, ny, x1, y1, x2, y2, r, sw) {
-  // Check if point is on the border of a rounded rect
-  const inside = inNormRoundedRect(nx, ny, x1, y1, x2, y2, r);
-  const insideInner = inNormRoundedRect(nx, ny, x1 + sw, y1 + sw, x2 - sw, y2 - sw, Math.max(0, r - sw));
-  return inside && !insideInner;
-}
-
-function inNormRoundedRect(nx, ny, x1, y1, x2, y2, r) {
-  if (nx < x1 || nx > x2 || ny < y1 || ny > y2) return false;
-  // corners
-  if (nx < x1 + r && ny < y1 + r && dist(nx, ny, x1 + r, y1 + r) > r) return false;
-  if (nx > x2 - r && ny < y1 + r && dist(nx, ny, x2 - r, y1 + r) > r) return false;
-  if (nx < x1 + r && ny > y2 - r && dist(nx, ny, x1 + r, y2 - r) > r) return false;
-  if (nx > x2 - r && ny > y2 - r && dist(nx, ny, x2 - r, y2 - r) > r) return false;
-  return true;
-}
-
-function isOnMountainPath(nx, ny, sw) {
-  // Mountain stroke: polyline from (0.8125, 0.625) -> (0.5, 0.3125) -> (0.25, 0.8125)
-  const points = [
-    [0.8125, 0.625],
-    [0.5, 0.3125],
-    [0.25, 0.8125]
-  ];
-
-  for (let i = 0; i < points.length - 1; i++) {
-    if (distToSegment(nx, ny, points[i][0], points[i][1], points[i+1][0], points[i+1][1]) < sw) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function distToSegment(px, py, x1, y1, x2, y2) {
-  const dx = x2 - x1, dy = y2 - y1;
-  const lenSq = dx * dx + dy * dy;
-  if (lenSq === 0) return dist(px, py, x1, y1);
-  let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
-  t = Math.max(0, Math.min(1, t));
-  return dist(px, py, x1 + t * dx, y1 + t * dy);
-}
 
 /**
  * Encode RGBA pixel data as PNG
@@ -261,7 +230,7 @@ const sizes = [
   { size: 512, dir: 'website/pwa/icons', name: 'icon-maskable-512.png' },
 ];
 
-console.log('Generating Pixeroo icons...');
+console.log('Generating Gazo icons...');
 
 for (const { size, dir, name } of sizes) {
   const fullDir = join(ROOT, dir);

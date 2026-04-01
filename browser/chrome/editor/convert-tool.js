@@ -1,4 +1,4 @@
-// Snaproo — Convert Tool (table-based, per-file format)
+// Gazo — Convert Tool (table-based, per-file format)
 
 function initConvert() {
   let cvtFiles = []; // { file, objectUrl, fmt, checked, img, w, h, opts, hasCustomOpts }

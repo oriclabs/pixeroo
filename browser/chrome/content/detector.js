@@ -1,4 +1,4 @@
-// Snaproo Content Script - Image Detector
+// Gazo Content Script - Image Detector
 // Minimal footprint: only activates when messaged by background/popup/sidepanel
 
 (() => {
@@ -40,7 +40,7 @@
         break;
 
       case 'cancelEyedropper':
-        document.getElementById('snaproo-eyedropper')?.remove();
+        document.getElementById('gazo-eyedropper')?.remove();
         sendResponse({ success: true });
         break;
 
@@ -287,7 +287,7 @@
     removeOverlay();
 
     const overlay = document.createElement('div');
-    overlay.id = 'snaproo-overlay';
+    overlay.id = 'gazo-overlay';
     overlay.style.cssText = `
       position: fixed; top: 12px; right: 12px; z-index: 2147483647;
       width: 320px; max-height: 80vh; overflow-y: auto;
@@ -298,25 +298,38 @@
 
     overlay.innerHTML = `
       <div style="padding:12px;border-bottom:1px solid #1e293b;display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-weight:700;color:#F4C430;">Snaproo</span>
-        <button id="snaproo-close" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:18px;">&times;</button>
+        <span style="font-weight:700;color:#F4C430;">Gazo</span>
+        <button id="gazo-close" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:18px;">&times;</button>
       </div>
       <div style="padding:8px 12px;">
-        <div style="background:#1e293b;border-radius:8px;padding:8px;margin-bottom:8px;text-align:center;max-height:150px;overflow:hidden;">
-          <img src="${escapeAttr(src)}" style="max-width:100%;max-height:140px;object-fit:contain;border-radius:4px;" alt="Preview">
+        <div style="background:#1e293b;border-radius:8px;padding:8px;margin-bottom:8px;text-align:center;max-height:150px;overflow:hidden;cursor:pointer;" id="gazo-thumb-wrap" title="Click to enlarge">
+          <img src="${escapeAttr(src)}" style="max-width:100%;max-height:140px;object-fit:contain;border-radius:4px;" alt="Preview" id="gazo-thumb-img">
         </div>
-        <div id="snaproo-info-rows" style="font-size:12px;">
+        <div id="gazo-info-rows" style="font-size:12px;">
           <div style="color:#64748b;text-align:center;padding:8px;">Loading image info...</div>
         </div>
       </div>
     `;
 
     document.body.appendChild(overlay);
-    overlay.querySelector('#snaproo-close').addEventListener('click', removeOverlay);
+    overlay.querySelector('#gazo-close').addEventListener('click', removeOverlay);
+
+    // Click thumbnail to enlarge
+    overlay.querySelector('#gazo-thumb-wrap')?.addEventListener('click', () => {
+      let enlarged = document.getElementById('gazo-enlarged');
+      if (enlarged) { enlarged.remove(); return; }
+      enlarged = document.createElement('div');
+      enlarged.id = 'gazo-enlarged';
+      enlarged.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:rgba(2,6,23,0.85);display:flex;align-items:center;justify-content:center;cursor:pointer;';
+      enlarged.innerHTML = `<img src="${escapeAttr(src)}" style="max-width:90vw;max-height:90vh;object-fit:contain;border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,0.6);">`;
+      enlarged.addEventListener('click', () => enlarged.remove());
+      document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { enlarged.remove(); document.removeEventListener('keydown', esc); } });
+      document.body.appendChild(enlarged);
+    });
 
     // Delegated click-to-copy
     overlay.addEventListener('click', (e) => {
-      if (e.target.classList?.contains('snaproo-copyable')) {
+      if (e.target.classList?.contains('gazo-copyable')) {
         navigator.clipboard.writeText(e.target.textContent);
       }
     });
@@ -326,7 +339,7 @@
   }
 
   async function loadImageInfo(src) {
-    const rows = document.getElementById('snaproo-info-rows');
+    const rows = document.getElementById('gazo-info-rows');
     if (!rows) return;
 
     try {
@@ -370,7 +383,7 @@
       rows.innerHTML = info.map(([label, value]) => `
         <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1e293b;">
           <span style="color:#64748b;">${label}</span>
-          <span class="snaproo-copyable" style="color:#cbd5e1;max-width:180px;text-align:right;word-break:break-all;cursor:pointer;" title="Click to copy">${escapeHtml(truncate(String(value), 50))}</span>
+          <span class="gazo-copyable" style="color:#cbd5e1;max-width:180px;text-align:right;word-break:break-all;cursor:pointer;" title="Click to copy">${escapeHtml(truncate(String(value), 50))}</span>
         </div>
       `).join('');
     } catch (e) {
@@ -434,7 +447,7 @@
       chrome.runtime.sendMessage({
         action: 'download',
         url,
-        filename: `snaproo/${filename}`,
+        filename: `gazo/${filename}`,
         saveAs: true
       });
 
@@ -542,11 +555,11 @@
 
   // --- Toast Notification ---
   function showToast(msg, isError = false) {
-    const existing = document.getElementById('snaproo-toast');
+    const existing = document.getElementById('gazo-toast');
     if (existing) existing.remove();
 
     const toast = document.createElement('div');
-    toast.id = 'snaproo-toast';
+    toast.id = 'gazo-toast';
     toast.style.cssText = `
       position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
       z-index: 2147483647; padding: 10px 20px; border-radius: 8px;
@@ -564,7 +577,7 @@
 
   // --- Helpers ---
   function removeOverlay() {
-    document.getElementById('snaproo-overlay')?.remove();
+    document.getElementById('gazo-overlay')?.remove();
   }
 
   function guessTypeFromUrl(url) {
@@ -612,7 +625,7 @@
   // --- Eyedropper Overlay with Magnifier ---
   function startEyedropperOverlay(screenshotDataUrl, sendResponse) {
     // Remove any existing overlay
-    document.getElementById('snaproo-eyedropper')?.remove();
+    document.getElementById('gazo-eyedropper')?.remove();
 
     if (!screenshotDataUrl) {
       sendResponse({ color: null });
@@ -626,7 +639,7 @@
     img.onload = () => {
       // Full-screen canvas overlay
       const overlay = document.createElement('div');
-      overlay.id = 'snaproo-eyedropper';
+      overlay.id = 'gazo-eyedropper';
       overlay.style.cssText = `
         position: fixed; inset: 0; z-index: 2147483647; cursor: none;
         overflow: hidden; width: 100vw; height: 100vh;

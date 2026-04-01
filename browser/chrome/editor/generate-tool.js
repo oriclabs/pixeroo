@@ -1,4 +1,4 @@
-// Snaproo — Generate Tool
+// Gazo — Generate Tool
 function initGenerate() {
   const genCanvas = $('gen-canvas');
   if (!genCanvas) return;
@@ -91,7 +91,7 @@ function initGenerate() {
       zip.addFile(`placeholder-${sw}x${sh}.${fmt==='jpeg'?'jpg':fmt}`, new Uint8Array(buf));
     }
     const zipBlob = zip.finish();
-    Platform.download(URL.createObjectURL(zipBlob), 'snaproo/placeholders.zip', true);
+    Platform.download(URL.createObjectURL(zipBlob), 'gazo/placeholders.zip', true);
   });
 
   // Populate social banner presets dropdown
@@ -153,7 +153,7 @@ function initGenerate() {
     const fmt = $('gen-export-fmt')?.value || 'png';
     const mime = { png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp' }[fmt] || 'image/png';
     genCanvas.toBlob(blob => {
-      Platform.download(URL.createObjectURL(blob), `snaproo/generated.${fmt === 'jpeg' ? 'jpg' : fmt}`, true);
+      Platform.download(URL.createObjectURL(blob), `gazo/generated.${fmt === 'jpeg' ? 'jpg' : fmt}`, true);
     }, mime, 0.92);
   });
 }

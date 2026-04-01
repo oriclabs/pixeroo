@@ -1,4 +1,4 @@
-// Snaproo - Object-based Drawing System
+// Gazo - Object-based Drawing System
 // Replaces stamp-based annotations with selectable, movable, resizable objects.
 //
 // Usage:
@@ -17,6 +17,7 @@ class DrawObject {
     this.h = h;
     this.color = '#ef4444';
     this.lineWidth = 3;
+    this.lineStyle = 'solid'; // solid, dashed, dotted
     this.text = '';
     this.fontSize = 24;
     this.fontFamily = 'Inter, system-ui, sans-serif';
@@ -33,9 +34,12 @@ class DrawObject {
     this.redactStrength = 3;
     this.filter = null;
     this.filterValue = null;
-    // For arrow
+    // For arrow / curved arrow
     this.x2 = x + w;
     this.y2 = y + h;
+    // For curved arrow: control point
+    this.cx = 0;
+    this.cy = 0;
     // For pen/highlighter
     this.points = [];
     // For image objects (collage)
@@ -58,8 +62,21 @@ class DrawObject {
   }
 
   containsPoint(px, py) {
+    if (this.type === 'curvedArrow') {
+      // Check distance to quadratic bezier curve (approximate with segments)
+      const steps = 20;
+      for (let i = 0; i < steps; i++) {
+        const t1 = i / steps, t2 = (i + 1) / steps;
+        const ax = (1-t1)*(1-t1)*this.x + 2*(1-t1)*t1*this.cx + t1*t1*this.x2;
+        const ay = (1-t1)*(1-t1)*this.y + 2*(1-t1)*t1*this.cy + t1*t1*this.y2;
+        const bx = (1-t2)*(1-t2)*this.x + 2*(1-t2)*t2*this.cx + t2*t2*this.x2;
+        const by = (1-t2)*(1-t2)*this.y + 2*(1-t2)*t2*this.cy + t2*t2*this.y2;
+        if (this._distToSegment(px, py, ax, ay, bx, by) < 8) return true;
+      }
+      return false;
+    }
     if (this.type === 'arrow') {
-      return this._distToSegment(px, py, this.x, this.y, this.x2, this.y2) < 8;
+      return this._distToSegment(px, py, this.x, this.y, this.x2, this.y2) < 12;
     }
     if (this.type === 'pen' || this.type === 'highlighter') {
       // Check bounding box first (for move when selected)
@@ -72,11 +89,17 @@ class DrawObject {
       }
       return false;
     }
+    if (this.type === 'ellipse') {
+      const cx = this.x + this.w / 2, cy = this.y + this.h / 2;
+      const rx = this.w / 2, ry = this.h / 2;
+      if (!rx || !ry) return false;
+      return ((px - cx) * (px - cx)) / (rx * rx) + ((py - cy) * (py - cy)) / (ry * ry) <= 1.2;
+    }
     return px >= this.x && px <= this.x + this.w && py >= this.y && py <= this.y + this.h;
   }
 
   getHandle(px, py) {
-    const hs = 6;
+    const hs = 12; // larger hit area for reliable handle detection on scaled canvases
     const handles = this._getHandlePositions();
     for (const [name, hx, hy] of handles) {
       if (Math.abs(px - hx) < hs && Math.abs(py - hy) < hs) return name;
@@ -86,6 +109,9 @@ class DrawObject {
   }
 
   _getHandlePositions() {
+    if (this.type === 'curvedArrow') {
+      return [['start', this.x, this.y], ['end', this.x2, this.y2], ['ctrl', this.cx, this.cy]];
+    }
     if (this.type === 'arrow') {
       return [['start', this.x, this.y], ['end', this.x2, this.y2]];
     }
@@ -105,22 +131,38 @@ class DrawObject {
     ];
   }
 
+  _applyLineStyle(ctx) {
+    if (this.lineStyle === 'dashed') ctx.setLineDash([this.lineWidth * 3, this.lineWidth * 2]);
+    else if (this.lineStyle === 'dotted') ctx.setLineDash([this.lineWidth, this.lineWidth * 1.5]);
+    else ctx.setLineDash([]);
+  }
+
   draw(ctx) {
     ctx.save();
     ctx.globalAlpha = this.opacity;
+    this._applyLineStyle(ctx);
 
-    if (this.type === 'rect') {
-      // Fill with BG color if set
+    if (this.type === 'ellipse') {
+      const cx = this.x + this.w / 2, cy = this.y + this.h / 2;
+      const rx = this.w / 2, ry = this.h / 2;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, Math.abs(rx), Math.abs(ry), 0, 0, Math.PI * 2);
+      if (this.bgColor) { ctx.fillStyle = this.bgColor; ctx.fill(); }
+      ctx.strokeStyle = this.color;
+      ctx.lineWidth = this.lineWidth;
+      ctx.stroke();
+    } else if (this.type === 'rect') {
       if (this.bgColor) {
         ctx.fillStyle = this.bgColor;
         ctx.fillRect(this.x, this.y, this.w, this.h);
       }
-      // Always draw border with main color
       ctx.strokeStyle = this.color;
       ctx.lineWidth = this.lineWidth;
       ctx.strokeRect(this.x, this.y, this.w, this.h);
     } else if (this.type === 'pen' || this.type === 'highlighter') {
       this._drawStroke(ctx);
+    } else if (this.type === 'curvedArrow') {
+      this._drawCurvedArrow(ctx);
     } else if (this.type === 'arrow') {
       this._drawArrow(ctx);
     } else if (this.type === 'text') {
@@ -189,7 +231,19 @@ class DrawObject {
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 4]);
 
-    if (this.type === 'arrow') {
+    if (this.type === 'curvedArrow') {
+      ctx.beginPath();
+      ctx.moveTo(this.x, this.y);
+      ctx.quadraticCurveTo(this.cx, this.cy, this.x2, this.y2);
+      ctx.stroke();
+      // Draw control point line
+      ctx.setLineDash([2, 2]);
+      ctx.beginPath();
+      ctx.moveTo(this.x, this.y); ctx.lineTo(this.cx, this.cy);
+      ctx.moveTo(this.x2, this.y2); ctx.lineTo(this.cx, this.cy);
+      ctx.stroke();
+      ctx.setLineDash([4, 4]);
+    } else if (this.type === 'arrow') {
       ctx.beginPath();
       ctx.moveTo(this.x, this.y);
       ctx.lineTo(this.x2, this.y2);
@@ -252,6 +306,33 @@ class DrawObject {
     ctx.moveTo(this.x, this.y);
     ctx.lineTo(this.x2, this.y2);
     ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(this.x2, this.y2);
+    ctx.lineTo(this.x2 - headLen * Math.cos(angle - Math.PI / 6), this.y2 - headLen * Math.sin(angle - Math.PI / 6));
+    ctx.lineTo(this.x2 - headLen * Math.cos(angle + Math.PI / 6), this.y2 - headLen * Math.sin(angle + Math.PI / 6));
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  _drawCurvedArrow(ctx) {
+    const headLen = 12;
+    // Tangent angle at the end of the quadratic bezier
+    // Derivative at t=1: 2*(P2-P1) where P1=control, P2=end
+    const dx = this.x2 - this.cx;
+    const dy = this.y2 - this.cy;
+    const angle = Math.atan2(dy, dx);
+
+    ctx.strokeStyle = this.color;
+    ctx.fillStyle = this.color;
+    ctx.lineWidth = this.lineWidth;
+
+    // Draw the curve
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y);
+    ctx.quadraticCurveTo(this.cx, this.cy, this.x2, this.y2);
+    ctx.stroke();
+
+    // Arrowhead at the end
     ctx.beginPath();
     ctx.moveTo(this.x2, this.y2);
     ctx.lineTo(this.x2 - headLen * Math.cos(angle - Math.PI / 6), this.y2 - headLen * Math.sin(angle - Math.PI / 6));
@@ -547,9 +628,11 @@ class ObjectLayer {
     this.objects = [];
     this.selected = null;
     this.saveState = saveStateFn;
+    this.persistTool = false; // if true, tool stays active after creating an object
 
     // Overlay canvas for drawing objects + handles
     this.overlay = document.createElement('canvas');
+    this.overlay.className = 'obj-overlay';
     this.overlay.style.cssText = 'position:absolute;top:0;left:0;pointer-events:auto;cursor:default;z-index:5;';
     this.overlayCtx = this.overlay.getContext('2d');
 
@@ -568,6 +651,7 @@ class ObjectLayer {
     // Settings (shared with ribbon)
     this.color = '#ef4444';
     this.lineWidth = 3;
+    this.lineStyle = 'solid';
     this.fontSize = 24;
     this._penObj = null; // active pen/highlighter stroke being drawn
     this._clipboard = null; // for copy/paste of draw objects
@@ -634,9 +718,20 @@ class ObjectLayer {
     const obj = new DrawObject('rect', x, y, w, h);
     obj.color = this.color;
     obj.lineWidth = this.lineWidth;
+    obj.lineStyle = this.lineStyle;
     obj.filled = this.filled || false;
     const bgToggle = document.getElementById('ann-bg-toggle');
     if (bgToggle?.checked) obj.bgColor = document.getElementById('ann-bg-color')?.value || '#ffffff';
+    this.objects.push(obj);
+    this.select(obj);
+    return obj;
+  }
+
+  addEllipse(x, y, w, h) {
+    const obj = new DrawObject('ellipse', x, y, w, h);
+    obj.color = this.color;
+    obj.lineWidth = this.lineWidth;
+    obj.lineStyle = this.lineStyle;
     this.objects.push(obj);
     this.select(obj);
     return obj;
@@ -648,6 +743,25 @@ class ObjectLayer {
     obj.y2 = y2;
     obj.color = this.color;
     obj.lineWidth = this.lineWidth;
+    obj.lineStyle = this.lineStyle;
+    this.objects.push(obj);
+    this.select(obj);
+    return obj;
+  }
+
+  addCurvedArrow(x1, y1, x2, y2) {
+    const obj = new DrawObject('curvedArrow', x1, y1, 0, 0);
+    obj.x2 = x2;
+    obj.y2 = y2;
+    // Control point starts at the midpoint, offset perpendicular for a nice curve
+    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+    const dx = x2 - x1, dy = y2 - y1;
+    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+    obj.cx = mx - (dy / len) * len * 0.3;
+    obj.cy = my + (dx / len) * len * 0.3;
+    obj.color = this.color;
+    obj.lineWidth = this.lineWidth;
+    obj.lineStyle = this.lineStyle;
     this.objects.push(obj);
     this.select(obj);
     return obj;
@@ -872,6 +986,7 @@ class ObjectLayer {
         const obj = new DrawObject(this.creating, x, y, 0, 0);
         obj.color = this.creating === 'highlighter' ? '#facc15' : this.color;
         obj.lineWidth = this.lineWidth;
+    obj.lineStyle = this.lineStyle;
         obj.opacity = 1;
         obj.points = [{ x, y }];
         this.objects.push(obj);
@@ -918,7 +1033,7 @@ class ObjectLayer {
         this.origX = this.selected?.x || 0;
         this.origY = this.selected?.y || 0;
         // Save original positions of all selected for group move
-        this._groupOrigPositions = this.selectedObjects.map(o => ({ obj: o, x: o.x, y: o.y, x2: o.x2, y2: o.y2 }));
+        this._groupOrigPositions = this.selectedObjects.map(o => ({ obj: o, x: o.x, y: o.y, x2: o.x2, y2: o.y2, cx: o.cx, cy: o.cy }));
         return;
       }
     }
@@ -939,11 +1054,13 @@ class ObjectLayer {
         const handle = this.selected.getHandle(x, y);
         const cursors = { tl: 'nwse-resize', tr: 'nesw-resize', bl: 'nesw-resize', br: 'nwse-resize',
           tm: 'ns-resize', bm: 'ns-resize', ml: 'ew-resize', mr: 'ew-resize',
-          start: 'move', end: 'move', move: 'move' };
+          start: 'move', end: 'move', ctrl: 'crosshair', move: 'move' };
         if (handle) cursor = cursors[handle] || 'move';
       }
-      for (const obj of this.objects) {
-        if (obj.containsPoint(x, y)) { cursor = 'move'; break; }
+      if (!this.creating) {
+        for (const obj of this.objects) {
+          if (obj.containsPoint(x, y)) { cursor = 'move'; break; }
+        }
       }
       this.overlay.style.cursor = cursor;
       return;
@@ -966,7 +1083,7 @@ class ObjectLayer {
       oc.strokeStyle = this.color;
       oc.lineWidth = this.lineWidth;
       oc.setLineDash([4, 4]);
-      if (this.creating === 'arrow') {
+      if (this.creating === 'arrow' || this.creating === 'curvedArrow') {
         oc.beginPath();
         oc.moveTo(this.dragStartX, this.dragStartY);
         oc.lineTo(x, y);
@@ -986,7 +1103,14 @@ class ObjectLayer {
       const origins = this._groupOrigPositions || [{ obj, x: this.origX, y: this.origY, x2: obj.x2, y2: obj.y2 }];
       for (const orig of origins) {
         const o = orig.obj;
-        if (o.type === 'arrow') {
+        if (o.type === 'curvedArrow') {
+          o.x = orig.x + dx;
+          o.y = orig.y + dy;
+          o.x2 = (orig.x2 || 0) + dx;
+          o.y2 = (orig.y2 || 0) + dy;
+          o.cx = (orig.cx || 0) + dx;
+          o.cy = (orig.cy || 0) + dy;
+        } else if (o.type === 'arrow') {
           const adx = (orig.x2 || 0) - orig.x;
           const ady = (orig.y2 || 0) - orig.y;
           o.x = orig.x + dx;
@@ -1011,7 +1135,9 @@ class ObjectLayer {
       if (snapDx || snapDy) {
         for (const orig of origins) {
           const o = orig.obj;
-          if (o.type === 'arrow') {
+          if (o.type === 'curvedArrow') {
+            o.x += snapDx; o.y += snapDy; o.x2 += snapDx; o.y2 += snapDy; o.cx += snapDx; o.cy += snapDy;
+          } else if (o.type === 'arrow') {
             o.x += snapDx; o.y += snapDy; o.x2 += snapDx; o.y2 += snapDy;
           } else if ((o.type === 'pen' || o.type === 'highlighter') && o.points?.length) {
             for (const p of o.points) { p.x += snapDx; p.y += snapDy; }
@@ -1022,6 +1148,10 @@ class ObjectLayer {
         }
       }
       this._snapLines = snaps.lines;
+    } else if (obj.type === 'curvedArrow') {
+      if (this.dragHandle === 'start') { obj.x = x; obj.y = y; }
+      else if (this.dragHandle === 'end') { obj.x2 = x; obj.y2 = y; }
+      else if (this.dragHandle === 'ctrl') { obj.cx = x; obj.cy = y; }
     } else if (obj.type === 'arrow') {
       if (this.dragHandle === 'start') { obj.x = x; obj.y = y; }
       else if (this.dragHandle === 'end') { obj.x2 = x; obj.y2 = y; }
@@ -1050,11 +1180,16 @@ class ObjectLayer {
         this._penObj.w = bb.w; this._penObj.h = bb.h;
         this.select(this._penObj);
       }
+      const penType = this._penObj?.type;
       this._penObj = null;
-      this.stopTool();
-      // Update pointer button in ribbon
-      document.getElementById('btn-ann-select')?.classList.add('active');
-      document.querySelectorAll('[id^="btn-ann-"]:not(#btn-ann-select)').forEach(b => b.classList.remove('active'));
+      if (this.persistTool && penType) {
+        // Keep tool active for next stroke
+        this.creating = penType;
+      } else {
+        this.stopTool();
+        document.getElementById('btn-ann-select')?.classList.add('active');
+        document.querySelectorAll('[id^="btn-ann-"]:not(#btn-ann-select)').forEach(b => b.classList.remove('active'));
+      }
       this.dragging = false;
       this.dragHandle = null;
       this.render();
@@ -1070,15 +1205,24 @@ class ObjectLayer {
         const rx = Math.min(this.dragStartX, x), ry = Math.min(this.dragStartY, y);
         const rw = Math.abs(dx), rh = Math.abs(dy);
 
-        if (this.creating === 'rect') this.addRect(rx, ry, rw, rh);
+        if (this.creating === 'ellipse') this.addEllipse(rx, ry, rw, rh);
+        else if (this.creating === 'rect') this.addRect(rx, ry, rw, rh);
         else if (this.creating === 'arrow') this.addArrow(this.dragStartX, this.dragStartY, x, y);
+        else if (this.creating === 'curvedArrow') this.addCurvedArrow(this.dragStartX, this.dragStartY, x, y);
         else if (this.creating === 'redact') this.addRedact(rx, ry, rw, rh);
         else if (this.creating === 'mask') this.addMask(rx, ry, rw, rh, this.maskFilter);
       }
-      this.stopTool();
-      // Update pointer button in ribbon
-      document.getElementById('btn-ann-select')?.classList.add('active');
-      document.querySelectorAll('[id^="btn-ann-"]:not(#btn-ann-select)').forEach(b => b.classList.remove('active'));
+      if (this.persistTool) {
+        // Keep tool active, deselect the just-created object
+        const prevCreating = this.creating;
+        this.deselectAll();
+        this.creating = prevCreating;
+        this.overlay.style.cursor = prevCreating === 'text' ? 'text' : 'crosshair';
+      } else {
+        this.stopTool();
+        document.getElementById('btn-ann-select')?.classList.add('active');
+        document.querySelectorAll('[id^="btn-ann-"]:not(#btn-ann-select)').forEach(b => b.classList.remove('active'));
+      }
     }
 
     this.dragging = false;
@@ -1187,12 +1331,16 @@ class ObjectLayer {
   _syncOverlay() {
     if (this.overlay.width !== this.base.width) this.overlay.width = this.base.width;
     if (this.overlay.height !== this.base.height) this.overlay.height = this.base.height;
-    // Match the canvas actual rendered size (clientWidth accounts for CSS)
+    // Match the canvas actual rendered size (clientWidth excludes border)
     const w = this.base.clientWidth || this.base.width;
     const h = this.base.clientHeight || this.base.height;
+    // Account for border offset
+    const style = getComputedStyle(this.base);
+    const borderL = parseInt(style.borderLeftWidth) || 0;
+    const borderT = parseInt(style.borderTopWidth) || 0;
     this.overlay.style.position = 'absolute';
-    this.overlay.style.top = '0';
-    this.overlay.style.left = '0';
+    this.overlay.style.top = borderT + 'px';
+    this.overlay.style.left = borderL + 'px';
     this.overlay.style.width = w + 'px';
     this.overlay.style.height = h + 'px';
   }
@@ -1315,6 +1463,25 @@ class ObjectLayer {
   // --- Check if there are unflatted objects ---
   hasObjects() {
     return this.objects.length > 0;
+  }
+
+  // Scale all object positions/sizes proportionally (called after canvas resize)
+  scaleObjects(sx, sy) {
+    const s = Math.min(sx, sy); // uniform scale for sizes
+    for (const obj of this.objects) {
+      // Position scales with canvas axes
+      obj.x *= sx; obj.y *= sy;
+      // Size scales uniformly to keep proportions
+      obj.w *= s; obj.h *= s;
+      if (obj.type === 'arrow') { obj.x2 *= sx; obj.y2 *= sy; }
+      if (obj.type === 'curvedArrow') { obj.x2 *= sx; obj.y2 *= sy; obj.cx *= sx; obj.cy *= sy; }
+      if (obj.points?.length) {
+        for (const p of obj.points) { p.x *= sx; p.y *= sy; }
+      }
+      obj.fontSize = Math.max(8, Math.round(obj.fontSize * s));
+      obj.lineWidth = Math.max(1, obj.lineWidth * s);
+    }
+    this.render();
   }
 
   // --- Export annotations as SVG string ---

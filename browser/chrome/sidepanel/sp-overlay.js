@@ -40,7 +40,7 @@ function initOverlay() {
       chrome.runtime.sendMessage({
         action: 'download',
         url: overlayImage.src,
-        filename: `snaproo/${filename}`,
+        filename: `gazo/${filename}`,
         saveAs: true
       });
     }

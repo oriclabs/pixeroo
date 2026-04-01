@@ -4,6 +4,7 @@ cl.bat
 tests.md
 cg-improvements.md
 brand.txt
+brand/
 node_modules/
 dist/
 target/

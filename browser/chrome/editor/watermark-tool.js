@@ -1,4 +1,4 @@
-// Snaproo — Watermark Tool
+// Gazo — Watermark Tool
 let wmImages = []; // Array of { file, img, name }
 let wmLogo = null; // Image element for logo watermark
 let wmType = 'text'; // 'text' or 'logo'
@@ -443,7 +443,7 @@ async function wmDownloadZip() {
   const url = URL.createObjectURL(zipBlob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'snaproo-watermarked.zip';
+  a.download = 'gazo-watermarked.zip';
   a.click();
   URL.revokeObjectURL(url);
 }

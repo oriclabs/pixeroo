@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCD34D"/>
+      <stop offset="50%" stop-color="#F4C430"/>
+      <stop offset="100%" stop-color="#D4A017"/>
+    </linearGradient>
+    <linearGradient id="gb" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F4C430"/>
+      <stop offset="100%" stop-color="#B8860B"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="#0f172a"/>
+  <rect x="56" y="56" width="400" height="400" rx="28" fill="none" stroke="url(#gb)" stroke-width="12"/>
+  <text x="256" y="310" text-anchor="middle" font-size="240" font-weight="900" fill="url(#g)" font-family="'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif">画</text>
+  <text x="256" y="390" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="64" font-weight="800" fill="#e2e8f0" letter-spacing="0.05em">Gazo</text>
+  <rect x="410" y="68" width="14" height="14" rx="3" fill="#F4C430" opacity="0.6"/>
+  <rect x="428" y="68" width="14" height="14" rx="3" fill="#F4C430" opacity="0.3"/>
+  <rect x="410" y="86" width="14" height="14" rx="3" fill="#F4C430" opacity="0.3"/>
+</svg>

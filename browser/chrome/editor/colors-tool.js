@@ -1,4 +1,4 @@
-// Snaproo — Colors Tool
+// Gazo — Colors Tool
 function initColors() {
   let cImg = null;
   const cc = $('colors-canvas'), cx = cc.getContext('2d', { willReadFrequently: true });
@@ -14,19 +14,32 @@ function initColors() {
   cc.addEventListener('click', (e) => {
     const r = cc.getBoundingClientRect(), x = Math.floor((e.clientX-r.left)*cc.width/r.width), y = Math.floor((e.clientY-r.top)*cc.height/r.height);
     const [rv,gv,bv] = cx.getImageData(x,y,1,1).data, hex = rgbHex(rv,gv,bv);
-    $('picked-color').innerHTML = `<div style="background:${hex};height:32px;border-radius:6px;margin-bottom:0.375rem;border:1px solid var(--slate-700);"></div><div class="color-hex" data-copy="${hex}">${hex}</div><div class="color-secondary">rgb(${rv},${gv},${bv}) | ${rgbHsl(rv,gv,bv)}</div>`;
+    const hsl = rgbHsl(rv,gv,bv);
+    $('picked-color').innerHTML = `<span style="display:inline-block;width:18px;height:18px;background:${hex};border-radius:4px;border:1px solid var(--slate-600);vertical-align:middle;margin-right:4px;"></span><span style="color:var(--slate-200);font-weight:600;cursor:pointer;" title="rgb(${rv},${gv},${bv}) | ${hsl} — click to copy" data-copy="${hex}">${hex}</span>`;
+    $('picked-color').querySelector('[data-copy]')?.addEventListener('click', () => { navigator.clipboard.writeText(hex); showToast('Copied ' + hex, 'success'); });
   });
 
   $('palette-count').addEventListener('input', e => { $('palette-count-val').textContent = e.target.value; });
   $('btn-reextract').addEventListener('click', extractPal);
 
+  let lastPalette = [];
+
   function extractPal() {
     if (!cImg) return;
     const k = +$('palette-count').value, data = cx.getImageData(0,0,cc.width,cc.height), px = [];
     for (let i = 0; i < data.data.length; i += 16) { if (data.data[i+3] < 128) continue; px.push([data.data[i],data.data[i+1],data.data[i+2]]); }
-    const pal = kMeans(px, k);
-    $('palette-colors').innerHTML = pal.map(c => `<div class="color-row"><div class="color-preview" style="background:${c.hex};"></div><div style="flex:1;"><div class="color-hex" data-copy="${c.hex}">${c.hex}</div><div class="color-secondary">rgb(${c.r},${c.g},${c.b}) | ${c.pct}%</div></div></div>`).join('');
+    lastPalette = kMeans(px, k);
+    $('palette-colors').innerHTML = lastPalette.map(c => `<div class="color-row"><div class="color-preview" style="background:${c.hex};"></div><div style="flex:1;"><div class="color-hex" data-copy="${c.hex}">${c.hex}</div><div class="color-secondary">rgb(${c.r},${c.g},${c.b}) | ${c.pct}%</div></div></div>`).join('');
+    const copyBtn = $('btn-copy-palette');
+    if (copyBtn) copyBtn.disabled = !lastPalette.length;
   }
+
+  $('btn-copy-palette')?.addEventListener('click', () => {
+    if (!lastPalette.length) return;
+    const text = lastPalette.map(c => c.hex).join('\n');
+    navigator.clipboard.writeText(text);
+    showToast(`${lastPalette.length} colors copied`, 'success');
+  });
 }
 
 function kMeans(px, k) {

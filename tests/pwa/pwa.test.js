@@ -1,4 +1,4 @@
-// Snaproo - PWA Tests
+// Gazo - PWA Tests
 // Run with: node --test tests/pwa/pwa.test.js
 
 import { describe, it } from 'node:test';
@@ -44,7 +44,7 @@ describe('PWA manifest.json', () => {
   });
 
   it('should have name', () => {
-    assert.equal(manifest.name, 'Snaproo');
+    assert.equal(manifest.name, 'Gazo');
   });
 
   it('should have short_name', () => {
@@ -121,7 +121,7 @@ describe('Service Worker (sw.js)', () => {
   });
 
   it('should include version in cache name', () => {
-    assert.match(swContent, /snaproo-v/);
+    assert.match(swContent, /gazo-v/);
   });
 
   it('should handle install event', () => {
@@ -243,7 +243,7 @@ describe('GitHub Pages site', () => {
 
   it('should have proper title', () => {
     const html = readFileSync(join(docsPath, 'index.html'), 'utf-8');
-    assert.match(html, /Snaproo/);
+    assert.match(html, /Gazo/);
   });
 
   it('should reference saffron colors', () => {

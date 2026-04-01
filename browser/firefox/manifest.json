@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Snaproo",
+  "name": "Gazo",
   "version": "0.1.0",
   "description": "Private Image Experience Engine. Read. Optimise. Output. Convert, inspect, edit images, generate QR codes — 100% offline.",
-  "homepage_url": "https://oriclabs.github.io/snaproo/",
+  "homepage_url": "https://oriclabs.github.io/gazo/",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -17,11 +17,11 @@
       "32": "icons/icon32.png",
       "48": "icons/icon48.png"
     },
-    "default_title": "Snaproo - Image Toolkit"
+    "default_title": "Gazo - Image Toolkit"
   },
   "sidebar_action": {
     "default_panel": "sidepanel/sidepanel.html",
-    "default_title": "Snaproo Toolkit",
+    "default_title": "Gazo Toolkit",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",
@@ -66,12 +66,12 @@
         "default": "Alt+P",
         "mac": "Alt+P"
       },
-      "description": "Open Snaproo sidebar"
+      "description": "Open Gazo sidebar"
     }
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "snaproo@oriclabs.github.io",
+      "id": "gazo@oriclabs.github.io",
       "strict_min_version": "109.0"
     }
   },

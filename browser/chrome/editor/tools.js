@@ -1,4 +1,4 @@
-// Snaproo Editor - Extended Tools
+// Gazo Editor - Extended Tools
 // Interactive crop, annotations, watermark, batch resize, compression optimizer,
 // base64, frame extraction, image hash, DPI, QR reader
 

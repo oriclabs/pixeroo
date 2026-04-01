@@ -1,4 +1,4 @@
-// Snaproo E2E — Navigation flows
+// Gazo E2E — Navigation flows
 import { test, expect } from '@playwright/test';
 import { getExtensionId, docScreenshot } from './helpers.js';
 

@@ -1,4 +1,4 @@
-// Snaproo — QR Code Tool
+// Gazo — QR Code Tool
 function initQR() {
   let qrLogo = null;   // Image element for center logo
   let qrBgImg = null;  // Background image behind QR
@@ -32,9 +32,6 @@ function initQR() {
       const mode = tab.dataset.qrMode;
       $('qr-panel-generate').style.display = mode === 'generate' ? 'flex' : 'none';
       $('qr-panel-read').style.display = mode === 'read' ? 'flex' : 'none';
-      // Hide ribbon in Read mode (it only applies to Generate)
-      const ribbon = document.querySelector('#mode-qr .tool-ribbon');
-      if (ribbon) ribbon.style.display = mode === 'generate' ? '' : 'none';
     });
   });
 
@@ -43,10 +40,98 @@ function initQR() {
   function updateQrGenBtn() {
     qrGenBtn.disabled = !$('qr-text').value.trim();
   }
-  updateQrGenBtn(); // initial state
+  updateQrGenBtn();
+
+  // ── Auto-detect content type + validate ──
+  function _detectQrType(text) {
+    if (!text) return null;
+    const t = text.trim();
+    if (/^https?:\/\//i.test(t)) return 'url';
+    if (/^WIFI:/i.test(t)) return 'wifi';
+    if (/^mailto:/i.test(t)) return 'email';
+    if (/^tel:/i.test(t)) return 'phone';
+    if (/^BEGIN:VCARD/i.test(t)) return 'vcard';
+    if (/^smsto:/i.test(t)) return 'sms';
+    if (/^geo:/i.test(t)) return 'geo';
+    if (/^BEGIN:VEVENT/i.test(t)) return 'event';
+    if (/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(t)) return 'email';
+    if (/^\+?[0-9\s\-()]{7,}$/.test(t)) return 'phone';
+    return null;
+  }
+
+  function _validateQrContent(text) {
+    if (!text || !text.trim()) return null;
+    const t = text.trim();
+    const len = t.length;
+    const type = _detectQrType(t);
+
+    // Length check
+    if (len > 2953) return { status: 'error', msg: `Too long (${len}/2953 chars) \u2014 QR may not scan` };
+    if (len > 2000) return { status: 'warn', msg: `Long content (${len} chars) \u2014 QR will be dense`, type };
+
+    // Type-specific validation
+    if (type === 'url') {
+      try { new URL(t); return { status: 'ok', msg: `URL detected (${len} chars)`, type }; }
+      catch { return { status: 'warn', msg: 'URL format may be invalid', type }; }
+    }
+    if (type === 'wifi') {
+      if (!/S:/.test(t)) return { status: 'warn', msg: 'WiFi: missing network name (S:)', type };
+      if (!/P:/.test(t)) return { status: 'warn', msg: 'WiFi: missing password (P:)', type };
+      return { status: 'ok', msg: 'WiFi credentials detected', type };
+    }
+    if (type === 'email') {
+      return { status: 'ok', msg: 'Email detected', type };
+    }
+    if (type === 'phone') {
+      return { status: 'ok', msg: 'Phone number detected', type };
+    }
+    if (type === 'vcard') {
+      if (!/FN:/i.test(t)) return { status: 'warn', msg: 'vCard: missing full name (FN:)', type };
+      if (!/END:VCARD/i.test(t)) return { status: 'warn', msg: 'vCard: missing END:VCARD', type };
+      return { status: 'ok', msg: 'Contact card detected', type };
+    }
+    if (type === 'sms') {
+      return { status: 'ok', msg: 'SMS detected', type };
+    }
+    if (type === 'geo') {
+      if (!/geo:[\d.-]+,[\d.-]+/.test(t)) return { status: 'warn', msg: 'Geo: expected format geo:lat,lng', type };
+      return { status: 'ok', msg: 'Location detected', type };
+    }
+    if (type === 'event') {
+      if (!/END:VEVENT/i.test(t)) return { status: 'warn', msg: 'Event: missing END:VEVENT', type };
+      return { status: 'ok', msg: 'Calendar event detected', type };
+    }
+    return { status: 'ok', msg: `Plain text (${len} chars)`, type: null };
+  }
+
+  function _updateQrValidation() {
+    const text = $('qr-text').value;
+    const result = _validateQrContent(text);
+    const el = $('qr-validate');
+    if (!el) return;
+
+    // Update validation indicator
+    if (!result) {
+      el.style.display = 'none';
+    } else {
+      el.style.display = '';
+      const icons = { ok: '\u2713', warn: '\u26a0', error: '\u2715' };
+      const colors = { ok: '#22c55e', warn: '#eab308', error: '#ef4444' };
+      el.style.color = colors[result.status];
+      el.textContent = `${icons[result.status]} ${result.msg}`;
+    }
+
+    // Auto-highlight matching preset chip
+    $$('[data-qr-preset]').forEach(btn => btn.classList.remove('active'));
+    if (result?.type) {
+      const chip = document.querySelector(`[data-qr-preset="${result.type}"]`);
+      if (chip) chip.classList.add('active');
+    }
+  }
 
   $('qr-text').addEventListener('input', () => {
     updateQrGenBtn();
+    _updateQrValidation();
     clearTimeout(qrDebounce);
     qrDebounce = setTimeout(() => genQR(), 500);
   });
@@ -101,11 +186,12 @@ function initQR() {
     $$('[data-qr-preset]').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
     $('qr-text').value = QR_TEMPLATES[b.dataset.qrPreset] || '';
+    updateQrGenBtn();
+    _updateQrValidation();
     genQR();
   }));
   // Clear preset highlight when user manually edits text
   $('qr-text').addEventListener('keydown', () => {
-    $$('[data-qr-preset]').forEach(x => x.classList.remove('active'));
   });
 
   // --- Logo upload ---
@@ -162,7 +248,7 @@ function initQR() {
   // --- Export: PNG download ---
   $('btn-qr-download').addEventListener('click', () => {
     $('qr-canvas').toBlob(b => {
-      Platform.download(URL.createObjectURL(b), 'snaproo/qrcode.png', true);
+      Platform.download(URL.createObjectURL(b), 'gazo/qrcode.png', true);
     });
   });
 
@@ -189,7 +275,7 @@ function initQR() {
         }
       }
       svg += '</svg>';
-      Platform.download(new Blob([svg], {type:'image/svg+xml'}), 'snaproo/qrcode.svg', true);
+      Platform.download(new Blob([svg], {type:'image/svg+xml'}), 'gazo/qrcode.svg', true);
     } catch {}
   });
 
@@ -211,7 +297,7 @@ function initQR() {
     }
     const zipBlob = zip.toBlob();
     const url = URL.createObjectURL(zipBlob);
-    const a = document.createElement('a'); a.href = url; a.download = 'snaproo-qr-sizes.zip'; a.click();
+    const a = document.createElement('a'); a.href = url; a.download = 'gazo-qr-sizes.zip'; a.click();
     URL.revokeObjectURL(url);
   });
 
@@ -258,7 +344,7 @@ function initQR() {
     }
     const zipBlob = zip.toBlob();
     const url = URL.createObjectURL(zipBlob);
-    const a = document.createElement('a'); a.href = url; a.download = 'snaproo-qr-bulk.zip'; a.click();
+    const a = document.createElement('a'); a.href = url; a.download = 'gazo-qr-bulk.zip'; a.click();
     URL.revokeObjectURL(url);
   });
 
@@ -356,6 +442,23 @@ function initQR() {
     }
   });
 
+  // Show clear button when result is visible
+  const _showReadClear = () => { const b = $('btn-qr-read-clear'); if (b) b.style.display = ''; };
+  const origResultDisplay = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'style');
+  // Simple approach: show clear button after result is shown (observer on result display)
+  new MutationObserver(() => {
+    const r = $('qr-read-result');
+    const b = $('btn-qr-read-clear');
+    if (r && b) b.style.display = r.style.display === 'none' ? 'none' : '';
+  }).observe($('qr-read-result'), { attributes: true, attributeFilter: ['style'] });
+
+  $('btn-qr-read-clear')?.addEventListener('click', () => {
+    $('qr-read-result').style.display = 'none';
+    $('qr-read-result').innerHTML = '';
+    $('qr-read-file').value = '';
+    $('btn-qr-read-clear').style.display = 'none';
+  });
+
   // --- QR History ---
   async function loadQrHistory() {
     try {
@@ -373,17 +476,44 @@ function initQR() {
   let _lastQrHistoryText = '';
 
   function addToQrHistory(text, dataUrl) {
-    // Only add new entry when text content changes
-    if (text === _lastQrHistoryText) {
-      // Just update the thumbnail of the existing entry (style changed)
-      const existing = qrHistory.find(h => h.text === text);
-      if (existing) existing.dataUrl = dataUrl;
+    if (!text) return;
+    const trimmed = text.trim();
+
+    // Too short — remove the session entry if it exists
+    if (trimmed.length < 4) {
+      if (_lastQrHistoryText && qrHistory.length && qrHistory[0].text === _lastQrHistoryText) {
+        qrHistory.shift();
+        saveQrHistory();
+      }
+      _lastQrHistoryText = '';
       return;
     }
+
+    // Exact same text — just update thumbnail (style changed)
+    if (text === _lastQrHistoryText) {
+      if (qrHistory.length && qrHistory[0].text === text) qrHistory[0].dataUrl = dataUrl;
+      return;
+    }
+
+    // Check if this is a continuation of the current typing session
+    // (latest entry is a prefix of current text, or current is a prefix of latest)
+    const latest = qrHistory.length ? qrHistory[0].text : '';
+    const isContinuation = _lastQrHistoryText &&
+      (trimmed.startsWith(_lastQrHistoryText.substring(0, 4)) || _lastQrHistoryText.startsWith(trimmed.substring(0, 4)));
+
+    if (isContinuation && qrHistory.length && qrHistory[0].text === _lastQrHistoryText) {
+      // Update the existing session entry
+      qrHistory[0].text = text;
+      qrHistory[0].dataUrl = dataUrl;
+      qrHistory[0].timestamp = Date.now();
+    } else {
+      // New content — add a fresh entry
+      qrHistory = qrHistory.filter(h => h.text !== text);
+      qrHistory.unshift({ text, dataUrl, timestamp: Date.now() });
+      if (qrHistory.length > QR_HISTORY_MAX) qrHistory.pop();
+    }
+
     _lastQrHistoryText = text;
-    qrHistory = qrHistory.filter(h => h.text !== text);
-    qrHistory.unshift({ text, dataUrl, timestamp: Date.now() });
-    if (qrHistory.length > QR_HISTORY_MAX) qrHistory.pop();
     saveQrHistory();
   }
 
@@ -446,6 +576,8 @@ function initQR() {
     cvs.width = 0; cvs.height = 0;
     // Update generate button state
     updateQrGenBtn();
+    _updateQrValidation();
+    _lastQrHistoryText = '';
   });
 
   $('btn-qr-history-clear')?.addEventListener('click', () => {
@@ -497,7 +629,7 @@ function initQR() {
         } catch {}
       }},
       { label: 'Download PNG', action: () => {
-        Platform.download(item.dataUrl, 'snaproo/qr-history.png', true);
+        Platform.download(item.dataUrl, 'gazo/qr-history.png', true);
       }},
       'sep',
       { label: 'Remove from History', action: () => {

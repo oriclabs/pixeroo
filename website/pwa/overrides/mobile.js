@@ -1,4 +1,4 @@
-// Snaproo PWA — Mobile overrides (touch support)
+// Gazo PWA — Mobile overrides (touch support)
 // This file is injected only in the PWA build for mobile device support.
 
 // ── Touch-to-Mouse event forwarding ──────────────────────
