@@ -262,7 +262,10 @@
     <!-- Quick Actions -->
     <!-- Recent Files -->
     <div class="home-recent" id="home-recent" style="display:none;">
-      <div class="home-recent-label">Recent</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="home-recent-label">Recent</div>
+        <button id="btn-clear-recent" title="Clear recent files" style="background:none;border:none;color:var(--slate-500);cursor:pointer;font-size:0.6rem;padding:2px 6px;transition:color 0.12s;">Clear</button>
+      </div>
       <div class="home-recent-row" id="recent-row"></div>
     </div>
     <!-- ── Essentials ── -->
@@ -513,6 +516,9 @@
             <button class="tool-btn" data-channel="r" title="View red channel" style="color:#ef4444;">R</button>
             <button class="tool-btn" data-channel="g" title="View green channel" style="color:#22c55e;">G</button>
             <button class="tool-btn" data-channel="b" title="View blue channel" style="color:#3b82f6;">B</button>
+            <button class="tool-btn" data-filter="deuteranopia" title="Deuteranopia simulation (green-blind)" style="font-size:0.5rem;">Deut</button>
+            <button class="tool-btn" data-filter="protanopia" title="Protanopia simulation (red-blind)" style="font-size:0.5rem;">Prot</button>
+            <button class="tool-btn" data-filter="tritanopia" title="Tritanopia simulation (blue-blind)" style="font-size:0.5rem;">Trit</button>
           </div>
         </div><div class="ribbon-label">Filters</div></div>
         <div class="ribbon-sep-v"></div>
@@ -531,7 +537,7 @@
             <span class="ann-preset-color" data-color="#8b5cf6" title="Purple" style="width:14px;height:14px;border-radius:2px;background:#8b5cf6;cursor:pointer;border:1px solid transparent;"></span>
           </div>
           <div class="ribbon-row"><input type="range" id="ann-width" min="1" max="10" value="3" title="Line width" style="width:50px;accent-color:var(--saffron-400);"><span class="ribbon-mini-label" title="Opacity">Op</span><input type="range" id="ann-opacity" min="10" max="100" value="100" title="Object opacity (10-100%)" style="width:40px;accent-color:var(--saffron-400);"><button class="tool-btn" id="btn-ann-callout" title="Add callout box"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="14" rx="3"/><path d="M8 16l4 6 0-6"/></svg></button><select id="ann-callout-shape" class="select-field" style="width:68px;" title="Callout shape"><option value="rounded">Rounded</option><option value="bubble">Bubble</option><option value="cloud">Cloud</option><option value="banner">Banner</option><option value="arrow-box">Arrow</option></select><select id="ann-callout-tail" class="select-field" style="width:52px;" title="Tail direction"><option value="bottom">&#8595;</option><option value="top">&#8593;</option><option value="left">&#8592;</option><option value="right">&#8594;</option><option value="none">-</option></select></div>
-          <div class="ribbon-row"><select id="ann-font" class="select-field" title="Font family" style="width:82px;"></select><input type="number" id="ann-fontsize" class="input-field" value="24" min="8" max="200" title="Font size (px)" style="width:52px;"><button class="tool-btn" id="ann-bold" title="Bold (B)" style="font-weight:bold;padding:2px 5px;">B</button><button class="tool-btn" id="ann-italic" title="Italic (I)" style="font-style:italic;padding:2px 5px;">I</button><button class="tool-btn" id="ann-underline" title="Underline (U)" style="text-decoration:underline;padding:2px 5px;">U</button><button class="tool-btn" id="btn-layers-toggle" title="Show layers panel">Layers</button></div>
+          <div class="ribbon-row"><span id="ann-font-pill"></span><button class="tool-btn" id="btn-layers-toggle" title="Show layers panel">Layers</button></div>
         </div><div class="ribbon-label">Draw</div></div>
         <div class="ribbon-sep-v"></div>
         <!-- Export (moved before Watermark for visibility on small screens) -->
@@ -649,15 +655,22 @@
     </div>
     <!-- Canvas -->
     <div class="work-area" id="edit-work">
-      <div id="edit-dropzone" class="dropzone">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--slate-500)" stroke-width="1.5" style="margin:0 auto 0.75rem;display:block;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-        <p class="drop-title">Drop an image, click to browse, or Ctrl+V</p>
-        <p class="drop-sub">PNG, JPEG, WebP, AVIF, GIF, BMP, TIFF, SVG, ICO</p>
-        <div style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid var(--slate-800);display:flex;flex-direction:column;align-items:center;gap:0.5rem;">
-          <button id="btn-edit-drop-lib" class="btn-secondary" style="padding:6px 16px;" title="Load image from your saved library">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:-2px;margin-right:4px;"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>Import from Library
+      <div id="edit-dropzone" class="dropzone" style="padding:1.5rem;">
+        <div style="display:flex;gap:1rem;align-items:stretch;flex-wrap:wrap;justify-content:center;">
+          <!-- Drop / Browse area -->
+          <div id="edit-drop-file" style="flex:1;min-width:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem 1rem;border:2px dashed var(--slate-700);border-radius:12px;cursor:pointer;transition:border-color 0.15s;" title="Click to browse files">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--slate-500)" stroke-width="1.5" style="margin-bottom:0.5rem;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            <p class="drop-title" style="margin-bottom:0.25rem;">Drop image or browse</p>
+            <p class="drop-sub">PNG, JPEG, WebP, AVIF, GIF, BMP, TIFF, SVG, ICO</p>
+            <p style="color:var(--slate-500);font-size:0.6rem;margin-top:0.5rem;">Ctrl+V to paste from clipboard</p>
+          </div>
+          <!-- OR divider -->
+          <div style="display:flex;align-items:center;color:var(--slate-600);font-size:0.7rem;font-weight:600;">or</div>
+          <!-- Import from Library -->
+          <button id="btn-edit-drop-lib" style="flex:0 0 auto;min-width:140px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.5rem 1.25rem;border:2px dashed var(--slate-700);border-radius:12px;background:none;color:var(--slate-400);cursor:pointer;transition:all 0.15s;gap:0.5rem;" title="Load image from your saved library">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            <span style="font-size:0.75rem;font-weight:600;">Import from Library</span>
           </button>
-          <p style="color:var(--slate-400);">Ctrl+S to export &middot; Ctrl+V to paste &middot; Ctrl+Z to undo</p>
         </div>
         <input type="file" id="edit-file" accept="image/*" style="display:none;">
       </div>
@@ -786,61 +799,195 @@
   <!-- MODE: Generate (top ribbon, no input image) -->
   <!-- ============================================================ -->
   <div class="mode-view" id="mode-generate" style="flex-direction:column;">
-    <div class="edit-ribbon"><div class="ribbon-bar">
-      <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:6px;"><span class="ribbon-mini-label">W</span><input type="number" id="gen-w" class="input-field" value="800" style="width:58px;"><span class="ribbon-mini-label">H</span><input type="number" id="gen-h" class="input-field" value="600" style="width:58px;"></div>
-      </div><div class="ribbon-label">Size</div></div>
-      <div class="ribbon-sep-v"></div>
-      <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:5px;"><select id="gen-grad-type" class="select-field" style="width:75px;"><option value="linear">Linear</option><option value="radial">Radial</option></select><input type="color" id="gen-grad-c1" value="#F4C430" style="width:20px;height:16px;border:none;cursor:pointer;"><input type="color" id="gen-grad-c2" value="#B8860B" style="width:20px;height:16px;border:none;cursor:pointer;"><button class="btn-primary" id="btn-gen-gradient" style="padding:2px 6px;">Go</button></div>
-      </div><div class="ribbon-label">Gradient</div></div>
-      <div class="ribbon-sep-v"></div>
-      <div class="ribbon-group"><div class="ribbon-tools ribbon-grid" style="grid-template-columns:auto auto auto;">
-          <select id="gen-pat-type" class="select-field" style="width:80px;"><option value="checkerboard">Checker</option><option value="stripes-h">Stripes H</option><option value="stripes-v">Stripes V</option><option value="dots">Dots</option><option value="noise">Noise</option></select>
-          <input type="color" id="gen-pat-c1" value="#e2e8f0" style="width:20px;height:18px;border:none;cursor:pointer;">
-          <input type="color" id="gen-pat-c2" value="#ffffff" style="width:20px;height:18px;border:none;cursor:pointer;">
-          <span class="ribbon-mini-label">Cell</span>
-          <input type="number" id="gen-pat-cell" class="input-field" value="40" min="4" style="width:52px;">
-          <button class="btn-primary" id="btn-gen-pattern" style="padding:2px 6px;">Go</button>
-      </div><div class="ribbon-label">Pattern</div></div>
-      <div class="ribbon-sep-v"></div>
-      <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:5px;"><input type="text" id="gen-ph-text" class="input-field" placeholder="Auto (W×H)" title="Custom text (empty = dimensions)" style="width:80px;"><input type="color" id="gen-ph-bg" value="#94a3b8" title="Background" style="width:20px;height:16px;border:none;cursor:pointer;"><input type="color" id="gen-ph-text-color" value="#ffffff" title="Text color" style="width:20px;height:16px;border:none;cursor:pointer;"></div>
-        <div class="ribbon-row" style="gap:4px;"><select id="gen-ph-pattern" class="select-field" title="Pattern overlay" style="width:65px;"><option value="none">None</option><option value="cross" selected>Cross</option><option value="grid">Grid</option><option value="diagonal">Diag</option><option value="dots">Dots</option></select><select id="gen-ph-font" class="select-field" title="Font" style="width:60px;"><option value="Inter, sans-serif">Inter</option><option value="Georgia, serif">Georgia</option><option value="monospace">Mono</option></select><label style="font-size:0.45rem;color:var(--slate-400);display:flex;align-items:center;gap:1px;" title="Bold"><input type="checkbox" id="gen-ph-bold" checked style="accent-color:var(--saffron-400);">B</label></div>
-        <div class="ribbon-row" style="gap:4px;"><label style="font-size:0.45rem;color:var(--slate-400);display:flex;align-items:center;gap:1px;" title="Border"><input type="checkbox" id="gen-ph-border" style="accent-color:var(--saffron-400);">Bdr</label><label style="font-size:0.45rem;color:var(--slate-400);display:flex;align-items:center;gap:1px;" title="Rounded corners"><input type="checkbox" id="gen-ph-rounded" style="accent-color:var(--saffron-400);">Rnd</label><button class="btn-primary" id="btn-gen-placeholder" style="padding:2px 6px;">Go</button></div>
-        <div class="ribbon-row" style="gap:4px;"><input type="text" id="gen-ph-batch" class="input-field" placeholder="300x250,728x90" title="Batch: comma-separated WxH" style="width:105px;"><button class="tool-btn" id="btn-gen-ph-batch" title="Batch generate as ZIP" style="padding:2px 6px;">Batch</button></div>
-      </div><div class="ribbon-label">Placeholder</div></div>
-      <div class="ribbon-sep-v"></div>
-      <!-- Social Banner -->
-      <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:5px;"><select id="gen-social-preset" class="select-field" style="width:85px;"><option value="">Banner...</option></select><input type="text" id="gen-social-text" class="input-field" placeholder="Title" style="width:70px;"><button class="btn-primary" id="btn-gen-social" style="padding:2px 6px;">Go</button></div>
-      </div><div class="ribbon-label">Social</div></div>
-      <div class="ribbon-sep-v"></div>
-      <!-- Avatar -->
-      <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:5px;"><input type="text" id="gen-avatar-initials" class="input-field" value="AB" maxlength="2" style="width:28px;"><input type="color" id="gen-avatar-bg" value="#6366f1" style="width:20px;height:16px;border:none;cursor:pointer;"><button class="btn-primary" id="btn-gen-avatar" style="padding:2px 6px;">Go</button></div>
-      </div><div class="ribbon-label">Avatar</div></div>
-      <div class="ribbon-sep-v"></div>
-      <!-- Noise -->
-      <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:5px;"><select id="gen-noise-type" class="select-field" style="width:75px;"><option value="white">White</option><option value="perlin">Perlin</option><option value="color">Color</option></select><button class="btn-primary" id="btn-gen-noise" style="padding:2px 6px;">Go</button></div>
-      </div><div class="ribbon-label">Noise</div></div>
-      <div class="ribbon-sep-v"></div>
-      <!-- Favicon -->
-      <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:5px;"><input type="text" id="gen-fav-letter" class="input-field" value="P" maxlength="2" style="width:24px;"><input type="color" id="gen-fav-bg" value="#F4C430" style="width:20px;height:16px;border:none;cursor:pointer;"><label style="font-size:0.45rem;color:var(--slate-400);display:flex;align-items:center;gap:1px;"><input type="checkbox" id="gen-fav-round" style="accent-color:var(--saffron-400);">Round</label><button class="btn-primary" id="btn-gen-favicon" style="padding:2px 6px;">Go</button></div>
-      </div><div class="ribbon-label">Favicon</div></div>
-      <div class="ribbon-sep-v"></div>
-      <!-- Swatch -->
-      <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:5px;"><input type="text" id="gen-swatch-colors" class="input-field" placeholder="#f00,#0f0,#00f" style="width:100px;"><button class="btn-primary" id="btn-gen-swatch" style="padding:2px 6px;">Go</button></div>
-      </div><div class="ribbon-label">Swatch</div></div>
-      <div class="ribbon-sep-v"></div>
-      <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row"><select id="gen-export-fmt" class="select-field" style="width:72px;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option><option value="svg">SVG</option></select><button id="btn-gen-export" class="btn-primary" style="padding:2px 8px;">Export</button><button class="tool-btn" id="btn-gen-save-lib" title="Save to Library"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button></div>
-      </div><div class="ribbon-label">Export</div></div>
-    </div></div>
-    <div class="work-area"><canvas id="gen-canvas" style="max-width:80%;max-height:80%;border-radius:8px;background:var(--slate-800);"></canvas><div id="gen-dims" style="position:absolute;bottom:8px;right:8px;color:var(--slate-400);"></div></div>
+    <!-- Compact ribbon: Size + Type selector + Generate + Export -->
+    <div class="tool-ribbon" id="gen-ribbon">
+      <span class="ribbon-title">Generate</span>
+      <div class="ribbon-sep"></div>
+      <!-- Size -->
+      <span style="color:var(--slate-500);">W</span>
+      <input type="number" id="gen-w" class="input-field" value="800" min="1" max="10000" style="width:72px;">
+      <button id="gen-lock-ratio" class="tool-btn" title="Lock aspect ratio" style="color:var(--slate-500);padding:1px 3px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+      <input type="number" id="gen-h" class="input-field" value="600" min="1" max="10000" style="width:72px;">
+      <select id="gen-size-preset" class="select-field" title="Size presets" style="width:160px;">
+        <option value="">Presets...</option>
+        <optgroup label="Web">
+          <option value="1920,1080">1920×1080 HD</option>
+          <option value="1280,720">1280×720</option>
+          <option value="1024,768">1024×768</option>
+          <option value="800,600">800×600</option>
+          <option value="300,250">300×250 Banner</option>
+          <option value="728,90">728×90 Leaderboard</option>
+        </optgroup>
+        <optgroup label="Social">
+          <option value="1200,630">1200×630 OG Image</option>
+          <option value="1080,1080">1080×1080 Instagram</option>
+          <option value="1080,1920">1080×1920 Story</option>
+          <option value="1500,500">1500×500 Twitter Header</option>
+          <option value="820,312">820×312 Facebook Cover</option>
+          <option value="1280,720">1280×720 YT Thumbnail</option>
+        </optgroup>
+        <optgroup label="App">
+          <option value="512,512">512×512 App Icon</option>
+          <option value="192,192">192×192 PWA Icon</option>
+          <option value="32,32">32×32 Favicon</option>
+        </optgroup>
+        <optgroup label="Print">
+          <option value="2480,3508">A4 (300dpi)</option>
+          <option value="1050,600">Business Card</option>
+        </optgroup>
+      </select>
+      <div class="ribbon-sep"></div>
+      <!-- Type selector -->
+      <select id="gen-type" class="select-field" style="width:115px;">
+        <option value="gradient">Gradient</option>
+        <option value="pattern">Pattern</option>
+        <option value="placeholder">Placeholder</option>
+        <option value="social">Social Banner</option>
+        <option value="avatar">Avatar</option>
+        <option value="noise">Noise</option>
+        <option value="favicon">Favicon</option>
+        <option value="swatch">Color Swatch</option>
+        <option value="mesh">Mesh Gradient</option>
+        <option value="wave">Wave / Blob</option>
+        <option value="texture">Texture</option>
+        <option value="grid">Grid / Paper</option>
+        <option value="sprite">Sprite Sheet</option>
+      </select>
+      <button id="btn-gen-random" class="tool-btn" title="Randomize colors and settings" style="padding:2px 5px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg></button>
+      <div class="ribbon-sep"></div>
+      <!-- Type-specific controls (shown/hidden by JS) -->
+      <span id="gen-opts-gradient" class="gen-opts" style="display:flex;align-items:center;gap:5px;">
+        <select id="gen-grad-type" class="select-field" style="width:82px;"><option value="linear">Linear</option><option value="radial">Radial</option><option value="conic">Conic</option></select>
+        <input type="color" id="gen-grad-c1" value="#F4C430" style="width:22px;height:20px;border:none;cursor:pointer;" title="Color 1">
+        <input type="color" id="gen-grad-c2" value="#B8860B" style="width:22px;height:20px;border:none;cursor:pointer;" title="Color 2">
+        <span style="color:var(--slate-500);font-size:0.6rem;">Angle</span>
+        <input type="number" id="gen-grad-angle" class="input-field" value="135" min="0" max="360" style="width:62px;" title="Gradient angle (degrees)">
+      </span>
+      <span id="gen-opts-pattern" class="gen-opts" style="display:none;align-items:center;gap:5px;">
+        <select id="gen-pat-type" class="select-field" style="width:100px;"><option value="checkerboard">Checkerboard</option><option value="stripes-h">Stripes H</option><option value="stripes-v">Stripes V</option><option value="dots">Dots</option><option value="noise">Noise</option></select>
+        <input type="color" id="gen-pat-c1" value="#e2e8f0" style="width:22px;height:20px;border:none;cursor:pointer;" title="Color 1">
+        <input type="color" id="gen-pat-c2" value="#ffffff" style="width:22px;height:20px;border:none;cursor:pointer;" title="Color 2">
+        <span style="color:var(--slate-500);font-size:0.6rem;">Cell</span>
+        <input type="number" id="gen-pat-cell" class="input-field" value="40" min="4" max="500" style="width:56px;">
+      </span>
+      <span id="gen-opts-placeholder" class="gen-opts" style="display:none;align-items:center;gap:5px;">
+        <input type="text" id="gen-ph-text" class="input-field" placeholder="Auto (W×H)" title="Custom text" style="width:80px;">
+        <input type="color" id="gen-ph-bg" value="#94a3b8" title="Background" style="width:22px;height:20px;border:none;cursor:pointer;">
+        <input type="color" id="gen-ph-text-color" value="#ffffff" title="Text color" style="width:22px;height:20px;border:none;cursor:pointer;">
+        <select id="gen-ph-pattern" class="select-field" title="Pattern" style="width:82px;"><option value="none">None</option><option value="cross" selected>Cross</option><option value="grid">Grid</option><option value="diagonal">Diagonal</option><option value="dots">Dots</option></select>
+        <span id="gen-ph-font-pill"></span>
+        <label style="font-size:0.55rem;color:var(--slate-400);display:flex;align-items:center;gap:2px;" title="Border"><input type="checkbox" id="gen-ph-border" style="accent-color:var(--saffron-400);">Bdr</label>
+        <label style="font-size:0.55rem;color:var(--slate-400);display:flex;align-items:center;gap:2px;" title="Rounded"><input type="checkbox" id="gen-ph-rounded" style="accent-color:var(--saffron-400);">Rnd</label>
+        <input type="text" id="gen-ph-batch" class="input-field" placeholder="300x250,728x90" title="Batch sizes" style="width:100px;">
+        <button class="tool-btn" id="btn-gen-ph-batch" title="Batch generate as ZIP" style="padding:2px 6px;">Batch</button>
+      </span>
+      <span id="gen-opts-social" class="gen-opts" style="display:none;align-items:center;gap:5px;">
+        <select id="gen-social-preset" class="select-field" style="width:190px;"><option value="">Select banner preset...</option></select>
+        <input type="text" id="gen-social-text" class="input-field" placeholder="Title text" style="width:110px;">
+      </span>
+      <span id="gen-opts-avatar" class="gen-opts" style="display:none;align-items:center;gap:5px;">
+        <input type="text" id="gen-avatar-initials" class="input-field" value="AB" maxlength="2" title="Initials (1-2 letters)" style="width:40px;">
+        <input type="color" id="gen-avatar-bg" value="#6366f1" title="Background" style="width:22px;height:20px;border:none;cursor:pointer;">
+      </span>
+      <span id="gen-opts-noise" class="gen-opts" style="display:none;align-items:center;gap:5px;">
+        <select id="gen-noise-type" class="select-field" style="width:88px;"><option value="white">White</option><option value="perlin">Perlin</option><option value="color">Color</option></select>
+      </span>
+      <span id="gen-opts-favicon" class="gen-opts" style="display:none;align-items:center;gap:5px;">
+        <input type="text" id="gen-fav-letter" class="input-field" value="G" maxlength="2" title="Letter(s)" style="width:36px;">
+        <input type="color" id="gen-fav-bg" value="#F4C430" title="Background" style="width:22px;height:20px;border:none;cursor:pointer;">
+        <label style="font-size:0.55rem;color:var(--slate-400);display:flex;align-items:center;gap:2px;"><input type="checkbox" id="gen-fav-round" style="accent-color:var(--saffron-400);">Round</label>
+      </span>
+      <span id="gen-opts-swatch" class="gen-opts" style="display:none;align-items:center;gap:5px;">
+        <input type="text" id="gen-swatch-colors" class="input-field" placeholder="#f00,#0f0,#00f" title="Comma-separated hex colors" style="width:140px;">
+      </span>
+      <!-- Mesh Gradient: 4 corner colors -->
+      <span id="gen-opts-mesh" class="gen-opts" style="display:none;align-items:center;gap:5px;">
+        <span style="color:var(--slate-500);font-size:0.6rem;">TL</span>
+        <input type="color" id="gen-mesh-c1" value="#F4C430" style="width:22px;height:20px;border:none;cursor:pointer;" title="Top-left">
+        <span style="color:var(--slate-500);font-size:0.6rem;">TR</span>
+        <input type="color" id="gen-mesh-c2" value="#ec4899" style="width:22px;height:20px;border:none;cursor:pointer;" title="Top-right">
+        <span style="color:var(--slate-500);font-size:0.6rem;">BL</span>
+        <input type="color" id="gen-mesh-c3" value="#3b82f6" style="width:22px;height:20px;border:none;cursor:pointer;" title="Bottom-left">
+        <span style="color:var(--slate-500);font-size:0.6rem;">BR</span>
+        <input type="color" id="gen-mesh-c4" value="#8b5cf6" style="width:22px;height:20px;border:none;cursor:pointer;" title="Bottom-right">
+      </span>
+      <!-- Wave / Blob -->
+      <span id="gen-opts-wave" class="gen-opts" style="display:none;align-items:center;gap:5px;">
+        <select id="gen-wave-type" class="select-field" style="width:100px;"><option value="wave">Wave Divider</option><option value="blob">Blob Shape</option><option value="layered">Layered Waves</option></select>
+        <input type="color" id="gen-wave-c1" value="#F4C430" style="width:22px;height:20px;border:none;cursor:pointer;" title="Wave color">
+        <input type="color" id="gen-wave-c2" value="#020617" style="width:22px;height:20px;border:none;cursor:pointer;" title="Background">
+        <span style="color:var(--slate-500);font-size:0.6rem;">Complexity</span>
+        <input type="range" id="gen-wave-complexity" class="range-input" min="2" max="8" value="4" style="width:60px;">
+      </span>
+      <!-- Texture -->
+      <span id="gen-opts-texture" class="gen-opts" style="display:none;align-items:center;gap:5px;">
+        <select id="gen-texture-type" class="select-field" style="width:100px;"><option value="marble">Marble</option><option value="wood">Wood Grain</option><option value="fabric">Fabric</option><option value="concrete">Concrete</option><option value="paper">Paper</option><option value="canvas-tex">Canvas</option></select>
+        <input type="color" id="gen-texture-c1" value="#c8b08a" style="width:22px;height:20px;border:none;cursor:pointer;" title="Primary color">
+        <input type="color" id="gen-texture-c2" value="#8b7355" style="width:22px;height:20px;border:none;cursor:pointer;" title="Secondary color">
+        <span style="color:var(--slate-500);font-size:0.6rem;">Scale</span>
+        <input type="range" id="gen-texture-scale" class="range-input" min="1" max="10" value="5" style="width:60px;">
+      </span>
+      <!-- Grid / Paper -->
+      <span id="gen-opts-grid" class="gen-opts" style="display:none;align-items:center;gap:5px;">
+        <select id="gen-grid-type" class="select-field" style="width:105px;"><option value="graph">Graph Paper</option><option value="dot">Dot Grid</option><option value="isometric">Isometric</option><option value="lined">Lined Paper</option></select>
+        <input type="color" id="gen-grid-bg" value="#ffffff" style="width:22px;height:20px;border:none;cursor:pointer;" title="Background">
+        <input type="color" id="gen-grid-line" value="#d1d5db" style="width:22px;height:20px;border:none;cursor:pointer;" title="Line color">
+        <span style="color:var(--slate-500);font-size:0.6rem;">Cell</span>
+        <input type="number" id="gen-grid-cell" class="input-field" value="24" min="8" max="100" style="width:48px;">
+      </span>
+      <span id="gen-opts-sprite" class="gen-opts" style="display:none;align-items:center;gap:5px;">
+        <label style="cursor:pointer;display:flex;align-items:center;gap:4px;padding:3px 10px;background:var(--slate-800);border:1px solid var(--slate-700);border-radius:5px;font-size:0.7rem;color:var(--slate-300);">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Add Images
+          <input type="file" id="gen-sprite-files" accept="image/*" multiple style="display:none;">
+        </label>
+        <span id="gen-sprite-count" style="color:var(--slate-500);font-size:0.65rem;">0 images</span>
+        <span style="color:var(--slate-500);font-size:0.65rem;">Padding</span>
+        <input type="number" id="gen-sprite-padding" class="input-field" value="2" min="0" max="20" style="width:44px;" title="Padding between sprites (px)">
+        <button class="tool-btn" id="btn-gen-sprite-copy-css" title="Copy CSS sprite positions" disabled style="padding:2px 6px;font-size:0.65rem;">Copy CSS</button>
+      </span>
+      <div class="ribbon-sep"></div>
+      <!-- Global text overlay (hidden for placeholder/social/avatar/favicon which have their own) -->
+      <span id="gen-text-overlay" style="display:flex;align-items:center;gap:5px;">
+        <label style="font-size:0.55rem;color:var(--slate-400);display:flex;align-items:center;gap:2px;cursor:pointer;" title="Add text overlay"><input type="checkbox" id="gen-text-on" style="accent-color:var(--saffron-400);">Text</label>
+        <span id="gen-text-fields" style="display:none;align-items:center;gap:5px;">
+          <input type="text" id="gen-text-value" class="input-field" placeholder="Your text" style="width:100px;">
+          <input type="color" id="gen-text-color" value="#ffffff" style="width:22px;height:20px;border:none;cursor:pointer;" title="Text color">
+          <select id="gen-text-pos" class="select-field" style="width:78px;" title="Position">
+            <option value="center">Center</option>
+            <option value="top">Top</option>
+            <option value="bottom">Bottom</option>
+            <option value="top-left">Top Left</option>
+            <option value="bottom-right">Bottom Right</option>
+          </select>
+          <select id="gen-text-size" class="select-field" style="width:68px;" title="Font size">
+            <option value="auto">Auto</option>
+            <option value="small">Small</option>
+            <option value="medium">Medium</option>
+            <option value="large">Large</option>
+          </select>
+        </span>
+      </span>
+      <div class="ribbon-sep"></div>
+      <button id="btn-gen-go" class="btn-primary" style="padding:3px 12px;">Generate</button>
+      <div class="ribbon-sep"></div>
+      <span id="gen-export-pill"></span>
+      <button class="tool-btn" id="btn-gen-copy-css" title="Copy CSS code (gradients, colors)" style="padding:2px 6px;font-size:0.65rem;">CSS</button>
+      <button class="tool-btn" id="btn-gen-copy-datauri" title="Copy as HTML &lt;img&gt; with data URI" style="padding:2px 6px;font-size:0.65rem;">HTML</button>
+    </div>
+    <!-- Work area with size guide + angle guide overlays -->
+    <div class="work-area" style="position:relative;">
+      <div id="gen-size-guide" style="display:none;position:absolute;border:2px dashed var(--saffron-400);border-radius:4px;pointer-events:none;z-index:5;opacity:0.6;transition:all 0.2s;">
+        <span id="gen-size-guide-label" style="position:absolute;top:-18px;left:50%;transform:translateX(-50%);color:var(--saffron-400);font-size:0.6rem;font-family:monospace;white-space:nowrap;background:var(--slate-950);padding:0 4px;"></span>
+      </div>
+      <!-- Draggable angle dial -->
+      <div id="gen-angle-guide" style="display:none;position:absolute;right:16px;top:16px;z-index:10;width:72px;height:72px;">
+        <canvas id="gen-angle-canvas" width="72" height="72" style="cursor:pointer;border-radius:50%;"></canvas>
+        <div id="gen-angle-label" style="position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);color:var(--saffron-400);font-size:0.55rem;font-family:monospace;white-space:nowrap;">135°</div>
+      </div>
+      <canvas id="gen-canvas" style="display:none;max-width:80%;max-height:80%;border-radius:8px;background:var(--slate-800);"></canvas>
+      <div id="gen-dims" style="position:absolute;bottom:8px;right:8px;color:var(--slate-400);font-family:monospace;font-size:0.7rem;"></div>
+    </div>
   </div>
 
   <!-- (Placeholder merged into Generate) -->
@@ -1034,7 +1181,7 @@
       <div class="ribbon-sep-v"></div>
       <!-- Export -->
       <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:5px;"><select id="sc-export-fmt" class="select-field" style="width:65px;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option></select><button id="btn-sc-export" class="btn-primary" style="padding:2px 8px;">Export</button><button class="tool-btn" id="btn-sc-save-lib" title="Save to Library"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button></div>
+        <div class="ribbon-row"><span id="sc-export-pill"></span></div>
       </div><div class="ribbon-label">Export</div></div>
     </div></div>
     <div class="work-area">
@@ -1078,8 +1225,7 @@
       <div class="ribbon-sep-v"></div>
       <!-- Font -->
       <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:5px;"><select id="meme-font" class="select-field" title="Font" style="width:85px;"></select></div>
-        <div class="ribbon-row"><span class="ribbon-mini-label" title="Font size (0 = auto)">Sz</span><input type="range" id="meme-fontsize" min="0" max="120" value="0" title="Font size (0 = auto)" style="width:50px;accent-color:var(--saffron-400);"><span class="range-value" id="meme-fontsize-val">Auto</span></div>
+        <div class="ribbon-row"><span id="meme-font-pill"></span></div>
         <div class="ribbon-row"><span class="ribbon-mini-label" title="Text padding from edge">Pd</span><input type="range" id="meme-padding" min="1" max="15" value="4" title="Text padding %" style="width:40px;accent-color:var(--saffron-400);"><span class="range-value" id="meme-padding-val">4%</span></div>
       </div><div class="ribbon-label">Font</div></div>
       <div class="ribbon-sep-v"></div>
@@ -1097,7 +1243,7 @@
       <div class="ribbon-sep-v"></div>
       <!-- Export -->
       <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:5px;"><select id="meme-export-fmt" class="select-field" style="width:65px;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option></select><button id="btn-meme-export" class="btn-primary" style="padding:2px 8px;">Export</button><button class="tool-btn" id="btn-meme-save-lib" title="Save to Library"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button></div>
+        <div class="ribbon-row"><span id="meme-export-pill"></span></div>
       </div><div class="ribbon-label">Export</div></div>
     </div></div>
     <div class="work-area">
@@ -1237,7 +1383,7 @@
       <div class="ribbon-sep-v"></div>
       <!-- Export -->
       <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:5px;"><select id="cert-export-fmt" class="select-field" style="width:65px;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option></select><button id="btn-cert-export" class="btn-primary" style="padding:2px 8px;">Export</button><button class="tool-btn" id="btn-cert-save-lib" title="Save to Library"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button></div>
+        <div class="ribbon-row"><span id="cert-export-pill"></span></div>
       </div><div class="ribbon-label">Export</div></div>
     </div></div>
     <div class="work-area"><canvas id="cert-canvas" style="max-width:85%;max-height:85%;"></canvas><div id="cert-dims" style="position:absolute;bottom:8px;right:8px;color:var(--slate-400);font-family:monospace;"></div></div>
@@ -1314,8 +1460,7 @@
         <div class="ribbon-row">
           <button class="tool-btn" id="btn-coll-add-text" title="Add text to canvas">T+</button>
           <input type="color" id="coll-text-color" value="#ffffff" style="width:18px;height:16px;border:none;cursor:pointer;" title="Text color">
-          <input type="number" id="coll-text-size" class="input-field" value="36" min="8" max="200" style="width:48px;" title="Font size">
-          <select id="coll-text-font" class="select-field" style="width:72px;" title="Font"></select>
+          <span id="coll-font-pill"></span>
         </div>
         <div class="ribbon-row">
           <button class="tool-btn" id="btn-arrange-grid" title="Auto-arrange: Grid" style="">Grid</button>
@@ -1410,13 +1555,7 @@
       <div class="ribbon-sep-v"></div>
       <!-- Export -->
       <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row">
-          <select id="collage-export-fmt" class="select-field" style="width:72px;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option></select>
-          <button id="btn-collage-export" class="tool-btn" style="border:1.5px solid var(--slate-600);padding:3px 10px;">Export</button><button class="tool-btn" id="btn-collage-save-lib" title="Save to Library"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
-        </div>
-        <div class="ribbon-row">
-          <label class="toggle-chip"><input type="checkbox" id="collage-trim-export">Trim to content</label>
-        </div>
+        <div class="ribbon-row"><span id="collage-export-pill"></span></div>
         <div class="ribbon-row">
           <button id="btn-collage-save" class="tool-btn" style="" title="Save project (.gazo)">Save</button>
           <button id="btn-collage-load" class="tool-btn" style="" title="Load project (.gazo)">Load<input type="file" id="collage-load-file" accept=".gazo,.json" style="display:none;"></button>
@@ -1473,6 +1612,9 @@
       <div class="ribbon-sep"></div>
       <button id="btn-copy-base64" class="tool-btn" style="" disabled>Copy Data URI</button>
       <button id="btn-info-copy-json" class="tool-btn" style="" disabled>Copy JSON</button>
+      <button id="btn-info-copy-css" class="tool-btn" style="" disabled title="Copy width, height, aspect-ratio as CSS">Copy CSS</button>
+      <div class="ribbon-sep"></div>
+      <button id="btn-info-paste-b64" class="tool-btn" title="Paste a data URI to render as image">Paste Data URI</button>
       <div class="ribbon-sep"></div>
       <button id="btn-info-strip-meta" class="tool-btn" style="" disabled>Strip Metadata</button>
       <button id="btn-info-reset" class="tool-btn">Reset</button>
@@ -1600,11 +1742,38 @@
       <div style="display:flex;align-items:center;gap:5px;"><span style="color:var(--slate-500);">Colors</span><input type="range" class="range-input" id="palette-count" min="2" max="12" value="6" style="width:60px;"><span class="range-value" id="palette-count-val" style="width:14px;">6</span></div>
       <button id="btn-reextract" class="tool-btn" style="">Re-extract</button>
       <button id="btn-copy-palette" class="tool-btn" style="" disabled>Copy Palette</button>
+      <select id="palette-export-fmt" class="select-field" style="width:100px;" title="Export format">
+        <option value="hex">HEX (plain)</option>
+        <option value="css">CSS Variables</option>
+        <option value="tailwind">Tailwind</option>
+        <option value="scss">SCSS</option>
+        <option value="json">JSON</option>
+      </select>
     </div>
     <div class="tool-content" style="display:flex;flex-direction:column;align-items:center;gap:1rem;">
       <div id="colors-drop" class="dropzone" style="max-width:500px;width:100%;"><p class="drop-title">Drop an image to extract colors</p><p class="drop-sub">Click any pixel to pick a color</p><input type="file" id="colors-file" accept="image/*" style="display:none;"></div>
       <div id="colors-preview" style="display:none;text-align:center;"><canvas id="colors-canvas" style="max-width:90%;max-height:50vh;border-radius:8px;cursor:crosshair;"></canvas></div>
       <div id="palette-colors" style="display:flex;flex-wrap:wrap;gap:0.5rem;justify-content:center;max-width:600px;"><span style="color:var(--slate-400);">No image loaded</span></div>
+      <!-- Contrast Checker -->
+      <div id="contrast-checker" style="max-width:400px;width:100%;background:var(--slate-900);border:1px solid var(--slate-800);border-radius:10px;padding:0.75rem;">
+        <div style="font-size:0.65rem;font-weight:600;color:var(--slate-500);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.5rem;">WCAG Contrast Checker</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:0.5rem;">
+          <label style="font-size:0.7rem;color:var(--slate-400);">FG</label>
+          <input type="color" id="contrast-fg" value="#ffffff" style="width:28px;height:22px;border:none;cursor:pointer;">
+          <input type="text" id="contrast-fg-hex" class="input-field" value="#ffffff" style="width:72px;font-size:0.7rem;font-family:monospace;">
+          <label style="font-size:0.7rem;color:var(--slate-400);">BG</label>
+          <input type="color" id="contrast-bg" value="#000000" style="width:28px;height:22px;border:none;cursor:pointer;">
+          <input type="text" id="contrast-bg-hex" class="input-field" value="#000000" style="width:72px;font-size:0.7rem;font-family:monospace;">
+          <button id="btn-contrast-swap" class="tool-btn" title="Swap colors" style="padding:2px 4px;">&#8644;</button>
+        </div>
+        <div id="contrast-result" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span id="contrast-ratio" style="font-size:1.1rem;font-weight:700;color:var(--slate-200);">21:1</span>
+          <span id="contrast-aa" style="font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:4px;">AA</span>
+          <span id="contrast-aaa" style="font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:4px;">AAA</span>
+          <span id="contrast-aa-large" style="font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:4px;">AA Large</span>
+        </div>
+        <div id="contrast-preview" style="margin-top:0.5rem;padding:6px 10px;border-radius:6px;font-size:0.75rem;text-align:center;font-weight:600;">Sample Text Preview</div>
+      </div>
     </div>
   </div>
 
@@ -1761,7 +1930,7 @@
       <div class="ribbon-group"><div class="ribbon-tools">
         <div class="ribbon-row"><input type="text" id="batch-watermark" class="input-field" placeholder="Watermark text" style="width:80px;"><span class="ribbon-mini-label">Op</span><input type="range" id="batch-wm-opacity" class="range-input" min="10" max="100" value="30" style="width:40px;"><span class="range-value" id="batch-wm-opacity-val">30</span></div>
         <div class="ribbon-row"><select id="batch-wm-mode" class="select-field" style="width:78px;" title="Watermark mode"><option value="text">Text</option><option value="diagonal">Diagonal</option><option value="grid">Grid</option><option value="stamp">Stamp</option><option value="image">Image</option></select><select id="batch-wm-position" class="select-field" style="width:78px;" title="Position"><option value="center">Center</option><option value="tiled">Tiled</option><option value="bottom-right">Bot Right</option><option value="bottom-left">Bot Left</option><option value="top-right">Top Right</option><option value="top-left">Top Left</option></select></div>
-        <div class="ribbon-row"><input type="color" id="batch-wm-color" value="#ffffff" style="width:18px;height:16px;border:none;cursor:pointer;" title="Watermark color"><select id="batch-wm-font" class="select-field" style="width:72px;" title="Font"></select><input type="number" id="batch-wm-fontsize" class="input-field" value="0" min="0" max="200" style="width:44px;" title="Font size (0 = auto)" placeholder="Auto"><button class="tool-btn" id="batch-wm-bold" title="Bold" style="font-weight:bold;padding:2px 4px;">B</button><button class="tool-btn" id="batch-wm-italic" title="Italic" style="font-style:italic;padding:2px 4px;">I</button><div id="batch-wm-img-btn" style="display:none;cursor:pointer;border:1px dashed var(--slate-600);border-radius:4px;padding:2px 6px;color:var(--slate-400);"><input type="file" id="batch-wm-img-file" accept="image/*" style="display:none;">Logo</div></div>
+        <div class="ribbon-row"><input type="color" id="batch-wm-color" value="#ffffff" style="width:18px;height:16px;border:none;cursor:pointer;" title="Watermark color"><span id="batch-wm-font-pill"></span><div id="batch-wm-img-btn" style="display:none;cursor:pointer;border:1px dashed var(--slate-600);border-radius:4px;padding:2px 6px;color:var(--slate-400);"><input type="file" id="batch-wm-img-file" accept="image/*" style="display:none;">Logo</div></div>
       </div><div class="ribbon-label">Watermark</div></div>
       <div class="ribbon-sep-v"></div>
       <!-- Output -->
@@ -1917,8 +2086,7 @@
               <input type="text" id="social-text" class="input-field" placeholder="Add text..." style="width:120px;">
             </div>
             <div class="ribbon-row">
-              <select id="social-font" class="select-field" style="width:82px;" title="Font"></select>
-              <input type="number" id="social-fontsize" class="input-field" value="0" min="0" max="300" style="width:52px;" title="Font size (0 = auto)" placeholder="Auto">
+              <span id="social-font-pill"></span>
             </div>
             <div class="ribbon-row">
               <input type="color" id="social-text-color" value="#ffffff" style="width:28px;height:22px;border:none;cursor:pointer;">
@@ -2127,8 +2295,7 @@
             </div>
             <div class="ribbon-row">
               <span style="color:var(--slate-500);">Sz</span>
-              <input type="number" id="co-fontsize" class="input-field" value="16" min="8" max="72" style="width:44px;" title="Font size">
-              <select id="co-font" class="select-field" style="width:80px;" title="Font"></select>
+              <span id="co-font-pill"></span>
             </div>
           </div>
           <div class="ribbon-label">Style</div>
@@ -2143,8 +2310,7 @@
               <button class="tool-btn" id="btn-co-from-lib" title="Load image from Library">Library</button>
             </div>
             <div class="ribbon-row">
-              <button class="tool-btn" id="btn-co-export" title="Export image with callouts">Export</button>
-              <button class="tool-btn" id="btn-co-save-lib" title="Save to Library"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button>
+              <span id="co-export-pill"></span>
             </div>
           </div>
           <div class="ribbon-label">Actions</div>
@@ -2208,7 +2374,7 @@
           <div class="ribbon-tools">
             <div class="ribbon-row">
               <input type="text" id="wm-text" class="input-field" placeholder="Watermark text..." style="width:140px;" title="Enter the text to display as watermark">
-              <select id="wm-font" class="select-field" style="width:110px;" title="Font family for text watermark"></select>
+              <span id="wm-font-pill"></span>
             </div>
             <div class="ribbon-row">
               <label style="color:var(--slate-400);">Color</label>
@@ -2362,10 +2528,7 @@
       </select>
       <label class="toggle-chip"><input type="checkbox" id="draw-fill"> Fill</label>
       <div class="ribbon-sep"></div>
-      <select id="draw-font" class="select-field" style="width:82px;" title="Font"></select>
-      <input type="number" id="draw-fontsize" class="input-field" value="24" min="8" max="200" style="width:48px;" title="Font size">
-      <button class="tool-btn" id="draw-bold" title="Bold" style="font-weight:bold;padding:2px 5px;">B</button>
-      <button class="tool-btn" id="draw-italic" title="Italic" style="font-style:italic;padding:2px 5px;">I</button>
+      <span id="draw-font-pill"></span>
       <button class="tool-btn" id="draw-underline" title="Underline" style="text-decoration:underline;padding:2px 5px;">U</button>
       <div class="ribbon-sep"></div>
       <button id="btn-draw-undo" class="tool-btn" title="Undo (Ctrl+Z)" disabled><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
@@ -2379,11 +2542,7 @@
       <button id="btn-draw-grid" class="tool-btn" title="Toggle grid">Grid</button>
       <label class="tool-btn" title="Set background image (non-selectable backdrop)" style="cursor:pointer;">BG<input type="file" id="draw-bg-image" accept="image/*" style="display:none;"></label>
       <div class="ribbon-sep"></div>
-      <select id="draw-export-fmt" class="select-field" style="width:60px;">
-        <option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option>
-      </select>
-      <button id="btn-draw-export" class="btn-primary" style="padding:3px 12px;" disabled>Export</button>
-      <button id="btn-draw-copy" class="tool-btn" disabled>Copy</button>
+      <span id="draw-export-pill"></span>
       <button id="btn-draw-reset" class="tool-btn">Reset</button>
       <span id="draw-dims" style="color:var(--slate-400);"></span>
     </div>
@@ -2610,6 +2769,8 @@
   <script src="../shared/dialog.js"></script>
   <script src="../shared/library.js"></script>
   <script src="../shared/font-manager.js"></script>
+  <script src="../shared/font-pill.js"></script>
+  <script src="../shared/export-pill.js"></script>
   <script src="../lib/qrcode-gen.js"></script>
   <script src="../popup/qr.js"></script>
   <script src="../lib/smartcrop.min.js"></script>

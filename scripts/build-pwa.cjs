@@ -5,14 +5,20 @@ const fs = require('fs');
 const path = require('path');
 
 const SRC = path.join(__dirname, '..', 'browser', 'chrome');
-const DEST = path.join(__dirname, '..', 'website', 'pwa', 'app');
-const OVERRIDES = path.join(__dirname, '..', 'website', 'pwa', 'overrides');
+const DEST = path.join(__dirname, '..', 'website', 'pwa');
+const OVERRIDES = path.join(DEST, 'overrides');
 
-// Clean and create dest
-if (fs.existsSync(DEST)) fs.rmSync(DEST, { recursive: true });
-fs.mkdirSync(DEST, { recursive: true });
+// Preserved static files (not generated, don't delete)
+const PRESERVE = new Set(['manifest.json', 'sw.js', 'icons', 'overrides', 'CNAME']);
+
+// Clean generated files only (preserve static PWA files)
+for (const f of fs.readdirSync(DEST, { withFileTypes: true })) {
+  if (PRESERVE.has(f.name)) continue;
+  fs.rmSync(path.join(DEST, f.name), { recursive: true, force: true });
+}
+
+// Create subdirectories
 fs.mkdirSync(path.join(DEST, 'styles'), { recursive: true });
-fs.mkdirSync(path.join(DEST, 'icons'), { recursive: true });
 fs.mkdirSync(path.join(DEST, 'lib'), { recursive: true });
 
 // Copy editor JS files
@@ -47,7 +53,7 @@ if (fs.existsSync(qrJs)) {
   fs.copyFileSync(qrJs, path.join(DEST, 'popup', 'qr.js'));
 }
 
-// Copy icons
+// Copy extension icons into pwa/icons/ (merge with existing PWA icons)
 for (const f of ['icon16.png', 'icon32.png', 'icon48.png', 'icon128.png']) {
   const src = path.join(SRC, 'icons', f);
   if (fs.existsSync(src)) fs.copyFileSync(src, path.join(DEST, 'icons', f));
@@ -63,14 +69,14 @@ html = html.replace(/\.\.\/shared\//g, 'shared/');
 html = html.replace(/\.\.\/icons\//g, 'icons/');
 html = html.replace(/\.\.\/popup\//g, 'popup/');
 
-// Add PWA meta tags after <meta name="viewport">
+// Add PWA meta tags after <title>
 html = html.replace(
   '<title>Gazo</title>',
   `<title>Gazo</title>
   <meta name="description" content="Gazo — Image tools, zero uploads, offline. Grab. Alter. Zone. Output.">
   <meta name="theme-color" content="#F4C430">
-  <link rel="manifest" href="../manifest.json">
-  <link rel="apple-touch-icon" href="../icons/icon-192.png">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">`
 );
 
@@ -79,7 +85,7 @@ html = html.replace(
   '</body>',
   `<script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('../sw.js').catch(() => {});
+    navigator.serviceWorker.register('sw.js').catch(() => {});
   }
   </script>
 </body>`

@@ -38,27 +38,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // ── Quick Actions ─────────────────────────────────────
-  // Screenshot — capture visible tab, open in editor
+  // Screenshot — same flow as region but auto-selects full viewport
   document.getElementById('pqa-screenshot')?.addEventListener('click', async () => {
-    try {
-      const dataUrl = await chrome.tabs.captureVisibleTab(null, { format: 'png' });
-      const name = 'screenshot-' + new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
-      // Store for editor to pick up
-      await chrome.storage.local.set({ 'gazo-screenshot': { dataUrl, name } });
-      // Screenshot will be auto-saved to recent files when editor loads it
-      chrome.runtime.sendMessage({ action: 'openEditor', params: 'fromScreenshot=1' });
-      window.close();
-    } catch (e) {
-      // Fallback: just open editor
-      chrome.runtime.sendMessage({ action: 'openEditor' });
-      window.close();
+    if (tab?.id) {
+      chrome.runtime.sendMessage({ action: 'startFullScreenCapture', tabId: tab.id });
     }
+    window.close();
   });
 
   // Region — tell background to inject content script and start region capture
   document.getElementById('pqa-region')?.addEventListener('click', async () => {
     if (tab?.id) {
       chrome.runtime.sendMessage({ action: 'startRegionOnTab', tabId: tab.id });
+    }
+    window.close();
+  });
+
+  // Full Page — scroll-stitch capture
+  document.getElementById('pqa-fullpage')?.addEventListener('click', async () => {
+    if (tab?.id) {
+      chrome.runtime.sendMessage({ action: 'startFullPageOnTab', tabId: tab.id });
     }
     window.close();
   });

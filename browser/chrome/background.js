@@ -197,6 +197,70 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  // Full screenshot — tell content script to trigger captureRegion with full viewport
+  if (message.action === 'startFullScreenCapture') {
+    (async () => {
+      try {
+        const tabId = message.tabId;
+        try {
+          await chrome.scripting.executeScript({ target: { tabId }, files: ['content/detector.js'] });
+        } catch {}
+        await new Promise(r => setTimeout(r, 200));
+        try {
+          await chrome.tabs.sendMessage(tabId, { action: 'captureFullScreen' });
+        } catch {
+          await new Promise(r => setTimeout(r, 300));
+          try { await chrome.tabs.sendMessage(tabId, { action: 'captureFullScreen' }); } catch {}
+        }
+        sendResponse({ ok: true });
+      } catch (e) {
+        sendResponse({ error: e.message });
+      }
+    })();
+    return true;
+  }
+
+  // Full page scroll-stitch capture
+  if (message.action === 'startFullPageOnTab') {
+    (async () => {
+      try {
+        const tabId = message.tabId;
+        try {
+          await chrome.scripting.executeScript({ target: { tabId }, files: ['content/detector.js'] });
+        } catch {}
+        await new Promise(r => setTimeout(r, 200));
+        try {
+          await chrome.tabs.sendMessage(tabId, { action: 'startFullPageCapture' });
+        } catch {
+          await new Promise(r => setTimeout(r, 300));
+          try { await chrome.tabs.sendMessage(tabId, { action: 'startFullPageCapture' }); } catch {}
+        }
+        sendResponse({ ok: true });
+      } catch (e) {
+        sendResponse({ error: e.message });
+      }
+    })();
+    return true;
+  }
+
+  // Full page capture completed — show overlay
+  if (message.action === 'fullPageCaptured') {
+    (async () => {
+      try {
+        const tabId = sender.tab?.id;
+        const name = 'fullpage-' + new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
+        await chrome.storage.local.set({ 'gazo-capture': { dataUrl: message.dataUrl, name } });
+        if (tabId) {
+          chrome.tabs.sendMessage(tabId, { action: 'showCaptureOverlay' }).catch(() => {});
+        }
+        sendResponse({ ok: true });
+      } catch (e) {
+        sendResponse({ error: e.message });
+      }
+    })();
+    return true;
+  }
+
   if (message.action === 'startRegionOnTab') {
     (async () => {
       try {
@@ -226,19 +290,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       try {
         const dataUrl = await chrome.tabs.captureVisibleTab(null, { format: 'png' });
         const region = message.region;
-        // Store capture + region for editor to crop and load
-        await chrome.storage.local.set({ 'gazo-region': { dataUrl, region, name: 'screenshot-region-' + new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-') } });
-        // Open editor with fromRegion param
-        const editorUrl = chrome.runtime.getURL('editor/editor.html');
-        let existingId = editorTabIds.size > 0 ? [...editorTabIds][0] : null;
-        if (!existingId) {
-          const tabs = await chrome.tabs.query({});
-          const t = tabs.find(t => t.url?.includes('editor/editor.html'));
-          if (t) { existingId = t.id; editorTabIds.add(existingId); }
+        const name = 'screenshot-region-' + new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
+        const tabId = sender.tab?.id;
+
+        // Crop to selected region
+        const croppedUrl = tabId ? await _cropRegion(dataUrl, region, tabId) : null;
+        const finalUrl = croppedUrl || dataUrl;
+
+        // Store and trigger overlay via detector.js
+        if (tabId) {
+          await chrome.storage.local.set({ 'gazo-capture': { dataUrl: finalUrl, name } });
+          chrome.tabs.sendMessage(tabId, { action: 'showCaptureOverlay' }).catch(() => {});
         }
-        const url = editorUrl + '?fromRegion=1';
-        if (existingId) { try { await chrome.tabs.update(existingId, { url, active: true }); } catch { chrome.tabs.create({ url }); } }
-        else { chrome.tabs.create({ url }); }
+
         // Also relay for sidepanel listeners
         chrome.runtime.sendMessage({ action: 'regionCaptured', dataUrl, region }).catch(() => {});
         sendResponse({ ok: true });
@@ -312,3 +376,36 @@ chrome.tabs.onRemoved.addListener((tabId) => {
     notifySidePanelRescan();
   }
 });
+
+// --- Capture Helpers ---
+// Crop a full-tab screenshot to a region using content script canvas
+async function _cropRegion(dataUrl, region, tabId) {
+  if (!tabId) return null;
+  try {
+    const results = await chrome.scripting.executeScript({
+      target: { tabId },
+      func: (dataUrl, region) => {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+            const dpr = window.devicePixelRatio || 1;
+            const c = document.createElement('canvas');
+            c.width = Math.round(region.w * dpr);
+            c.height = Math.round(region.h * dpr);
+            c.getContext('2d').drawImage(img,
+              region.x * dpr, region.y * dpr, region.w * dpr, region.h * dpr,
+              0, 0, c.width, c.height
+            );
+            resolve(c.toDataURL('image/png'));
+          };
+          img.onerror = () => resolve(null);
+          img.src = dataUrl;
+        });
+      },
+      args: [dataUrl, region]
+    });
+    return results?.[0]?.result || null;
+  } catch {
+    return null;
+  }
+}

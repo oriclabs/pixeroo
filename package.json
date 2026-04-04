@@ -19,7 +19,9 @@
     "test:legacy": "node --test tests/utils/*.test.js tests/extension/*.test.js tests/pwa/*.test.js",
     "dev": "npm run watch:css",
     "build:pwa": "node scripts/build-pwa.cjs",
-    "build:pwa:prod": "node scripts/build-pwa.cjs --minify"
+    "build:pwa:prod": "node scripts/build-pwa.cjs --minify",
+    "build:store": "npm run build:pwa && node scripts/build-store.cjs",
+    "build:store:prod": "npm run build:pwa:prod && node scripts/build-store.cjs"
   },
   "keywords": [
     "image",
